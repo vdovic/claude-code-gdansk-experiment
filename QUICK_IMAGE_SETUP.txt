@@ -1,0 +1,50 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    QUICK IMAGE SETUP - CHOOSE ONE METHOD
+═══════════════════════════════════════════════════════════════════════════════
+
+METHOD 1: AUTOMATIC (FASTEST - 2 MINUTES)
+─────────────────────────────────────────────────────────────────────────────
+
+1. Open Command Prompt or PowerShell
+2. Run:
+   cd D:\Claude_Code_Gdansk_experiment
+   node download_images.js
+
+3. Wait for download to complete
+4. Edit src/data/churches.js:
+   - Add: import { churchImages } from './images.js';
+   - Change URLs to: url: churchImages.stmary.exterior
+5. Refresh browser
+6. Done! ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+
+METHOD 2: MANUAL (FULL CONTROL - 15 MINUTES)
+─────────────────────────────────────────────────────────────────────────────
+
+1. Create folder:
+   D:\Claude_Code_Gdansk_experiment\assets\images\churches
+
+2. Download images from Wikimedia Commons:
+   - Go to: https://commons.wikimedia.org
+   - Search for each church name
+   - Download exterior and interior photos
+   - Save as: stmary-ext.jpg, stmary-int.jpg, etc.
+
+3. Edit src/data/churches.js:
+   - For each church, change:
+     FROM: url:'https://upload.wikimedia.org/...'
+     TO:   url:'assets/images/churches/stmary-ext.jpg'
+
+4. Refresh browser
+5. Done! ✓
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMMENDATION: Use Method 1 for fastest results!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Full guide available in: INSTALL_IMAGES_GUIDE.md
+
+═══════════════════════════════════════════════════════════════════════════════

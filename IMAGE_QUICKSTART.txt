@@ -1,0 +1,175 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    🏛️  CHURCH IMAGES - AUTOMATED SETUP
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ CURRENT STATUS: FULLY AUTOMATED
+
+All 16 churches have placeholder images configured. Zero manual copy/paste required.
+
+───────────────────────────────────────────────────────────────────────────────
+
+📂 WHAT'S IN PLACE:
+
+  Configuration:
+    assets/images/churches/church_images.json   ← Master config (all URLs here)
+
+  Images:
+    assets/images/churches/*-exterior.jpg       ← 16 files (placeholder)
+    assets/images/churches/*-interior.jpg       ← 16 files (placeholder)
+
+  Code:
+    src/data/churches.js                        ← Updated (all paths valid)
+
+  Tools:
+    tools/create_image_config.js                ← Generate config
+    tools/update_churches_from_config.js        ← Apply config to churches.js
+    tools/generate_placeholder_images.js        ← Create placeholder images
+
+───────────────────────────────────────────────────────────────────────────────
+
+🚀 QUICK START:
+
+  1. Start server:
+     python -m http.server 8080
+
+  2. Open app:
+     http://localhost:8080/
+
+  3. Click any church in timeline
+
+  4. Scroll to "Church Images" section
+     You should see placeholder images
+
+───────────────────────────────────────────────────────────────────────────────
+
+🎨 WHEN REAL PHOTOS ARE READY:
+
+  Option 1: Replace placeholders (simplest)
+  ──────────────────────────────────────────
+  1. Save real JPEGs to: assets/images/churches/
+     File names: {churchId}-exterior.jpg, {churchId}-interior.jpg
+     Example: stmary-exterior.jpg, stmary-interior.jpg
+
+  2. Run sync script:
+     node tools/update_churches_from_config.js
+
+  3. Reload browser
+     Images load automatically!
+
+  Option 2: Use different file names
+  ──────────────────────────────────────────
+  1. Place images anywhere in assets/images/churches/
+
+  2. Edit config:
+     assets/images/churches/church_images.json
+     Update URLs to match your file names
+
+  3. Run sync script:
+     node tools/update_churches_from_config.js
+
+  4. Reload browser
+
+───────────────────────────────────────────────────────────────────────────────
+
+📝 FILE NAMING CONVENTION:
+
+  All churches use same pattern:
+    {churchId}-exterior.jpg
+    {churchId}-interior.jpg
+
+  Church IDs:
+    stmary, stcatherine, stnicolaus, stpeterpaul, sttrinity, stbrigid,
+    stjohn, stbartholomew, stbarbara, stelizabeth, stcorpus, stjoseph,
+    oliwa, immaculate, royalchapel, stjames
+
+  Example:
+    stmary-exterior.jpg         (exterior photo)
+    stmary-interior.jpg         (interior photo)
+    stcatherine-exterior.jpg    (exterior photo)
+    stcatherine-interior.jpg    (interior photo)
+    ... (30 more files)
+
+───────────────────────────────────────────────────────────────────────────────
+
+⚙️ AUTOMATION SCRIPTS:
+
+  Create Config (setup)
+  ─────────────────────
+  node tools/create_image_config.js
+  → Generates: assets/images/churches/church_images.json
+
+  Update churches.js (sync)
+  ─────────────────────────
+  node tools/update_churches_from_config.js
+  → Reads config, updates src/data/churches.js
+  → No manual code editing needed!
+
+  Generate Placeholders (setup)
+  ─────────────────────────────
+  node tools/generate_placeholder_images.js
+  → Creates 32 placeholder JPEG files
+  → App works immediately
+
+───────────────────────────────────────────────────────────────────────────────
+
+✨ KEY FEATURES:
+
+  ✅ Zero manual copy/paste       URLs are in one config file
+  ✅ Single source of truth        church_images.json is master
+  ✅ Easy to maintain              Update JSON, run script, done
+  ✅ Flexible                      Local or remote image URLs
+  ✅ App works immediately         Placeholders provided
+  ✅ No package dependencies       Uses Node built-ins only
+
+───────────────────────────────────────────────────────────────────────────────
+
+📚 DOCUMENTATION:
+
+  Main guide:   IMAGES_AUTOMATED.md
+  README:       See "Church Images (Automated)" section
+  This file:    IMAGE_QUICKSTART.txt
+
+───────────────────────────────────────────────────────────────────────────────
+
+❓ TROUBLESHOOTING:
+
+  Q: Images not showing?
+  A: Check browser console (F12) for errors
+     Make sure server is running: python -m http.server 8080
+
+  Q: Want to use different file names?
+  A: Edit assets/images/churches/church_images.json
+     Update the "url" field for each church
+
+  Q: Lost placeholder images?
+  A: node tools/generate_placeholder_images.js
+     Will recreate all 32 files
+
+  Q: How do I verify the setup?
+  A: Open http://localhost:8080/
+     Click any church, scroll to "Church Images"
+     Should show 2 images (exterior + interior)
+
+───────────────────────────────────────────────────────────────────────────────
+
+🎯 WORKFLOW SUMMARY:
+
+  Phase 1: Setup (DONE ✅)
+  ├─ Generate config JSON
+  ├─ Create placeholder images
+  └─ Update churches.js
+
+  Phase 2: Real Photos (WHEN READY)
+  ├─ Place JPEG files in assets/images/churches/
+  ├─ Run: node tools/update_churches_from_config.js
+  └─ Reload browser
+
+  Phase 3: Profit
+  └─ All 16 churches display real photos!
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                         Ready to go! 🎨
+                    Test it now: python -m http.server 8080
+
+═══════════════════════════════════════════════════════════════════════════════

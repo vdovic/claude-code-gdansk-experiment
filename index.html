@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f14">
+<title>Gdansk history through the lenses of churches</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- App styles -->
+<link rel="stylesheet" href="src/styles.css">
+<!-- Apply saved theme immediately to prevent flash -->
+<script>
+(function(){
+  var t = localStorage.getItem('gdansk-theme') || 'dark';
+  if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+})();
+</script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     HEADER  (fixed top)
+     ══════════════════════════════════════════════ -->
+<header class="hdr">
+  <button class="m-chrome-toggle" id="mChromeToggle" title="Toggle controls">▼</button>
+  <div style="flex:1;min-width:0;">
+    <div class="hdr-title">Gdansk history through the lenses of churches</div>
+    <div class="hdr-sub">8 centuries · 16 churches · 5 denominations</div>
+  </div>
+  <button class="legend-toggle-btn" id="legendToggleBtn" title="Toggle legend panel">Legend</button>
+  <button class="theme-toggle" id="themeToggle" title="Switch theme">🌙</button>
+</header>
+
+<!-- ══════════════════════════════════════════════
+     LEGEND PANEL  (right-side collapsible)
+     ══════════════════════════════════════════════ -->
+<div class="legend-panel collapsed" id="legendPanel">
+  <div class="legend-panel-header">
+    <span>Legend</span>
+    <button class="legend-panel-close" id="legendPanelClose">✕</button>
+  </div>
+  <div class="legend-panel-body">
+    <div class="legend-section-title">Event Markers</div>
+    <div class="legend-section" id="legendEvents"></div>
+    <div class="legend-section-title">Denomination Colours</div>
+    <div class="legend-section" id="legendDenoms"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCREENS CONTAINER  (fixed between header and tab bar)
+     ══════════════════════════════════════════════ -->
+<div class="screens" id="screens">
+
+  <!-- ─── TIMELINE SCREEN ─── -->
+  <div class="screen active" id="scrTimeline">
+
+    <!-- COLLAPSIBLE CHROME (inside timeline screen so it doesn't overlap) -->
+    <div class="m-chrome" id="mChrome">
+
+      <!-- Controls bar (zoom, search, jump, map, kb) -->
+      <div class="controls" id="controlsBar">
+        <!-- Zoom -->
+        <div style="display:flex;gap:2px;flex-shrink:0;">
+          <button class="ctrl-btn" id="btnZoomIn" title="Zoom in (+)">+</button>
+          <button class="ctrl-btn" id="btnZoomOut" title="Zoom out (−)">−</button>
+          <button class="ctrl-btn" id="btnZoomFit" title="Fit to screen (F)">Fit</button>
+          <button class="ctrl-btn" id="btnResetRange" title="Reset to full time range" style="display:none">⟲ Full</button>
+        </div>
+
+        <!-- View range readout -->
+        <span class="view-range-label" id="viewRangeLabel">View: 1200–2005</span>
+
+        <!-- Search -->
+        <div class="search-box">
+          <span style="color:var(--text-muted);font-size:12px;">⌕</span>
+          <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+        </div>
+
+        <div class="ctrl-sep"></div>
+
+        <!-- Era navigation -->
+        <span class="ctrl-label">Jump:</span>
+        <div class="era-nav">
+          <button class="jump-btn" data-year="1200">Pomeranian</button>
+          <button class="jump-btn" data-year="1308">Teutonic</button>
+          <button class="jump-btn" data-year="1454">Polish</button>
+          <button class="jump-btn" data-year="1793">Prussian</button>
+          <button class="jump-btn" data-year="1920">Free City</button>
+          <button class="jump-btn" data-year="1945">Post-WWII</button>
+        </div>
+
+        <div class="ctrl-sep"></div>
+        <button class="ctrl-btn" id="mapToggleBtn" title="Toggle map panel (M)">🔍 Map</button>
+        <button class="ctrl-btn" id="btnKbHelp" title="Keyboard shortcuts (?)" style="font-size:11px;padding:2px 6px;">⌨ <span class="kbd">?</span></button>
+      </div>
+
+      <!-- Track toggles -->
+      <div class="filter-bar" id="trackToggles"></div>
+
+      <!-- Churches compact selector -->
+      <div class="filter-bar" id="churchSelectorBar">
+        <span class="filter-section-label" style="flex-shrink:0;">Churches:</span>
+        <div class="church-selector" id="churchSelector">
+          <button class="church-selector-btn" id="churchSelectorBtn">All selected</button>
+          <div class="church-selector-dropdown" id="churchDropdown">
+            <input type="text" class="church-selector-search" id="churchDropdownSearch" placeholder="Search churches…" autocomplete="off">
+            <div class="church-selector-actions">
+              <span class="church-selector-act" id="churchSelAll">Select all</span>
+              <span class="church-selector-act" id="churchSelNone">Select none</span>
+            </div>
+            <div class="church-selector-list" id="churchDropdownList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter chips: Status, Type, Size -->
+      <div class="filter-bar" id="filterBar"></div>
+
+      <!-- Sort bar -->
+      <div class="filter-bar sort-bar" id="sortBar">
+        <span class="sort-bar-label">Sort:</span>
+        <button class="ctrl-btn sort-btn active" data-sort="cornerstone">Cornerstone</button>
+        <button class="ctrl-btn sort-btn" data-sort="established">Established</button>
+        <button class="ctrl-btn sort-btn" data-sort="height">Height</button>
+        <button class="ctrl-btn sort-btn" data-sort="capacity">Capacity</button>
+        <button class="ctrl-btn sort-btn" data-sort="distance">Dist. St.Mary</button>
+        <button class="ctrl-btn sort-btn" data-sort="catholicism">Catholicism</button>
+      </div>
+
+    </div><!-- end .m-chrome -->
+
+    <!-- Map panel (collapsible) -->
+    <div class="map-container collapsed" id="mapContainer">
+      <div class="map-inner">
+        <div class="map-leaflet-wrap">
+          <div id="mapLeaflet"></div>
+        </div>
+        <div class="map-sidebar">
+          <div class="map-sidebar-title">Gdańsk · Sacred Map</div>
+          <div class="map-year-control">
+            <label>Denomination at year:</label>
+            <div class="map-year-display" id="mapYearDisplay">1500</div>
+            <input type="range" class="map-year-slider" id="mapYearSlider" min="1186" max="2000" value="1500" step="1">
+          </div>
+          <div class="map-legend-box">
+            <div class="mlb-title">Pin colours = denomination</div>
+            <div class="map-legend-row"><div class="map-legend-swatch" style="background:var(--catholic)"></div>Catholic</div>
+            <div class="map-legend-row"><div class="map-legend-swatch" style="background:var(--lutheran)"></div>Lutheran</div>
+            <div class="map-legend-row"><div class="map-legend-swatch" style="background:var(--calvinist)"></div>Calvinist</div>
+            <div class="map-legend-row"><div class="map-legend-swatch" style="background:var(--armenian)"></div>Armenian</div>
+            <div class="mlb-title" style="margin-top:6px;">Shape = origin type</div>
+            <div class="map-legend-row"><div style="width:10px;height:10px;border-radius:50%;background:var(--ink-lt);flex-shrink:0;"></div>Parish</div>
+            <div class="map-legend-row"><div style="width:10px;height:10px;transform:rotate(45deg);background:var(--ink-lt);flex-shrink:0;"></div>Monastic</div>
+            <div class="map-legend-row"><div style="width:10px;height:10px;border-radius:2px;background:var(--ink-lt);flex-shrink:0;"></div>Hospital</div>
+            <div class="mlb-title" style="margin-top:6px;">Pin size = height</div>
+          </div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.06em;margin:8px 0 4px;">Layers</div>
+          <div id="mapLayerToggles"></div>
+          <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.06em;margin:6px 0 4px;">Churches</div>
+          <div class="map-church-list" id="mapChurchList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimap scrubber + range handles (expanded by default, collapsible + remembered) -->
+    <div class="minimap-toggle" id="minimapToggle">Overview</div>
+    <div class="minimap-bar" id="minimapBar" title="Stable timeline context">
+      <canvas id="minimapCanvas" height="34"></canvas>
+      <!-- Range selection: pill handles + optional connector -->
+      <div class="minimap-range-control">
+        <!-- Left pill handle + tooltip -->
+        <div class="minimap-handle minimap-handle-left" id="minimapHandleLeft" title="Drag to adjust view start">
+          <div class="minimap-pill-label">«</div>
+          <div class="minimap-year-tooltip" id="minimapTooltipLeft"></div>
+        </div>
+        <!-- Optional: connector line between handles -->
+        <div class="minimap-connector" id="minimapConnector" title="Drag to pan view"></div>
+        <!-- Right pill handle + tooltip -->
+        <div class="minimap-handle minimap-handle-right" id="minimapHandleRight" title="Drag to adjust view end">
+          <div class="minimap-pill-label">»</div>
+          <div class="minimap-year-tooltip" id="minimapTooltipRight"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline: frozen axis + context tracks + church lanes -->
+    <div class="tl-outer" id="tlOuter">
+
+      <!-- Frozen axis row -->
+      <div class="tl-axis-row">
+        <div class="tl-axis-stub"><span class="tl-axis-stub-txt"></span></div>
+        <div class="tl-axis-scroll" id="axisScroll">
+          <div class="axis-inner" id="axisInner"></div>
+        </div>
+      </div>
+
+      <!-- Historical periods context row -->
+      <div class="tl-ctx-row" id="econErasRow" style="height:44px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="econEras">Periods</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="econErasInner" style="height:44px;"></div>
+        </div>
+      </div>
+
+      <!-- Rulers context row -->
+      <div class="tl-ctx-row" id="rulersRow" style="height:24px;background:rgba(212,162,83,0.03);overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="rulers">Kings / Rulers</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="rulersInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Wars context row -->
+      <div class="tl-ctx-row" id="warsRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="wars">Wars & Conflicts</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="warsInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Political events context row -->
+      <div class="tl-ctx-row" id="politicalRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="political">Political Events</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="politicalInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Religious events context row -->
+      <div class="tl-ctx-row" id="religiousRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="religious">Religious Events</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="religiousInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Plagues context row -->
+      <div class="tl-ctx-row" id="plaguesRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="plagues">Plagues &amp; Epidemics</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="plaguesInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Urban Power context row -->
+      <div class="tl-ctx-row" id="urbanPowerRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="urbanPower">Urban Power</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="urbanPowerInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Population context row -->
+      <div class="tl-ctx-row" id="populationRow" style="height:48px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="population">Population &#9432;</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="populationInner" style="height:48px;"></div>
+        </div>
+      </div>
+
+      <!-- Grain export context row -->
+      <div class="tl-ctx-row" id="grainRow" style="height:52px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="grain">Grain Export</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="grainInner" style="height:52px;"></div>
+        </div>
+      </div>
+
+      <!-- Districts context row -->
+      <div class="tl-ctx-row" id="districtsRow" style="height:24px;overflow:hidden;">
+        <div class="tl-ctx-stub" data-track="districts">Districts</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="districtsInner" style="height:24px;"></div>
+        </div>
+      </div>
+
+      <!-- Church lanes: frozen label column + scrolling lanes -->
+      <div class="tl-lanes-wrap">
+        <div class="tl-labels" id="tlLabels"></div>
+        <div class="tl-lanes-scroll" id="lanesScroll">
+          <div class="lanes-inner" id="lanesInner"></div>
+        </div>
+      </div>
+
+    </div><!-- end .tl-outer -->
+  </div><!-- end #scrTimeline -->
+
+  <!-- ─── CHURCH LIST SCREEN ─── -->
+  <div class="screen" id="scrList">
+    <div class="list-search">
+      <input type="text" id="listSearchInput" placeholder="Search churches…" autocomplete="off">
+    </div>
+    <div class="list-filters" id="listFilters"></div>
+    <div class="list-scroll" id="listScroll"></div>
+  </div>
+
+  <!-- ─── MAP SCREEN (full-screen map — shares #mapLeaflet with timeline) ─── -->
+  <div class="screen" id="scrMap">
+    <!-- mapLeaflet will be moved here by JS when this tab is active -->
+    <div id="scrMapHost" style="flex:1;width:100%;overflow:hidden;position:relative;"></div>
+    <!-- Overlay controls (built by JS after map is moved in) -->
+    <div class="map-fs-overlay" id="mapFsOverlay">
+      <div style="margin-bottom:6px;font-weight:600;font-size:11px;">Year:</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span id="mapYearDisplayFs" style="font-weight:700;color:var(--accent);min-width:40px;font-size:13px;">1500</span>
+        <input type="range" id="mapYearSliderFs" min="1186" max="2000" value="1500" step="1" style="flex:1;cursor:pointer;">
+      </div>
+      <div style="font-size:9px;color:var(--text-muted);margin-bottom:8px;">Denomination at selected year</div>
+      <div style="font-size:10px;font-weight:600;margin-bottom:4px;">Layers</div>
+      <div id="mapLayerTogglesFs" style="font-size:10px;"></div>
+    </div>
+  </div>
+
+</div><!-- end .screens -->
+
+<!-- ══════════════════════════════════════════════
+     TAB BAR  (fixed bottom, v6 style)
+     ══════════════════════════════════════════════ -->
+<nav class="tabs">
+  <button class="tab active" data-tab="timeline">
+    <span class="tab-icon">📜</span>
+    TIMELINE
+  </button>
+  <button class="tab" data-tab="list">
+    <span class="tab-icon">⛪</span>
+    CHURCHES
+  </button>
+  <button class="tab" data-tab="map">
+    <span class="tab-icon">🗺</span>
+    MAP
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     DETAIL DRAWER  (bottom sheet)
+     ══════════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle" id="drawerHandle">
+    <div class="drawer-handle-bar"></div>
+  </div>
+  <div class="drawer-header" id="drawerHeader"></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-back" id="drawerClose">Close ✕</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TOOLTIP
+     ══════════════════════════════════════════════ -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- ══════════════════════════════════════════════
+     KEYBOARD SHORTCUT OVERLAY
+     ══════════════════════════════════════════════ -->
+<div class="kb-overlay" id="kbOverlay">
+  <div class="kb-panel">
+    <button class="kb-close" id="kbClose">✕</button>
+    <h3>Keyboard Shortcuts</h3>
+    <div class="kb-row"><span class="kbd">←</span><span class="kbd">→</span> Jump between eras</div>
+    <div class="kb-row"><span class="kbd">+</span><span class="kbd">−</span> Zoom in / out</div>
+    <div class="kb-row"><span class="kbd">F</span> Fit timeline to screen</div>
+    <div class="kb-row"><span class="kbd">M</span> Toggle map panel</div>
+    <div class="kb-row"><span class="kbd">Esc</span> Close panel</div>
+    <div class="kb-row"><span class="kbd">?</span> This help</div>
+    <div style="margin-top:8px;font-size:10px;color:var(--text-muted);">Press ? or Esc to close</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CHURCH LIST POPULATION (runs after DOM ready)
+     ══════════════════════════════════════════════ -->
+<script type="module">
+  import { churches } from './src/data/churches.js';
+  import { denomColors, denomNames } from './src/state.js';
+  import { clusterDefs } from './src/data/clusters.js';
+  import { openCD } from './src/detail.js';
+  import { switchTab } from './src/ui.js';
+
+  // ── Local filter/sort state for the list screen ──
+  const lf = {
+    status:  new Set(),   // 'cathedral','basilique','church'
+    origin:  new Set(),   // 'parish','monastic','hospital'
+    organ:   new Set(),   // 'has','none'
+    cluster: new Set(),   // 'A','B','C'
+    sort:    'cornerstone', // default sort key
+  };
+
+  function _toggle(set, val) { set.has(val) ? set.delete(val) : set.add(val); }
+
+  function getCluster(id) { return clusterDefs.find(cl => cl.members.includes(id)) || null; }
+
+  // ── Sort comparators ──
+  const sorters = {
+    cornerstone: (a, b) => a.cornerstoneYear - b.cornerstoneYear,
+    name:        (a, b) => a.name.localeCompare(b.name),
+    height:      (a, b) => b.height - a.height,
+    capacity:    (a, b) => (b.capacity || 0) - (a.capacity || 0),
+  };
+
+  // ── Build filter bar ──
+  function buildListFilters() {
+    const el = document.getElementById('listFilters');
+    if (!el) return;
+
+    function chip(label, on, action) {
+      return `<span class="lf-chip ${on ? 'on' : ''}" data-action="${action}">${label}</span>`;
+    }
+    function sortChip(label, on, key) {
+      return `<span class="lf-sort ${on ? 'on' : ''}" data-sort="${key}">${label}</span>`;
+    }
+
+    let html = '';
+
+    // Sort
+    html += `<span class="lf-label">Sort:</span>`;
+    html += `<span class="lf-group">`;
+    html += sortChip('Year', lf.sort === 'cornerstone', 'cornerstone');
+    html += sortChip('Name', lf.sort === 'name', 'name');
+    html += sortChip('Height', lf.sort === 'height', 'height');
+    html += sortChip('Capacity', lf.sort === 'capacity', 'capacity');
+    html += `</span>`;
+    html += `<span class="lf-sep"></span>`;
+
+    // Status
+    html += `<span class="lf-label">Status:</span>`;
+    html += `<span class="lf-group">`;
+    html += chip('Cathedral', lf.status.has('cathedral'), 'status:cathedral');
+    html += chip('Basilica', lf.status.has('basilique'), 'status:basilique');
+    html += chip('Church', lf.status.has('church'), 'status:church');
+    html += `</span>`;
+    html += `<span class="lf-sep"></span>`;
+
+    // Type
+    html += `<span class="lf-label">Type:</span>`;
+    html += `<span class="lf-group">`;
+    html += chip('Parish', lf.origin.has('parish'), 'origin:parish');
+    html += chip('Monastic', lf.origin.has('monastic'), 'origin:monastic');
+    html += chip('Hospital', lf.origin.has('hospital'), 'origin:hospital');
+    html += `</span>`;
+    html += `<span class="lf-sep"></span>`;
+
+    // Size
+    html += `<span class="lf-label">Size:</span>`;
+    html += `<span class="lf-group">`;
+    html += chip('Large', lf.cluster.has('A'), 'cluster:A');
+    html += chip('Medium', lf.cluster.has('B'), 'cluster:B');
+    html += chip('Small', lf.cluster.has('C'), 'cluster:C');
+    html += `</span>`;
+    html += `<span class="lf-sep"></span>`;
+
+    // Organ
+    html += `<span class="lf-label">Organ:</span>`;
+    html += `<span class="lf-group">`;
+    html += chip('Has', lf.organ.has('has'), 'organ:has');
+    html += chip('No', lf.organ.has('none'), 'organ:none');
+    html += `</span>`;
+
+    // Clear button
+    const hasAny = lf.status.size || lf.origin.size || lf.organ.size || lf.cluster.size;
+    if (hasAny) {
+      html += `<span class="lf-sep"></span>`;
+      html += `<span class="lf-chip" data-action="clear" style="border-color:var(--ev-destroyed);color:var(--ev-destroyed)">✕ Clear</span>`;
+    }
+
+    el.innerHTML = html;
+
+    // Attach click handlers
+    el.querySelectorAll('.lf-chip').forEach(c => {
+      c.addEventListener('click', () => {
+        const act = c.dataset.action || '';
+        if (act === 'clear') { lf.status.clear(); lf.origin.clear(); lf.organ.clear(); lf.cluster.clear(); }
+        else {
+          const [type, val] = act.split(':');
+          if (type === 'status')  _toggle(lf.status, val);
+          if (type === 'origin')  _toggle(lf.origin, val);
+          if (type === 'organ')   _toggle(lf.organ, val);
+          if (type === 'cluster') _toggle(lf.cluster, val);
+        }
+        rebuild();
+      });
+    });
+    el.querySelectorAll('.lf-sort').forEach(s => {
+      s.addEventListener('click', () => { lf.sort = s.dataset.sort; rebuild(); });
+    });
+  }
+
+  // ── Build church cards ──
+  function buildChurchList() {
+    const el = document.getElementById('listScroll');
+    if (!el) return;
+    const q = (document.getElementById('listSearchInput')?.value || '').toLowerCase().trim();
+
+    // Filter
+    const filtered = churches
+      .map((ch, ci) => ({ ch, ci }))
+      .filter(({ ch }) => {
+        if (q && !ch.name.toLowerCase().includes(q) && !ch.shortName.toLowerCase().includes(q)) return false;
+        if (lf.status.size  && !lf.status.has(ch.status))   return false;
+        if (lf.origin.size  && !lf.origin.has(ch.origin))   return false;
+        if (lf.organ.size) {
+          const has = ch.organ && ch.organ.has;
+          if (!((lf.organ.has('has') && has) || (lf.organ.has('none') && !has))) return false;
+        }
+        if (lf.cluster.size) {
+          const cl = getCluster(ch.id);
+          if (!cl || !lf.cluster.has(cl.id)) return false;
+        }
+        return true;
+      });
+
+    // Sort
+    const sortFn = sorters[lf.sort] || sorters.cornerstone;
+    filtered.sort((a, b) => sortFn(a.ch, b.ch));
+
+    let html = '';
+    if (filtered.length === 0) {
+      html = `<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-family:var(--font-ui);font-size:13px;">No churches match the current filters.</div>`;
+    }
+    filtered.forEach(({ ch, ci }) => {
+      const latestDenom = ch.denomBars[ch.denomBars.length - 1];
+      const col = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
+      html += `<div class="church-card" data-ci="${ci}">
+        <div class="card-dot" style="background:${col}"></div>
+        <div class="card-body">
+          <div class="card-name">${ch.name}</div>
+          <div class="card-sub">${ch.height}m · ${ch.cornerstoneYear} · ${ch.origin}${ch.order ? ' · ' + ch.order : ''}</div>
+          <div class="card-denoms">
+            ${ch.denomBars.map(b => `<span class="card-denom-chip" style="background:${denomColors[b.type] || '#888'}">${b.start}–${b.end}</span>`).join('')}
+          </div>
+        </div>
+        <span class="card-arrow">›</span>
+      </div>`;
+    });
+    el.innerHTML = html;
+    el.querySelectorAll('.church-card').forEach(card => {
+      const ci = +card.dataset.ci;
+      card.addEventListener('click', () => {
+        switchTab('timeline');
+        setTimeout(() => openCD(ci, 0), 200);
+      });
+    });
+  }
+
+  function rebuild() { buildListFilters(); buildChurchList(); }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    rebuild();
+    document.getElementById('listSearchInput')?.addEventListener('input', () => buildChurchList());
+  });
+</script>
+
+<!-- ══════════════════════════════════════════════
+     THEME SWITCHER
+     ══════════════════════════════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('themeToggle');
+  var meta = document.querySelector('meta[name="theme-color"]');
+  function applyTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      btn.textContent = '☀️';
+      btn.title = 'Switch to dark theme';
+      if (meta) meta.content = '#f4f5f7';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      btn.textContent = '🌙';
+      btn.title = 'Switch to light theme';
+      if (meta) meta.content = '#0f0f14';
+    }
+    localStorage.setItem('gdansk-theme', theme);
+    // Re-render economic eras (they read theme at render time for bg color)
+    if (window._reRenderEconEras) window._reRenderEconEras();
+  }
+  // Set initial state from saved preference
+  applyTheme(localStorage.getItem('gdansk-theme') || 'dark');
+  btn.addEventListener('click', function() {
+    var current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+});
+</script>
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP MODULE
+     ══════════════════════════════════════════════ -->
+<script type="module" src="src/main.js"></script>
+
+<!-- Global economic ribbon tooltip (fixed-position, escapes minimap overflow:hidden) -->
+<div id="minimapRibbonTooltip" class="minimap-ribbon-tooltip" aria-hidden="true"></div>
+
+<!-- Global regime shift tooltip (fixed-position, z-index above ribbon tooltip) -->
+<div id="minimapRegimeTooltip" class="minimap-regime-tooltip" aria-hidden="true"></div>
+
+</body>
+</html>

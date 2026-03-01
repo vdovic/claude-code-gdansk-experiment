@@ -1,0 +1,111 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                     AUTOMATED CHURCH IMAGES - CHEATSHEET                      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+RIGHT NOW:
+──────────
+python -m http.server 8080
+open http://localhost:8080/
+
+WHEN REAL PHOTOS ARE READY:
+───────────────────────────
+1. Save 32 JPEGs to: assets/images/churches/
+   Names: {churchId}-exterior.jpg, {churchId}-interior.jpg
+
+2. Sync images to code:
+   node tools/update_churches_from_config.js
+
+3. Reload browser
+   Done! ✨
+
+───────────────────────────────────────────────────────────────────────────────
+
+CHURCH IDs (for file naming):
+────────────────────────────
+stmary, stcatherine, stnicolaus, stpeterpaul, sttrinity, stbrigid,
+stjohn, stbartholomew, stbarbara, stelizabeth, stcorpus, stjoseph,
+oliwa, immaculate, royalchapel, stjames
+
+EXAMPLE FILENAMES:
+─────────────────
+stmary-exterior.jpg
+stmary-interior.jpg
+stcatherine-exterior.jpg
+stcatherine-interior.jpg
+... (32 total)
+
+───────────────────────────────────────────────────────────────────────────────
+
+KEY FILES:
+──────────
+church_images.json ........... Master config (all image URLs)
+churches.js .................. Auto-updated (don't edit)
+update_churches_from_config.js  Main sync tool
+
+DOCUMENTATION:
+───────────────
+README.md ......................... Setup instructions
+IMAGES_AUTOMATED.md ............... Complete guide
+IMAGE_QUICKSTART.txt .............. Quick reference
+SOLUTION_SUMMARY.md ............... This implementation
+
+───────────────────────────────────────────────────────────────────────────────
+
+COMMANDS:
+─────────
+Start server:              python -m http.server 8080
+Sync images to code:       node tools/update_churches_from_config.js
+Regenerate placeholders:   node tools/generate_placeholder_images.js
+
+───────────────────────────────────────────────────────────────────────────────
+
+WORKFLOW:
+─────────
+Files on disk (JPEGs)
+     ↓
+JSON config (church_images.json)
+     ↓
+Sync script (update_churches_from_config.js)
+     ↓
+churches.js updated
+     ↓
+App renders images
+
+───────────────────────────────────────────────────────────────────────────────
+
+TROUBLESHOOTING:
+────────────────
+Q: Images not showing?
+A: 1. Check browser console (F12)
+   2. Verify server running: python -m http.server 8080
+   3. Check file paths in church_images.json
+
+Q: Script doesn't find images?
+A: Check file names match: {churchId}-exterior.jpg, {churchId}-interior.jpg
+
+Q: Need to use different file names?
+A: Edit church_images.json to update URLs, then run sync script
+
+───────────────────────────────────────────────────────────────────────────────
+
+KEY BENEFITS:
+──────────────
+✅ Zero manual copy/paste
+✅ Single source of truth (JSON config)
+✅ Easy to maintain and update
+✅ No npm dependencies
+✅ Works with local or remote images
+✅ App functional immediately
+✅ Production ready
+
+───────────────────────────────────────────────────────────────────────────────
+
+                        3 Steps to Real Images:
+
+                    1. Place JPEGs in assets/images/churches/
+                    2. node tools/update_churches_from_config.js
+                    3. Reload browser
+
+                               Done! 🎉
+
+═══════════════════════════════════════════════════════════════════════════════
