@@ -263,3 +263,20 @@ export function toggleTrack(key) {
 }
 export function allTracksOn()  { Object.keys(trackVisibility).forEach(k => { trackVisibility[k] = true;  }); }
 export function allTracksOff() { Object.keys(trackVisibility).forEach(k => { trackVisibility[k] = false; }); }
+
+// ── Patronage Mode ──
+export let patronageMode = false;
+export let selectedGuildId = null;
+export function setPatronageMode(v) { patronageMode = v; if (!v) selectedGuildId = null; }
+export function setSelectedGuild(id) { selectedGuildId = id; }
+
+/** Returns Set of churchIds highlighted by the currently selected guild. */
+import { patronageGuilds } from './data/patronage.js';
+export function getHighlightedChurchIds() {
+  if (!patronageMode || !selectedGuildId) return null;
+  const guild = patronageGuilds.find(g => g.id === selectedGuildId);
+  if (!guild) return null;
+  const set = new Set();
+  guild.targetsConfirmed.forEach(t => set.add(t.churchId));
+  return set;
+}

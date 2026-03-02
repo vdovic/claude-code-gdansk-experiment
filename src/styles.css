@@ -1791,3 +1791,103 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   flex-shrink: 0; text-align: right; padding-left: 4px;
 }
 [data-theme="light"] .ch-lbl-val { color: #6a7280; }
+
+/* ══════════════════════════════════════════════════════════════
+   PATRONAGE MODE — Guild Lens
+   ══════════════════════════════════════════════════════════════ */
+
+/* Patronage bar (guild selector + founders tab) */
+.patronage-bar {
+  flex-wrap: wrap; row-gap: 4px; padding: 6px var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(180,140,40,0.03);
+}
+.patronage-bar .pat-tabs {
+  display: flex; gap: 0; margin-right: 8px; flex-shrink: 0;
+}
+.patronage-bar .pat-tab {
+  font-size: var(--fs-xs); font-family: var(--font-ui); color: var(--text-muted);
+  padding: 4px 10px; cursor: pointer; border: 1px solid var(--border-emphasis);
+  background: rgba(255,255,255,0.02); transition: all var(--ease-default);
+  text-transform: uppercase; letter-spacing: 0.06em; user-select: none;
+}
+.patronage-bar .pat-tab:first-child { border-radius: 6px 0 0 6px; }
+.patronage-bar .pat-tab:last-child  { border-radius: 0 6px 6px 0; border-left: none; }
+.patronage-bar .pat-tab.active {
+  background: rgba(212,162,83,0.14); color: var(--accent); border-color: var(--accent);
+}
+.patronage-bar .pat-tab:hover:not(.active) {
+  background: rgba(212,162,83,0.06); color: var(--text-secondary);
+}
+
+/* Guild content panel */
+.pat-panel { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+.pat-panel.hidden { display: none; }
+
+/* Guild chip (single-select) */
+.patron-guild-item {
+  display: flex; align-items: center; gap: 4px; font-size: var(--fs-sm);
+  font-family: var(--font-ui); color: var(--text-secondary); letter-spacing: 0.02em;
+  padding: 4px 10px; border-radius: 16px; min-height: 26px;
+  border: 1px solid var(--border-emphasis);
+  cursor: pointer; user-select: none; transition: all var(--ease-default);
+  background: rgba(255,255,255,0.03); white-space: nowrap;
+}
+.patron-guild-item:hover {
+  border-color: var(--accent); color: var(--accent-hover); background: rgba(212,162,83,0.08);
+}
+.patron-guild-item.selected {
+  background: rgba(212,162,83,0.18); border-color: var(--accent); color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(212,162,83,0.10);
+}
+.patron-guild-item .pat-icon {
+  font-size: 11px; line-height: 1;
+}
+
+/* Founders tab content */
+.pat-founders-list {
+  display: flex; flex-direction: column; gap: 3px; width: 100%;
+  max-height: 160px; overflow-y: auto; scrollbar-width: thin;
+}
+.pat-founder-row {
+  display: flex; align-items: baseline; gap: 6px; font-size: var(--fs-sm);
+  font-family: var(--font-ui); color: var(--text-secondary);
+  padding: 2px 4px; border-radius: 4px;
+}
+.pat-founder-row:hover { background: rgba(212,162,83,0.04); }
+.pat-founder-name {
+  font-weight: 600; color: var(--accent); min-width: 80px; flex-shrink: 0;
+  font-size: var(--fs-xs);
+}
+.pat-founder-detail {
+  font-size: var(--fs-xs); color: var(--text-muted); flex: 1;
+}
+.pat-founder-order {
+  font-size: 9px; color: var(--accent-muted); font-style: italic;
+  padding: 1px 5px; border-radius: 8px; background: rgba(212,162,83,0.06);
+  border: 1px solid rgba(212,162,83,0.12); white-space: nowrap;
+}
+
+/* Patronage highlight / dim on church lanes and labels */
+.ch-lane.pat-dim { opacity: 0.3; transition: opacity 0.2s ease; }
+.ch-label.pat-dim { opacity: 0.35; transition: opacity 0.2s ease; }
+.ch-lane.pat-hi { opacity: 1; transition: opacity 0.2s ease; border-left: 3px solid var(--accent); }
+.ch-label.pat-hi {
+  opacity: 1; transition: opacity 0.2s ease;
+  color: var(--accent) !important; font-weight: 600;
+}
+
+/* Patronage toggle button active state */
+#patronageToggleBtn.active {
+  color: var(--accent); border-color: var(--accent); background: rgba(212,162,83,0.14);
+}
+
+/* Light theme overrides for patronage */
+[data-theme="light"] .patronage-bar { background: rgba(42,122,138,0.03); }
+[data-theme="light"] .patron-guild-item { background: rgba(42,122,138,0.03); border-color: rgba(0,0,0,0.12); color: #4a5260; }
+[data-theme="light"] .patron-guild-item:hover { background: rgba(42,122,138,0.08); border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .patron-guild-item.selected { background: rgba(42,122,138,0.14); border-color: var(--accent); color: var(--accent); }
+[data-theme="light"] .pat-tab { background: rgba(42,122,138,0.03); border-color: rgba(0,0,0,0.12); color: #6a7280; }
+[data-theme="light"] .pat-tab.active { background: rgba(42,122,138,0.12); color: var(--accent); border-color: var(--accent); }
+[data-theme="light"] .pat-founder-name { color: var(--accent); }
+[data-theme="light"] .ch-label.pat-hi { color: var(--accent) !important; }

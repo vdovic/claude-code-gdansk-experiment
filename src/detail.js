@@ -11,6 +11,7 @@
 import { churches, shieldSVGs } from './data/churches.js';
 import { calamities, politicalEvents, wars } from './data/context.js';
 import { typeColors, denomColors, getCluster, getMostSimilar, setSelectedCI } from './state.js';
+import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
 
 // ── Drawer element references ─────────────────────────────────
 function _overlay()  { return document.getElementById('drawerOverlay'); }
@@ -96,6 +97,31 @@ export function openCD(ci, ei = 0) {
       <div class="drawer-text" style="margin-top:6px;">${cl.desc}</div>
       ${clMembers.length ? `<div style="font-size:10px;color:var(--text-muted);margin-top:3px;">Also in cluster: ${clMembers.join(', ')}</div>` : ''}
     </div>`;
+  }
+
+  // Patronage (founder, order, confirmed guilds)
+  const _pat = churchPatrons[ch.id];
+  if (_pat) {
+    html += `<div class="drawer-section">
+      <div class="drawer-section-title">🏛 Patronage & Founders</div>
+      <div class="drawer-text"><strong>Founder:</strong> ${_pat.founder}</div>
+      ${_pat.order ? `<div class="drawer-text" style="margin-top:3px;"><strong>Religious order:</strong> ${_pat.order}</div>` : ''}`;
+    const _cGuilds = getConfirmedGuildsForChurch(ch.id);
+    if (_cGuilds.length) {
+      html += `<div class="drawer-text" style="margin-top:4px;"><strong>Confirmed guilds:</strong></div>`;
+      _cGuilds.forEach(g => {
+        const targets = g.targetsConfirmed.filter(t => t.churchId === ch.id);
+        const note = targets.length ? targets[0].note : '';
+        html += `<div style="margin:3px 0 3px 8px;font-size:11px;color:var(--text-secondary);">
+          • <span style="color:var(--accent);font-weight:500;">${g.name}</span>
+          ${note ? `<div style="font-size:10px;color:var(--text-muted);margin:1px 0 0 10px;">${note}</div>` : ''}
+        </div>`;
+      });
+    }
+    if (_pat.notes) {
+      html += `<div class="drawer-text" style="margin-top:4px;font-size:10px;color:var(--text-muted);font-style:italic;">${_pat.notes}</div>`;
+    }
+    html += `</div>`;
   }
 
   // Event detail

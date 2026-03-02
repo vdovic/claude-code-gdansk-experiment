@@ -18,6 +18,7 @@ import {
   yearToX, getTotalWidth,
   visibleChurches, sortedIndices, trackVisibility,
   typeColors, getCluster,
+  patronageMode, getHighlightedChurchIds,
 } from './state.js';
 import { showTT, showChurchTT, showGenericTT, hideTT } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
@@ -548,6 +549,9 @@ function renderLanes() {
     gridHtml += `<div class="grid-vl ${maj ? 'maj' : 'min'}" style="left:${x}px"></div>`;
   }
 
+  // Patronage highlight set (null = mode off or no guild selected)
+  const patHi = patronageMode ? getHighlightedChurchIds() : null;
+
   let labHtml  = '';
   let laneHtml = `<div class="lanes-grid">${gridHtml}</div>`;
 
@@ -567,8 +571,11 @@ function renderLanes() {
       ? `<span style="font-size:9px;margin-right:1px;" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
       : '';
 
+    // Patronage dim/highlight CSS class
+    const patClass = patHi ? (patHi.has(ch.id) ? ' pat-hi' : ' pat-dim') : '';
+
     // Label column — name left, sort value right
-    labHtml += `<div class="ch-label" data-ci="${ci}">
+    labHtml += `<div class="ch-label${patClass}" data-ci="${ci}">
       <div class="ch-lbl-left">${clDotHtml}${symHtml}<div class="ch-lbl-text">${ch.shortName}</div></div>
       ${mv ? `<span class="ch-lbl-val">${mv}</span>` : ''}
     </div>`;
@@ -597,7 +604,7 @@ function renderLanes() {
         style="left:${x}px">${dotSvg}</div>`;
     });
 
-    laneHtml += `<div class="ch-lane" data-ci="${ci}">${denomHtml}${evtHtml}</div>`;
+    laneHtml += `<div class="ch-lane${patClass}" data-ci="${ci}">${denomHtml}${evtHtml}</div>`;
   });
 
   labelsEl.innerHTML  = labHtml;

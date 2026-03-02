@@ -22,11 +22,13 @@ import {
   toggleChurch, toggleAllChurches, deselectAllChurches, selectAllChurches,
   toggleTrack, allTracksOn, allTracksOff,
   denomColors,
+  patronageMode, setPatronageMode, selectedGuildId, setSelectedGuild, getHighlightedChurchIds,
 } from './state.js';
+import { patronageGuilds, churchPatrons } from './data/patronage.js';
 import { render }        from './render.js';
 import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }    from './detail.js';
-import { hideTT }        from './tooltip.js';
+import { hideTT, showGenericTT } from './tooltip.js';
 
 // ── Legend panel ──────────────────────────────────────────────
 export function renderLegend() {
@@ -1284,4 +1286,119 @@ export function setupMobileTouchDismiss() {
     }
     startY = 0; currentY = 0;
   }, { passive: true });
+}
+
+// ── Patronage Mode (Guild Lens) ─────────────────────────────
+
+let _patTab = 'guilds'; // 'guilds' | 'founders'
+
+const _guildIcons = {
+  merchants: '⚓', maritime: '🚢', brewers: '🍺', butchers: '🥩',
+  bakers: '🍞', goldsmiths: '💎', weavers: '🧵', stgeorge: '🛡',
+};
+
+export function buildPatronageBar() {
+  const bar = document.getElementById('patronageBar');
+  if (!bar) return;
+
+  let html = '';
+
+  // Tab switcher
+  html += `<div class="pat-tabs">
+    <div class="pat-tab ${_patTab === 'guilds' ? 'active' : ''}" data-pat-tab="guilds">Guilds</div>
+    <div class="pat-tab ${_patTab === 'founders' ? 'active' : ''}" data-pat-tab="founders">Founders</div>
+  </div>`;
+
+  // Guilds panel
+  html += `<div class="pat-panel ${_patTab !== 'guilds' ? 'hidden' : ''}" id="patGuildsPanel">`;
+  patronageGuilds.forEach(g => {
+    const icon = _guildIcons[g.id] || '🏛';
+    const sel = selectedGuildId === g.id ? 'selected' : '';
+    html += `<div class="patron-guild-item ${sel}" data-guild="${g.id}">
+      <span class="pat-icon">${icon}</span>${g.name}
+    </div>`;
+  });
+  html += '</div>';
+
+  // Founders panel
+  html += `<div class="pat-panel ${_patTab !== 'founders' ? 'hidden' : ''}" id="patFoundersPanel">`;
+  html += '<div class="pat-founders-list">';
+  const chKeys = Object.keys(churchPatrons);
+  chKeys.forEach(cid => {
+    const p = churchPatrons[cid];
+    const ch = churches.find(c => c.id === cid);
+    if (!ch) return;
+    html += `<div class="pat-founder-row">
+      <span class="pat-founder-name">${ch.shortName}</span>
+      <span class="pat-founder-detail">${p.founder}</span>
+      ${p.order ? `<span class="pat-founder-order">${p.order}</span>` : ''}
+    </div>`;
+  });
+  html += '</div></div>';
+
+  bar.innerHTML = html;
+
+  // Attach tab click handlers
+  bar.querySelectorAll('.pat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      _patTab = tab.dataset.patTab;
+      buildPatronageBar();
+    });
+  });
+
+  // Attach guild click handlers (single-select)
+  bar.querySelectorAll('.patron-guild-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const gid = item.dataset.guild;
+      if (selectedGuildId === gid) {
+        setSelectedGuild(null); // deselect
+      } else {
+        setSelectedGuild(gid);
+      }
+      buildPatronageBar();
+      render();
+    });
+    // Hover tooltip for guild details
+    item.addEventListener('mouseenter', ev => {
+      const g = patronageGuilds.find(x => x.id === item.dataset.guild);
+      if (!g) return;
+      let ttHtml = `<div class="tt-title" style="font-size:11px;margin-bottom:3px;">${g.name}</div>`;
+      ttHtml += `<div class="tt-body" style="font-size:10px;margin-bottom:4px;">${g.description}</div>`;
+      ttHtml += `<div style="font-size:9px;color:var(--accent);margin-bottom:2px;">Confirmed links:</div>`;
+      g.targetsConfirmed.forEach(t => {
+        const ch = churches.find(c => c.id === t.churchId);
+        ttHtml += `<div style="font-size:9px;color:var(--text-secondary);margin-left:6px;">• ${ch ? ch.shortName : t.churchId}</div>`;
+      });
+      if (g.targetsPossible && g.targetsPossible.length) {
+        ttHtml += `<div style="font-size:9px;color:var(--text-muted);margin-top:3px;">Possible links:</div>`;
+        g.targetsPossible.forEach(t => {
+          const ch = churches.find(c => c.id === t.churchId);
+          ttHtml += `<div style="font-size:9px;color:var(--text-muted);margin-left:6px;font-style:italic;">• ${ch ? ch.shortName : t.churchId}</div>`;
+        });
+      }
+      showGenericTT(ev, ttHtml);
+    });
+    item.addEventListener('mouseleave', hideTT);
+  });
+}
+
+export function togglePatronageMode() {
+  const newMode = !patronageMode;
+  setPatronageMode(newMode);
+
+  const bar = document.getElementById('patronageBar');
+  const btn = document.getElementById('patronageToggleBtn');
+  if (bar) bar.style.display = newMode ? '' : 'none';
+  if (btn) btn.classList.toggle('active', newMode);
+
+  if (newMode) {
+    buildPatronageBar();
+  }
+  render();
+}
+
+export function initPatronageToggle() {
+  const btn = document.getElementById('patronageToggleBtn');
+  if (!btn) return;
+  btn.addEventListener('click', togglePatronageMode);
 }

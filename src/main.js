@@ -14,7 +14,7 @@ import {
 } from './state.js';
 import { render, renderAxis, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { renderMinimap, updateMinimapViewport, updateViewRangeLabel, minimapClick, renderRangeSlider, initRangeSlider, initMinimapHandles, initMinimapRibbonTooltip, initMinimapRegimeTooltip, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters } from './ui.js';
+import { renderMinimap, updateMinimapViewport, updateViewRangeLabel, minimapClick, renderRangeSlider, initRangeSlider, initMinimapHandles, initMinimapRibbonTooltip, initMinimapRegimeTooltip, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle } from './ui.js';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT } from './tooltip.js';
@@ -472,6 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Church compact selector
   initChurchSelector();
+
+  // Patronage mode (guild lens) toggle
+  initPatronageToggle();
 
   // Minimap toggle
   _initMinimapToggle();

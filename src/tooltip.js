@@ -6,6 +6,7 @@ import { churches }    from './data/churches.js';
 import { calamities, politicalEvents, wars, rulers } from './data/context.js';
 import { clusterDefs } from './data/clusters.js';
 import { typeColors, denomColors, getCluster, getMostSimilar } from './state.js';
+import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
 
 const TT_MAX_BODY = 280;
 
@@ -135,6 +136,23 @@ export function showChurchTT(ev, ci) {
       <span style="font-size:9px;color:${cl.color};font-weight:600;">Cluster ${cl.id}</span>
       <span style="font-size:8px;color:${cl.color};opacity:0.7;">${cl.label}</span>
     </div>`;
+  }
+
+  // Patronage info (founder, order, guilds)
+  const _patron = churchPatrons[ch.id];
+  if (_patron) {
+    body += `<div class="cit-section"><div class="cit-label">Patronage</div>`;
+    body += `<div style="font-size:9px;color:var(--text-secondary);margin-bottom:2px;">Founded by: ${_patron.founder}</div>`;
+    if (_patron.order) {
+      body += `<div style="font-size:9px;color:var(--accent-muted);font-style:italic;margin-bottom:2px;">${_patron.order}</div>`;
+    }
+    const _guilds = getConfirmedGuildsForChurch(ch.id);
+    if (_guilds.length) {
+      const shown = _guilds.slice(0, 2);
+      const more = _guilds.length > 2 ? ` +${_guilds.length - 2} more` : '';
+      body += `<div style="font-size:9px;color:var(--text-muted);">Guilds: ${shown.map(g => g.name).join(', ')}${more}</div>`;
+    }
+    body += `</div>`;
   }
 
   // Most similar
