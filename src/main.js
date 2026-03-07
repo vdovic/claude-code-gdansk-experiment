@@ -11,10 +11,11 @@ import {
   currentSort, getSortedIndices, sortedIndices,
   setSort, applyFilters,
   resetViewRange, setViewStart, setViewEnd,
+  allTracksOn, trackVisibility,
 } from './state.js';
-import { render, renderAxis, setRenderSortKey, initGrainTooltip } from './render.js';
+import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { renderMinimap, updateMinimapViewport, updateViewRangeLabel, minimapClick, renderRangeSlider, initRangeSlider, initMinimapHandles, initMinimapRibbonTooltip, initMinimapRegimeTooltip, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle } from './ui.js';
+import { renderMinimap, updateMinimapViewport, updateViewRangeLabel, minimapClick, renderRangeSlider, initRangeSlider, initMinimapHandles, initMinimapRibbonTooltip, initMinimapRegimeTooltip, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=5';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT } from './tooltip.js';
@@ -182,9 +183,9 @@ function _initMinimapToggle() {
   const bar    = document.getElementById('minimapBar');
   if (!toggle || !bar) return;
 
-  // Restore saved state or default to expanded
+  // Restore saved state or default to collapsed
   const saved = localStorage.getItem('overviewCollapsed');
-  const shouldCollapse = saved === '1';
+  const shouldCollapse = saved !== '0';
 
   if (shouldCollapse) {
     bar.classList.add('minimap-collapsed');
@@ -225,7 +226,7 @@ function _initDragToPan() {
   const INTERACTIVE = 'button, input, select, a, .evt-dot, .war-bar, .ruler-bar, '
     + '.political-marker, .calamity-marker, .econ-era-block, .filter-chip, '
     + '.church-selector, .sort-btn, .ctrl-btn, .track-toggle, .ch-label, '
-    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle, .district-bar';
+    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle';
 
   let pointerId    = null;   // active pointer id (null = not tracking)
   let startX       = 0;      // clientX at pointerdown
@@ -292,6 +293,95 @@ function _initDragToPan() {
       e.preventDefault();
     }
   }, true);
+}
+
+// ── Chrome collapse init (default hidden) ─────────────────────
+function _initChromeCollapse() {
+  const chrome = document.getElementById('mChrome');
+  const btn    = document.getElementById('mChromeToggle');
+  if (!chrome || !btn) return;
+  // Default collapsed unless user explicitly expanded ('0')
+  const saved = localStorage.getItem('chromeCollapsed');
+  if (saved !== '0') {
+    chrome.classList.add('collapsed');
+    btn.classList.add('collapsed');
+    btn.textContent = '▶';
+  }
+}
+
+// ── View Mode segmented control ────────────────────────────────
+function _initViewMode() {
+  const toggle = document.getElementById('viewModeToggle');
+  if (!toggle) return;
+
+  // Mobile (≤768) defaults to 'churches', desktop to 'combined'
+  const defaultMode = window.innerWidth <= 768 ? 'churches' : 'combined';
+  const saved = localStorage.getItem('viewMode') || defaultMode;
+
+  _applyViewMode(saved);
+
+  toggle.addEventListener('click', e => {
+    const btn = e.target.closest('.vm-btn');
+    if (!btn) return;
+    const mode = btn.dataset.mode;
+    _applyViewMode(mode);
+    localStorage.setItem('viewMode', mode);
+    _dismissOnboarding();
+  });
+}
+
+function _applyViewMode(mode) {
+  document.body.classList.remove('mode-combined', 'mode-churches', 'mode-context');
+  document.body.classList.add('mode-' + mode);
+
+  // Update active button + ARIA
+  document.querySelectorAll('.vm-btn').forEach(b => {
+    const isActive = b.dataset.mode === mode;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-checked', isActive ? 'true' : 'false');
+  });
+
+  // Ensure tracks are visible when context is needed
+  if (mode === 'combined' || mode === 'context') {
+    const anyOn = Object.values(trackVisibility).some(v => v);
+    if (!anyOn) { allTracksOn(); buildTrackToggles(); }
+    renderContextTracks();
+  }
+
+  // Auto-scroll to top of church rows when switching to churches mode
+  if (mode === 'churches') {
+    setTimeout(() => {
+      const lanesScroll = document.getElementById('lanesScroll');
+      if (lanesScroll) lanesScroll.scrollTop = 0;
+    }, 50);
+  }
+}
+
+// ── Onboarding tip ─────────────────────────────────────────────
+function _initOnboarding() {
+  if (localStorage.getItem('onboardingSeen')) return;
+  const tip = document.getElementById('onboardingTip');
+  if (!tip) return;
+
+  setTimeout(() => {
+    tip.classList.add('visible');
+    tip.setAttribute('aria-hidden', 'false');
+  }, 600);
+
+  const dismiss = () => {
+    tip.classList.remove('visible');
+    tip.classList.add('hidden');
+    tip.setAttribute('aria-hidden', 'true');
+    localStorage.setItem('onboardingSeen', '1');
+  };
+
+  window._dismissOnboarding = dismiss;
+  document.getElementById('onboardingClose')?.addEventListener('click', dismiss);
+  setTimeout(dismiss, 7000);
+}
+
+function _dismissOnboarding() {
+  if (window._dismissOnboarding) window._dismissOnboarding();
 }
 
 // ── DOM wiring: buttons declared in index.html ────────────────
@@ -467,6 +557,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire all buttons/controls
   _wireButtons();
 
+  // Controls chrome — default collapsed
+  _initChromeCollapse();
+
+  // View Mode segmented control (Combined / Churches / Context)
+  _initViewMode();
+
+  // One-time onboarding tip
+  _initOnboarding();
+
   // Legend panel
   initLegendPanel();
 
@@ -475,6 +574,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Patronage mode (guild lens) toggle
   initPatronageToggle();
+
+  // Mobile bottom sheet
+  initBottomSheet();
 
   // Minimap toggle
   _initMinimapToggle();

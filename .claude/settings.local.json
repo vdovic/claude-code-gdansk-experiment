@@ -33,7 +33,10 @@
       "WebFetch(domain:lostfort.blogspot.com)",
       "Bash(grep:*)",
       "Bash(npm run dev:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ]
   }
 }

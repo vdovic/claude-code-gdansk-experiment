@@ -29,6 +29,7 @@ import { render }        from './render.js';
 import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }    from './detail.js';
 import { hideTT, showGenericTT } from './tooltip.js';
+import { eventShapes, eventMarkerSVG, eventColors } from './theme.js';
 
 // ── Legend panel ──────────────────────────────────────────────
 export function renderLegend() {
@@ -37,17 +38,17 @@ export function renderLegend() {
   const denomsEl = document.getElementById('legendDenoms');
   if (!eventsEl || !denomsEl) return;
 
-  // Event markers
-  eventsEl.innerHTML = legendItems.map(item => {
-    let icon;
-    if (item.shape === 'diamond') {
-      icon = `<div style="background:${item.color};width:8px;height:8px;transform:rotate(45deg);"></div>`;
-    } else if (item.shape === 'brick') {
-      icon = `<div style="width:11px;height:7px;border:1.5px solid ${item.color};border-radius:1px;"></div>`;
-    } else {
-      icon = `<div style="background:${item.color};width:8px;height:8px;border-radius:50%;"></div>`;
-    }
-    return `<div class="legend-item"><div class="legend-item-icon">${icon}</div>${item.label}</div>`;
+  // Event markers — with shape indicators and tooltip descriptions
+  const shapeEntries = Object.entries(eventShapes);
+  eventsEl.innerHTML = shapeEntries.map(([type, info]) => {
+    const color = eventColors[type] || 'var(--accent)';
+    const shapeSvg = eventMarkerSVG(type, color, 12);
+    return `<div class="legend-item" tabindex="0" role="button" aria-label="${info.label}: ${info.desc}">
+      <div class="legend-item-shape">${shapeSvg}</div>
+      <div class="legend-item-icon"><div style="background:${color};width:8px;height:4px;border-radius:2px;opacity:0.7;"></div></div>
+      <span>${info.label}</span>
+      <div class="legend-item-desc">${info.desc}</div>
+    </div>`;
   }).join('');
 
   // Denomination colours
@@ -59,7 +60,9 @@ export function renderLegend() {
     { key: 'secular',   label: 'Secular' },
   ];
   denomsEl.innerHTML = denoms.map(d =>
-    `<div class="legend-item"><div class="legend-item-swatch" style="background:var(--${d.key})"></div>${d.label}</div>`
+    `<div class="legend-item" tabindex="0" aria-label="${d.label} denomination">
+      <div class="legend-item-swatch" style="background:var(--${d.key})"></div>${d.label}
+    </div>`
   ).join('');
 }
 
@@ -69,13 +72,28 @@ export function initLegendPanel() {
   const close = document.getElementById('legendPanelClose');
   if (!btn || !panel) return;
 
-  btn.addEventListener('click', () => panel.classList.toggle('collapsed'));
+  function toggleLegend() { panel.classList.toggle('collapsed'); }
+
+  btn.addEventListener('click', toggleLegend);
+  // Keyboard: Enter/Space on legend toggle
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleLegend(); }
+  });
+
   close?.addEventListener('click', () => panel.classList.add('collapsed'));
 
   // Close when clicking outside
   document.addEventListener('click', e => {
     if (!panel.classList.contains('collapsed') && !panel.contains(e.target) && e.target !== btn) {
       panel.classList.add('collapsed');
+    }
+  });
+
+  // Keyboard: Escape closes legend
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !panel.classList.contains('collapsed')) {
+      panel.classList.add('collapsed');
+      btn.focus();
     }
   });
 }
@@ -1092,6 +1110,7 @@ export function toggleMobileChrome() {
   const isCollapsed = chrome.classList.toggle('collapsed');
   btn.classList.toggle('collapsed', isCollapsed);
   btn.textContent = isCollapsed ? '▶' : '▼';
+  localStorage.setItem('chromeCollapsed', isCollapsed ? '1' : '0');
 }
 
 // ── Mobile tab switching ──────────────────────────────────────
@@ -1286,6 +1305,276 @@ export function setupMobileTouchDismiss() {
     }
     startY = 0; currentY = 0;
   }, { passive: true });
+}
+
+// ── Focus on Churches toggle ─────────────────────────────────
+let _focusChurches = false;
+
+export function toggleFocusChurches() {
+  _focusChurches = !_focusChurches;
+  document.body.classList.toggle('focus-churches', _focusChurches);
+  const btn = document.getElementById('focusChurchesBtn');
+  if (btn) btn.classList.toggle('active', _focusChurches);
+  // Also toggle all tracks off/on
+  if (_focusChurches) {
+    allTracksOff();
+  } else {
+    allTracksOn();
+  }
+  buildTrackToggles();
+  render();
+}
+
+export function initFocusChurches() {
+  const btn = document.getElementById('focusChurchesBtn');
+  if (!btn) return;
+  btn.addEventListener('click', toggleFocusChurches);
+  // On mobile first load, auto-collapse overlays for church visibility
+  if (window.innerWidth <= 768) {
+    _focusChurches = true;
+    document.body.classList.add('focus-churches');
+    btn.classList.add('active');
+    allTracksOff();
+  }
+}
+
+// ── Mobile Bottom Sheet ──────────────────────────────────────
+let _bottomSheetOpen = false;
+let _bottomSheetTab  = 'churches';
+
+function _buildBsChurchListHtml(query = '') {
+  const q = query.toLowerCase().trim();
+  const churchesByDistrict = {};
+  district1450Names.forEach(d => { churchesByDistrict[d] = []; });
+  churches.forEach(c => {
+    const d = district1450ByChurchId[c.id] || 'Unknown';
+    if (churchesByDistrict[d]) churchesByDistrict[d].push(c);
+  });
+  let html = '';
+  district1450Names.forEach(district => {
+    const dc = churchesByDistrict[district] || [];
+    const visible = dc.filter(c => !q || c.name.toLowerCase().includes(q) || c.shortName.toLowerCase().includes(q));
+    if (q && visible.length === 0) return;
+    const allSel = visible.every(c => visibleChurches.has(c.id));
+    const noneSel = visible.every(c => !visibleChurches.has(c.id));
+    const indet = !allSel && !noneSel;
+    html += `<div class="church-district-header" data-district="${district}">
+      <div class="church-district-checkbox ${allSel ? 'on' : ''} ${indet ? 'indeterminate' : ''}" data-action="selectDistrict:${district}"></div>
+      <span class="church-district-label">${district} (${visible.length})</span>
+    </div>`;
+    visible.forEach(c => {
+      const on = visibleChurches.has(c.id);
+      html += `<div class="church-selector-item ${on ? 'on' : ''}" data-action="church:${c.id}">
+        <div class="church-selector-cb">${on ? '✓' : ''}</div>
+        <span>${c.shortName}</span>
+      </div>`;
+    });
+  });
+  return html;
+}
+
+export function initBottomSheet() {
+  const trigger = document.getElementById('bottomSheetTrigger');
+  const overlay = document.getElementById('bottomSheetOverlay');
+  const sheet   = document.getElementById('bottomSheet');
+  if (!trigger || !overlay || !sheet) return;
+
+  function openSheet() {
+    _bottomSheetOpen = true;
+    overlay.classList.add('open');
+    sheet.classList.add('open');
+    _buildBottomSheetContent();
+  }
+  function closeSheet() {
+    _bottomSheetOpen = false;
+    overlay.classList.remove('open');
+    sheet.classList.remove('open');
+  }
+
+  trigger.addEventListener('click', () => {
+    if (_bottomSheetOpen) closeSheet(); else openSheet();
+  });
+  overlay.addEventListener('click', closeSheet);
+
+  // Tab switching
+  sheet.addEventListener('click', e => {
+    const tab = e.target.closest('.bottom-sheet-tab');
+    if (tab) {
+      _bottomSheetTab = tab.dataset.bsTab;
+      _buildBottomSheetContent();
+    }
+    // Handle filter chip clicks inside bottom sheet
+    const chip = e.target.closest('.filter-chip');
+    if (chip && chip.dataset.action) {
+      const act = chip.dataset.action;
+      _handleBottomSheetAction(act);
+      _buildBottomSheetContent();
+      render();
+      renderMap();
+      renderMinimap();
+      buildFilterChips();
+      buildChurchBar();
+      buildTrackToggles();
+    }
+  });
+
+  // Search inputs
+  sheet.addEventListener('input', e => {
+    if (e.target.id === 'bsSearchInput') {
+      import('./main.js').then(m => m.searchEvents(e.target.value)).catch(() => {});
+    }
+    if (e.target.id === 'bsChurchSearch') {
+      const list = document.getElementById('bsChurchList');
+      if (list) list.innerHTML = _buildBsChurchListHtml(e.target.value);
+    }
+  });
+
+  // Touch drag to dismiss
+  let touchStartY = 0;
+  const handle = sheet.querySelector('.bottom-sheet-handle');
+  if (handle) {
+    handle.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+    handle.addEventListener('touchmove', e => {
+      const dy = e.touches[0].clientY - touchStartY;
+      if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    handle.addEventListener('touchend', e => {
+      const dy = (e.changedTouches?.[0]?.clientY || 0) - touchStartY;
+      sheet.style.transform = '';
+      if (dy > 80) closeSheet();
+    }, { passive: true });
+  }
+}
+
+function _handleBottomSheetAction(action) {
+  const colonIdx = action.indexOf(':');
+  const type   = colonIdx === -1 ? action : action.slice(0, colonIdx);
+  const rawVal = colonIdx === -1 ? '' : action.slice(colonIdx + 1);
+
+  switch (type) {
+    case 'status':   _exclusiveToggle(statusFilters, rawVal, false); applyFilters(); break;
+    case 'origin':   _exclusiveToggle(originFilters, rawVal, false); applyFilters(); break;
+    case 'cluster':  _exclusiveToggle(clusterFilters, rawVal, false); applyFilters(); break;
+    case 'clearAll': clearAllFilters(); setPatronageMode(false); break;
+    case 'guild':
+      if (patronageMode && selectedGuildId === rawVal) {
+        setPatronageMode(false);
+      } else {
+        setSelectedGuild(rawVal);
+        setPatronageMode(true);
+      }
+      render();
+      break;
+    case 'selectAll':  selectAllChurches(); break;
+    case 'deselectAll':deselectAllChurches(); break;
+    case 'church':   toggleChurch(rawVal); break;
+    case 'selectDistrict': {
+      const dc = churches.filter(c => district1450ByChurchId[c.id] === rawVal);
+      const allSel = dc.every(c => visibleChurches.has(c.id));
+      dc.forEach(c => { if (allSel ? visibleChurches.has(c.id) : !visibleChurches.has(c.id)) toggleChurch(c.id); });
+      applyFilters();
+      break;
+    }
+    case 'track':    toggleTrack(rawVal); break;
+    case 'allTracksOn':  allTracksOn(); break;
+    case 'allTracksOff': allTracksOff(); break;
+    case 'sort':     setSort(rawVal); break;
+  }
+}
+
+function _buildBottomSheetContent() {
+  const sheet = document.getElementById('bottomSheet');
+  if (!sheet) return;
+
+  // Update tab states
+  sheet.querySelectorAll('.bottom-sheet-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.bsTab === _bottomSheetTab);
+  });
+
+  const content = sheet.querySelector('.bottom-sheet-content');
+  if (!content) return;
+
+  let html = '';
+
+  if (_bottomSheetTab === 'tracks') {
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Context Tracks</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    const allOn = Object.values(trackVisibility).every(Boolean);
+    const noneOn = Object.values(trackVisibility).every(v => !v);
+    html += `<div class="filter-chip ${allOn ? 'on' : ''}" data-action="allTracksOn"><div class="chip-dot"></div>All</div>`;
+    html += `<div class="filter-chip ${noneOn ? 'on' : ''}" data-action="allTracksOff"><div class="chip-dot"></div>None</div>`;
+    const tracks = [
+      { k: 'econEras', l: 'Periods' }, { k: 'rulers', l: 'Kings/Rulers' },
+      { k: 'wars', l: 'Wars' }, { k: 'political', l: 'Political' },
+      { k: 'religious', l: 'Religious' }, { k: 'plagues', l: 'Plagues' },
+      { k: 'urbanPower', l: 'Urban Power' }, { k: 'population', l: 'Population' },
+      { k: 'grain', l: 'Grain Export' },
+    ];
+    tracks.forEach(t => {
+      html += `<div class="filter-chip ${trackVisibility[t.k] ? 'on' : ''}" data-action="track:${t.k}"><div class="chip-dot"></div>${t.l}</div>`;
+    });
+    html += '</div></div>';
+  } else if (_bottomSheetTab === 'churches') {
+    html += `<div class="bottom-sheet-section">
+      <div class="bottom-sheet-section-title">Churches</div>
+      <div class="bs-church-selector">
+        <input type="text" id="bsChurchSearch" class="church-selector-search" placeholder="Search churches…" autocomplete="off" style="width:100%;box-sizing:border-box;margin-bottom:6px;">
+        <div class="church-selector-actions">
+          <span class="church-selector-act" data-action="selectAll">Select all</span>
+          <span class="church-selector-act" data-action="deselectAll">Select none</span>
+        </div>
+        <div class="church-selector-list bs-church-list" id="bsChurchList">${_buildBsChurchListHtml()}</div>
+      </div>
+    </div>`;
+
+    // Filters section
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Status</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    [{ k: 'cathedral', l: 'Cathedral' }, { k: 'basilique', l: 'Basilica' }, { k: 'church', l: 'Church' }]
+      .forEach(s => { html += `<div class="filter-chip ${statusFilters.has(s.k) ? 'on' : ''}" data-action="status:${s.k}"><div class="chip-dot"></div>${s.l}</div>`; });
+    html += '</div></div>';
+
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Type</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    [{ k: 'parish', l: 'Parish' }, { k: 'monastic', l: 'Monastic' }, { k: 'hospital', l: 'Hospital' }]
+      .forEach(o => { html += `<div class="filter-chip ${originFilters.has(o.k) ? 'on' : ''}" data-action="origin:${o.k}"><div class="chip-dot"></div>${o.l}</div>`; });
+    html += '</div></div>';
+
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Guild</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    patronageGuilds.forEach(g => {
+      const icon = _guildIcons[g.id] || '🏛';
+      const on = patronageMode && selectedGuildId === g.id ? 'on' : '';
+      html += `<div class="filter-chip ${on}" data-action="guild:${g.id}"><div class="chip-dot"></div>${icon} ${g.name}</div>`;
+    });
+    html += '</div></div>';
+
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Size</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    [{ k: 'A', l: 'Large' }, { k: 'B', l: 'Medium' }, { k: 'C', l: 'Small' }]
+      .forEach(s => { html += `<div class="filter-chip ${clusterFilters.has(s.k) ? 'on' : ''}" data-action="cluster:${s.k}"><div class="chip-dot"></div>${s.l}</div>`; });
+    html += '</div></div>';
+
+    const hasAny = statusFilters.size || originFilters.size || clusterFilters.size || patronageMode;
+    if (hasAny) {
+      html += `<div class="bottom-sheet-section"><div style="display:flex;flex-wrap:wrap;gap:5px;"><div class="filter-chip" data-action="clearAll" style="border-color:var(--ev-destroyed);color:var(--ev-destroyed)"><div class="chip-dot" style="background:var(--ev-destroyed);opacity:1"></div>Clear all</div></div></div>`;
+    }
+  } else if (_bottomSheetTab === 'sort') {
+    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Sort By</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    const sorts = [
+      { k: 'cornerstone', l: 'Cornerstone' }, { k: 'established', l: 'Established' },
+      { k: 'height', l: 'Height' }, { k: 'capacity', l: 'Capacity' },
+      { k: 'distance', l: 'Dist. St.Mary' }, { k: 'catholicism', l: 'Catholicism' },
+    ];
+    sorts.forEach(s => {
+      html += `<div class="filter-chip ${currentSort === s.k ? 'on' : ''}" data-action="sort:${s.k}"><div class="chip-dot"></div>${s.l}</div>`;
+    });
+    html += '</div></div>';
+  } else if (_bottomSheetTab === 'search') {
+    html += `<div class="bottom-sheet-section">
+      <div class="bottom-sheet-section-title">Search Events</div>
+      <input type="text" id="bsSearchInput" placeholder="Search churches, events..." autocomplete="off"
+        style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border-emphasis);
+        background:rgba(255,255,255,0.04);color:var(--text-primary);font-family:var(--font-ui);font-size:var(--fs-base);outline:none;">
+    </div>`;
+  }
+
+  content.innerHTML = html;
 }
 
 // ── Patronage Mode (Guild Lens) ─────────────────────────────

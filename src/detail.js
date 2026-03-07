@@ -12,6 +12,7 @@ import { churches, shieldSVGs } from './data/churches.js';
 import { calamities, politicalEvents, wars } from './data/context.js';
 import { typeColors, denomColors, getCluster, getMostSimilar, setSelectedCI } from './state.js';
 import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
+import { unpinTT } from './tooltip.js';
 
 // ── Drawer element references ─────────────────────────────────
 function _overlay()  { return document.getElementById('drawerOverlay'); }
@@ -21,6 +22,8 @@ function _header()   { return document.getElementById('drawerHeader'); }
 
 // ── Open / close ─────────────────────────────────────────────
 function _open() {
+  // Auto-dismiss any pinned tooltip when opening the detail drawer
+  unpinTT();
   _overlay().classList.add('open');
   _drawer().classList.add('open');
 }

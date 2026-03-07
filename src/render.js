@@ -2,7 +2,7 @@
 // Builds the synchronized-scroll timeline DOM:
 //   • era bands + siege bands (static background, inside lanesInner)
 //   • year axis (frozen, inside axisInner)
-//   • context track rows: rulers, wars, political, plagues, population, grain, districts
+//   • context track rows: rulers, wars, political, plagues, population, grain
 //   • church lanes (denom bars + event dots)
 //
 // The v6 layout uses a frozen label column (tl-labels) + frozen axis row (tl-axis-row)
@@ -11,7 +11,7 @@
 
 import { churches }       from './data/churches.js';
 import { calamities, politicalEvents, religiousEvents, wars, rulers, eras, siegeBands, urbanPowerEvents } from './data/context.js';
-import { grainExport, shipTraffic, economicEras, populationData, districts } from './data/economic.js';
+import { grainExport, shipTraffic, economicEras, populationData } from './data/economic.js';
 import { getGrainValue, getShipsValue, getShipsTrend } from './data/grainCurve.js';
 import {
   START_YEAR, END_YEAR, viewStart, viewEnd, labelOffset, pixelsPerYear,
@@ -22,6 +22,8 @@ import {
 } from './state.js';
 import { showTT, showChurchTT, showGenericTT, hideTT } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
+import { getConfessionalPhases } from './data/confessional.js';
+import { eventMarkerSVG } from './theme.js';
 
 // ── Sort-value helpers (lightweight duplicates, render-only) ──
 const _SM_LAT = 54.3498, _SM_LON = 18.6531;
@@ -489,22 +491,6 @@ function renderUrbanPower() {
   });
 }
 
-function renderDistricts() {
-  const inner = document.getElementById('districtsInner');
-  if (!inner) return;
-  inner.style.width = (getTotalWidth() - labelOffset) + 'px';
-  let html = '';
-  districts.forEach(d => {
-    if (d.end < viewStart || d.start > viewEnd) return;
-    const x1 = yearToX(Math.max(d.start, viewStart)) - labelOffset;
-    const x2 = yearToX(Math.min(d.end, viewEnd))     - labelOffset;
-    html += `<div class="district-bar"
-      style="left:${x1}px;width:${x2-x1}px;background:${d.color};color:${d.textColor}">
-      ${d.name} · ${d.start}</div>`;
-  });
-  inner.innerHTML = html;
-}
-
 // ── Context row visibility ────────────────────────────────────
 function setCtxRowVisible(id, visible) {
   const row = document.getElementById(id + 'Row');
@@ -520,7 +506,7 @@ function renderLanes() {
   const tw = getTotalWidth() - labelOffset;
   const visibleCount = sortedIndices.filter(ci => visibleChurches.has(churches[ci].id)).length;
   lanesEl.style.width  = tw + 'px';
-  lanesEl.style.height = (visibleCount * 46) + 'px';
+  lanesEl.style.height = (visibleCount * 54) + 'px';
 
   const metaFn = {
     cornerstone:   c => c.cornerstoneYear || '\u2014',
@@ -591,20 +577,30 @@ function renderLanes() {
         title="${b.type} ${b.start}–${b.end}"></div>`;
     });
 
+    // Confessional overlay bands (above denom bars, below event dots)
+    let confHtml = '';
+    const confPhases = getConfessionalPhases(ch.id);
+    confPhases.forEach((phase, pi) => {
+      if (phase.end < viewStart || phase.start > viewEnd) return;
+      const cx1 = yearToX(Math.max(phase.start, viewStart)) - labelOffset;
+      const cx2 = yearToX(Math.min(phase.end, viewEnd)) - labelOffset;
+      confHtml += `<div class="confessional-overlay" data-ci="${ci}" data-phase="${pi}"
+        style="left:${cx1}px;width:${Math.max(cx2 - cx1, 4)}px"
+        title="${phase.tooltipTitle}"></div>`;
+    });
+
     let evtHtml = '';
     ch.events.forEach((ev, ei) => {
       if (ev.year < viewStart || ev.year > viewEnd) return;
       const x = yearToX(ev.year) - labelOffset;
       const col = typeColors[ev.type] || 'var(--amber)';
-      const isCornerstone = ev.type === 'cornerstone';
-      const dotSvg = isCornerstone
-        ? `<svg width="13" height="13" viewBox="0 0 13 13"><rect x="0" y="0" width="13" height="13" rx="3" fill="${col}"/></svg>`
-        : `<svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.5" fill="${col}" stroke="white" stroke-width="1.5"/></svg>`;
+      const dotSvg = eventMarkerSVG(ev.type, col, 13);
       evtHtml += `<div class="evt-dot" data-ci="${ci}" data-ei="${ei}" data-type="${ev.type}"
-        style="left:${x}px">${dotSvg}</div>`;
+        style="left:${x}px" tabindex="0" role="button"
+        aria-label="${ev.year} ${ev.type}: ${ev.label}">${dotSvg}</div>`;
     });
 
-    laneHtml += `<div class="ch-lane${patClass}" data-ci="${ci}">${denomHtml}${evtHtml}</div>`;
+    laneHtml += `<div class="ch-lane${patClass}" data-ci="${ci}">${denomHtml}${confHtml}${evtHtml}</div>`;
   });
 
   labelsEl.innerHTML  = labHtml;
@@ -618,14 +614,19 @@ function renderLanes() {
     el.addEventListener('click', () => openCD(ci, 0));
   });
 
-  // Attach event listeners to event dots
+  // Attach event listeners to event dots (mouse + keyboard)
   lanesEl.querySelectorAll('.evt-dot').forEach(el => {
     const ci = +el.dataset.ci;
     const ei = +el.dataset.ei;
     el.addEventListener('mouseenter', ev => showTT(ev, 'c', ci, ei));
     el.addEventListener('mouseleave', hideTT);
     el.addEventListener('click', () => openCD(ci, ei));
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openCD(ci, ei); }
+    });
   });
+
+  // Confessional overlay bands — visual only, no tooltips (removed per UX request)
 }
 
 // Track current sort key (needed inside renderLanes without import cycle)
@@ -650,8 +651,6 @@ export function renderContextTracks() {
   setCtxRowVisible('econEras',   trackVisibility.econEras);
   setCtxRowVisible('urbanPower', trackVisibility.urbanPower);
   setCtxRowVisible('grain',      trackVisibility.grain);
-  setCtxRowVisible('districts',  trackVisibility.districts);
-
   if (trackVisibility.rulers)     renderRulers();
   if (trackVisibility.wars)       renderWars();
   if (trackVisibility.political)  renderPolitical();
@@ -661,7 +660,6 @@ export function renderContextTracks() {
   if (trackVisibility.econEras)   renderEconEras();
   if (trackVisibility.urbanPower) renderUrbanPower();
   if (trackVisibility.grain)      renderGrain();
-  if (trackVisibility.districts)  renderDistricts();
 }
 
 // Global hook so the non-module theme-switcher script can trigger re-render

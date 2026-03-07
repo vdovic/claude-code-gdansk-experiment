@@ -58,9 +58,8 @@ export const trackVisibility = {
   plagues:    true,
   population: true,
   econEras:   true,
-  urbanPower: false,  // Optional — sparse civic authority markers
+  urbanPower: true,   // Optional — sparse civic authority markers
   grain:      true,
-  districts:  false,  // Hidden by default — historical district boundaries were fluid and confusing
 };
 
 // Selected church index for map highlight (-1 = none)

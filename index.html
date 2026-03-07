@@ -15,11 +15,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css">
+<link rel="stylesheet" href="src/styles.css?v=3">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
-  var t = localStorage.getItem('gdansk-theme') || 'dark';
+  var t = localStorage.getItem('gdansk-theme') || 'light';
   if (t === 'light') document.documentElement.setAttribute('data-theme','light');
 })();
 </script>
@@ -207,6 +207,25 @@
         </div>
       </div>
 
+      <!-- View Mode bar (always visible between axis and panels) -->
+      <div class="view-mode-bar" id="viewModeBar">
+        <div class="view-mode-toggle" id="viewModeToggle" role="radiogroup" aria-label="View mode">
+          <button class="vm-btn active" data-mode="combined" role="radio" aria-checked="true">Combined</button>
+          <button class="vm-btn" data-mode="churches" role="radio" aria-checked="false">Churches</button>
+          <button class="vm-btn" data-mode="context" role="radio" aria-checked="false">Context</button>
+        </div>
+      </div>
+
+      <!-- Onboarding tip -->
+      <div class="onboarding-tip" id="onboardingTip" aria-hidden="true">
+        <span>Tip: Switch to <b>Churches</b> to explore freely,
+        or <b>Context</b> to study historical background.</span>
+        <button class="onboarding-close" id="onboardingClose" aria-label="Dismiss">&times;</button>
+      </div>
+
+      <!-- Context panel (collapsible) -->
+      <div id="contextPanel">
+
       <!-- Historical periods context row -->
       <div class="tl-ctx-row" id="econErasRow" style="height:44px;overflow:hidden;">
         <div class="tl-ctx-stub" data-track="econEras">Periods</div>
@@ -279,16 +298,13 @@
         </div>
       </div>
 
-      <!-- Districts context row -->
-      <div class="tl-ctx-row" id="districtsRow" style="height:24px;overflow:hidden;">
-        <div class="tl-ctx-stub" data-track="districts">Districts</div>
-        <div class="tl-ctx-scroll">
-          <div class="ctx-inner" id="districtsInner" style="height:24px;"></div>
-        </div>
-      </div>
+      </div><!-- end #contextPanel -->
+
+      <!-- Churches section label -->
+      <div class="panel-label" id="churchesLabel">CHURCHES</div>
 
       <!-- Church lanes: frozen label column + scrolling lanes -->
-      <div class="tl-lanes-wrap">
+      <div class="tl-lanes-wrap" id="churchPanel">
         <div class="tl-labels" id="tlLabels"></div>
         <div class="tl-lanes-scroll" id="lanesScroll">
           <div class="lanes-inner" id="lanesInner"></div>
@@ -355,6 +371,22 @@
   <div class="drawer-header" id="drawerHeader"></div>
   <div class="drawer-body" id="drawerBody"></div>
   <div class="drawer-back" id="drawerClose">Close ✕</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MOBILE BOTTOM SHEET (filters)
+     ══════════════════════════════════════════════ -->
+<button class="bottom-sheet-trigger" id="bottomSheetTrigger" title="Open filters" aria-label="Open filters">&#9881;</button>
+<div class="bottom-sheet-overlay" id="bottomSheetOverlay"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="bottom-sheet-handle"><div class="bottom-sheet-handle-bar"></div></div>
+  <div class="bottom-sheet-tabs">
+    <button class="bottom-sheet-tab active" data-bs-tab="tracks">Tracks</button>
+    <button class="bottom-sheet-tab" data-bs-tab="churches">Churches</button>
+    <button class="bottom-sheet-tab" data-bs-tab="sort">Sort</button>
+    <button class="bottom-sheet-tab" data-bs-tab="search">Search</button>
+  </div>
+  <div class="bottom-sheet-content"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -586,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window._reRenderEconEras) window._reRenderEconEras();
   }
   // Set initial state from saved preference
-  applyTheme(localStorage.getItem('gdansk-theme') || 'dark');
+  applyTheme(localStorage.getItem('gdansk-theme') || 'light');
   btn.addEventListener('click', function() {
     var current = document.documentElement.getAttribute('data-theme');
     applyTheme(current === 'light' ? 'dark' : 'light');
@@ -597,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js"></script>
+<script type="module" src="src/main.js?v=3"></script>
 
 <!-- Global economic ribbon tooltip (fixed-position, escapes minimap overflow:hidden) -->
 <div id="minimapRibbonTooltip" class="minimap-ribbon-tooltip" aria-hidden="true"></div>
