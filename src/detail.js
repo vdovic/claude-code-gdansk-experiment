@@ -12,6 +12,7 @@ import { churches, shieldSVGs } from './data/churches.js';
 import { calamities, politicalEvents, wars } from './data/context.js';
 import { typeColors, denomColors, getCluster, getMostSimilar, setSelectedCI } from './state.js';
 import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
+import { churchPatronData } from './data/patrons.js';
 import { unpinTT } from './tooltip.js';
 
 // ── Drawer element references ─────────────────────────────────
@@ -208,6 +209,26 @@ export function openCD(ci, ei = 0) {
       </div>`;
     });
     html += `</div>`;
+  }
+
+  // Meet the Patron
+  const pd = churchPatronData[ch.id];
+  if (pd) {
+    html += `<div class="drawer-section patron-section">
+      <div class="drawer-section-title">Meet the Patron</div>
+      <div class="patron-header">
+        <div class="patron-name">${pd.patron}</div>
+        <div class="patron-title">${pd.patronTitle}</div>
+      </div>
+      <ol class="patron-facts">`;
+    pd.facts.forEach(f => {
+      html += `<li class="patron-fact">${f}</li>`;
+    });
+    html += `</ol>
+      <a class="patron-read-more" href="${pd.wikiUrl}" target="_blank" rel="noopener noreferrer">
+        📖 ${pd.readMoreLabel}
+      </a>
+    </div>`;
   }
 
   // Most similar churches

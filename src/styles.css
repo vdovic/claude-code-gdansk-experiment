@@ -23,6 +23,7 @@
   --tl-bg:          #f7f2e8;
   --tl-alt:         rgba(0,0,0,0.02);
   --tl-border:      rgba(0,0,0,0.06);
+  --tl-row-border:  rgba(0,0,0,0.13);
 
   /* Text on dark */
   --text-primary:   #e8e4dc;
@@ -143,6 +144,7 @@
   --tl-bg:          #ffffff;
   --tl-alt:         rgba(0,0,0,0.015);
   --tl-border:      rgba(0,0,0,0.08);
+  --tl-row-border:  rgba(0,0,0,0.15);
 
   /* Text on light */
   --text-primary:   #1a1e24;
@@ -916,10 +918,16 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   pointer-events: none;
 }
 
+/* ── CONTEXT PANEL BACKGROUND ───────────────────────────────── */
+#contextPanel {
+  background: var(--parchment-dk);
+  border-bottom: 2px solid var(--tl-row-border);
+}
+
 /* ── CONTEXT TRACK ROWS ──────────────────────────────────────── */
 .tl-ctx-row {
   flex-shrink: 0; display: flex;
-  border-bottom: 1px solid var(--tl-border); overflow: visible;
+  border-bottom: 1px solid var(--tl-row-border); overflow: visible;
   position: relative; z-index: 1;
 }
 .tl-ctx-stub {
@@ -1033,7 +1041,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .ch-label {
   height: var(--lane-h); display: flex; align-items: center;
   padding: 0 var(--sp-2); gap: 6px;
-  border-bottom: 1px solid var(--tl-border);
+  border-bottom: 1px solid var(--tl-row-border);
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: background 0.2s ease, opacity 0.25s ease;
 }
@@ -1052,7 +1060,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 /* Lane (scrollable content area) */
 .ch-lane {
   height: var(--lane-h); position: relative;
-  border-bottom: 1px solid var(--tl-border);
+  border-bottom: 1px solid var(--tl-row-border);
   transition: opacity 0.25s ease, background 0.2s ease;
 }
 .ch-lane:nth-child(even) { background: rgba(0,0,0,0.018); }
@@ -1078,6 +1086,12 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 }
 .evt-dot:hover { z-index: 15; }
 .evt-dot svg { display: block; }
+/* Expanded touch target — invisible 44×44 hit area around the small SVG icon */
+.evt-dot::before {
+  content: ''; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 44px; height: 44px;
+}
 
 /* Grid overlay */
 .lanes-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; }
@@ -1389,6 +1403,31 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .drawer-body::-webkit-scrollbar-thumb { background: var(--border-emphasis); border-radius: 2px; }
 
 .drawer-section { margin-bottom: var(--sp-6); }
+
+/* ── Meet the Patron section ──────────────────────────────── */
+.patron-section { background: rgba(212,162,83,0.04); border-radius: 10px; padding: 14px; margin-bottom: var(--sp-6); }
+.patron-header  { margin-bottom: 12px; }
+.patron-name    { font-family: var(--font-ui); font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.patron-title   { font-family: var(--font-ui); font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; }
+.patron-facts   { margin: 0 0 12px 0; padding-left: 18px; }
+.patron-fact    {
+  font-size: var(--fs-sm); line-height: 1.65; color: var(--text-secondary);
+  font-family: var(--font-body); margin-bottom: 8px;
+  padding-left: 4px;
+}
+.patron-fact::marker { color: var(--accent); font-size: 10px; }
+.patron-read-more {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  color: var(--accent); text-decoration: none;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--accent); background: rgba(212,162,83,0.08);
+  transition: background 0.15s, color 0.15s;
+}
+.patron-read-more:hover { background: var(--accent); color: var(--bg-base); }
+
+[data-theme="light"] .patron-section { background: rgba(200,134,10,0.05); }
+
 .drawer-section-title {
   font-family: var(--font-ui); font-size: var(--fs-xs); letter-spacing: 0.12em;
   color: var(--accent); text-transform: uppercase;
@@ -1993,63 +2032,110 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tl-ctx-row .ctx-inner .econ-era-block { pointer-events: auto; }
 
 /* ══════════════════════════════════════════════════════════════
-   VIEW MODE BAR — segmented control [Combined / Churches / Context]
+   VIEW MODE BAR — pill toggle [Churches Timeline / With Global Context]
    ══════════════════════════════════════════════════════════════ */
 .view-mode-bar {
   display: flex; align-items: center; justify-content: center;
   background: var(--tl-bg); border-bottom: 1px solid var(--tl-border);
-  padding: 5px 8px; flex-shrink: 0;
+  padding: 6px 10px; flex-shrink: 0;
+}
+
+/* Sliding pill container */
+.pill-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  background: rgba(0,0,0,0.08);
+  border-radius: 24px;
+  padding: 3px;
+  gap: 0;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+/* Sliding background indicator — covers whichever button is active */
+.pill-indicator {
+  position: absolute;
+  top: 3px; bottom: 3px; left: 3px;
+  width: calc(50% - 3px);
+  border-radius: 20px;
+  background: rgba(212,162,83,0.38);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              background 220ms ease;
+  pointer-events: none;
+}
+
+/* Slide indicator to the right when "With Global Context" (combined) is active */
+body.mode-combined .pill-indicator { transform: translateX(100%); }
+
+.pill-btn {
+  position: relative; z-index: 1;
+  flex: 1;
+  min-height: 38px;
+  padding: 4px 16px;
+  border: none; border-radius: 20px;
+  background: transparent;
+  color: var(--tl-text-lt);
+  font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.01em; white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+.pill-btn.active { color: var(--tl-text); font-weight: 600; }
+.pill-btn:hover:not(.active) { color: var(--tl-text); }
+
+/* Light theme */
+[data-theme="light"] .pill-toggle { background: rgba(0,0,0,0.07); }
+[data-theme="light"] .pill-indicator {
+  background: var(--accent);
+  box-shadow: 0 1px 5px rgba(42,122,138,0.35);
+}
+[data-theme="light"] .pill-btn.active { color: #fff; }
+[data-theme="light"] .pill-btn:hover:not(.active) { color: var(--tl-text); }
+
+/* Very narrow screens */
+@media (max-width: 380px) {
+  .pill-btn { font-size: 10px; padding: 4px 10px; }
 }
 
 .panel-label {
   font-family: var(--font-ui); font-size: 9px; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--tl-text-lt); padding: 2px 8px 2px 8px;
+  color: var(--tl-text-lt); padding: 2px 8px;
   transition: opacity 180ms ease, max-height 180ms ease;
 }
-
-.view-mode-toggle {
-  display: inline-flex; gap: 3px; align-items: center;
-  background: rgba(0,0,0,0.07); border-radius: 8px; padding: 3px;
-  flex-shrink: 0;
-}
-
-.vm-btn {
-  font-family: var(--font-ui); font-size: 12px; font-weight: 500;
-  text-transform: none; letter-spacing: 0.01em;
-  color: var(--tl-text-lt); background: transparent;
-  border: none; border-radius: 6px; padding: 5px 16px;
-  cursor: pointer; white-space: nowrap;
-  transition: background 150ms ease, color 150ms ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.vm-btn:hover:not(.active) { color: var(--tl-text); background: rgba(0,0,0,0.07); }
-.vm-btn.active {
-  background: rgba(212,162,83,0.35); color: var(--tl-text);
-  font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-
-[data-theme="light"] .view-mode-toggle { background: rgba(0,0,0,0.06); }
-[data-theme="light"] .vm-btn.active { background: var(--accent); color: #fff; box-shadow: 0 1px 4px rgba(42,122,138,0.35); }
 [data-theme="light"] .panel-label { color: var(--tl-text-lt); }
 
-/* In combined mode: context gets up to 45% of tlOuter, church panel gets the rest */
+/* ── Panel show / hide ──────────────────────────────────────── */
+
+/* Combined: context rows appear above churches with smooth reveal */
 body.mode-combined #contextPanel {
   flex: 0 1 auto; max-height: 45%; overflow-y: auto;
+  opacity: 1;
+  transition: max-height 280ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 250ms ease;
 }
 body.mode-combined #churchPanel { min-height: 100px; }
 
-/* Panel collapse via body mode classes */
+/* Churches: context panel collapses */
 body.mode-churches #contextPanel {
   max-height: 0; opacity: 0; overflow: hidden;
   pointer-events: none; padding: 0; border: none;
-  transition: max-height 200ms ease, opacity 200ms ease;
+  transition: max-height 250ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 200ms ease;
+}
+
+/* Context-only mode (legacy fallback — maps to combined behaviour) */
+body.mode-context #contextPanel {
+  flex: 0 1 auto; max-height: 45%; overflow-y: auto; opacity: 1;
 }
 body.mode-context #churchPanel,
 body.mode-context #churchesLabel {
   max-height: 0; opacity: 0; overflow: hidden;
   pointer-events: none; padding: 0; border: none;
-  transition: max-height 200ms ease, opacity 200ms ease;
 }
 
 /* Onboarding tip */

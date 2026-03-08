@@ -321,7 +321,7 @@ function _initViewMode() {
   _applyViewMode(saved);
 
   toggle.addEventListener('click', e => {
-    const btn = e.target.closest('.vm-btn');
+    const btn = e.target.closest('.pill-btn');
     if (!btn) return;
     const mode = btn.dataset.mode;
     _applyViewMode(mode);
@@ -331,11 +331,14 @@ function _initViewMode() {
 }
 
 function _applyViewMode(mode) {
+  // Map legacy 'context'-only localStorage value to 'combined'
+  if (mode === 'context') mode = 'combined';
+
   document.body.classList.remove('mode-combined', 'mode-churches', 'mode-context');
   document.body.classList.add('mode-' + mode);
 
   // Update active button + ARIA
-  document.querySelectorAll('.vm-btn').forEach(b => {
+  document.querySelectorAll('.pill-btn').forEach(b => {
     const isActive = b.dataset.mode === mode;
     b.classList.toggle('active', isActive);
     b.setAttribute('aria-checked', isActive ? 'true' : 'false');

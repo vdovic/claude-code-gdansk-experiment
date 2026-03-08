@@ -12,6 +12,8 @@ const TT_MAX_BODY = 280;
 
 let ttEl        = null;
 let ttPinned    = false;
+let ttPinnedCI  = -1;
+let ttPinnedEI  = -1;
 let ttContent   = '';
 
 function _el() {
@@ -212,11 +214,13 @@ export function hideTT() {
   tt.classList.remove('visible', 'church-info-tt');
 }
 
-export function pinTT(ev) {
+export function pinTT(ev, ci = -1, ei = -1) {
   if (ttPinned) { unpinTT(); return; }
   const tt = _el();
   if (!tt.classList.contains('visible')) return;
-  ttPinned = true;
+  ttPinned   = true;
+  ttPinnedCI = ci;
+  ttPinnedEI = ei;
   tt.classList.add('pinned');
   tt.classList.remove('tt-pin-hint');
   // Expand truncated body if full text is stored
@@ -225,12 +229,15 @@ export function pinTT(ev) {
 }
 
 export function unpinTT() {
-  ttPinned = false;
+  ttPinned   = false;
+  ttPinnedCI = -1;
+  ttPinnedEI = -1;
   const tt = _el();
   tt.classList.remove('pinned', 'visible', 'church-info-tt');
 }
 
 export function isTTPinned() { return ttPinned; }
+export function isTTPinnedFor(ci, ei) { return ttPinned && ttPinnedCI === ci && ttPinnedEI === ei; }
 
 // Global click handler: pin on click-over-element, unpin on click-elsewhere
 export function setupTooltipClickHandling() {

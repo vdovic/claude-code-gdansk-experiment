@@ -8,7 +8,6 @@
 
 import { churches }    from './data/churches.js';
 import { districtGeo } from './data/geodata.js';
-import { gates }        from './data/gates.js';
 import { denomColors, denomNames, visibleChurches } from './state.js';
 import { openCD }      from './detail.js';
 
@@ -25,9 +24,6 @@ let showDistricts       = true;
 let districtPolygons    = [];
 let districtLabelMarkers = [];
 let districtVisible     = [];
-
-let gatesLayerGroup = null;
-let showGates       = true;
 
 let showChurches = true;
 
@@ -115,23 +111,20 @@ function _buildFsOverlay() {
 function _buildFsLayerToggles() {
   const el = document.getElementById('mapLayerTogglesFs');
   if (!el) return;
-  const allOn = showChurches && showGates && showDistricts;
+  const allOn = showChurches && showDistricts;
   let html = '';
   html += _fsTgl('All Layers', allOn, 'fsToggleAll');
   html += _fsTgl(`Churches (${churches.length})`, showChurches, 'fsToggleChurches');
-  html += _fsTgl(`Gates`, showGates, 'fsToggleGates');
   html += _fsTgl(`Districts`, showDistricts, 'fsToggleDistricts');
   el.innerHTML = html;
 
   document.getElementById('fsToggleAll')?.addEventListener('click', () => {
-    const on = showChurches && showGates && showDistricts;
-    showChurches = showGates = showDistricts = !on;
-    if (gatesLayerGroup) { if (showGates) gatesLayerGroup.addTo(leafletMap); else leafletMap.removeLayer(gatesLayerGroup); }
+    const on = showChurches && showDistricts;
+    showChurches = showDistricts = !on;
     _updateDistrictYearVisibility();
     renderMap(); buildMapLayerToggles(); _buildFsLayerToggles();
   });
   document.getElementById('fsToggleChurches')?.addEventListener('click', () => { toggleChurchesLayer(); _buildFsLayerToggles(); });
-  document.getElementById('fsToggleGates')?.addEventListener('click', () => { toggleGatesLayer(); _buildFsLayerToggles(); });
   document.getElementById('fsToggleDistricts')?.addEventListener('click', () => { toggleDistrictLayer(); _buildFsLayerToggles(); });
 }
 
@@ -157,7 +150,6 @@ function _initLeafletMap() {
   }).addTo(leafletMap);
 
   _initDistrictLayers();
-  _initGatesLayer();
   buildMapLayerToggles();
 }
 
@@ -294,67 +286,6 @@ export function unpulseMarker(ci) {
   if (el) el.style.filter = '';
 }
 
-// ── Gates layer ───────────────────────────────────────────────
-function _makeGateIcon(surviving) {
-  // Diamond shape for gates; gold for surviving, grey for demolished
-  const color   = surviving ? '#c8860a' : '#7a6a5a';
-  const outline = surviving ? '#fff8e0' : '#d0c8c0';
-  const size = 16;
-  const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="${size/2},1 ${size-1},${size/2} ${size/2},${size-1} 1,${size/2}"
-      fill="${color}" stroke="${outline}" stroke-width="1.5"/>
-    <line x1="${size/2}" y1="4" x2="${size/2}" y2="${size-4}" stroke="${outline}" stroke-width="1" opacity="0.6"/>
-    <line x1="4" y1="${size/2}" x2="${size-4}" y2="${size/2}" stroke="${outline}" stroke-width="1" opacity="0.6"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg,
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2 - 2],
-  });
-}
-
-function _initGatesLayer() {
-  gatesLayerGroup = L.layerGroup();
-
-  gates.forEach(g => {
-    const icon   = _makeGateIcon(g.surviving);
-    const marker = L.marker([g.lat, g.lon], { icon });
-
-    const statusLabel = g.surviving
-      ? '<span style="color:#c8860a;font-weight:600">Surviving</span>'
-      : '<span style="color:#9a8a7a">Demolished</span>';
-    const builtStr = g.builtC ? `Built c. ${g.builtC}` : '';
-
-    marker.bindPopup(
-      `<div style="font-family:'Inter',-apple-system,system-ui,sans-serif;min-width:200px;max-width:260px">
-        <div style="font-size:13px;font-weight:700;color:#3a2a0a;margin-bottom:3px">${g.name}</div>
-        <div style="font-size:10px;color:#7a6a4a;margin-bottom:2px;font-style:italic">${g.polishName} · ${g.germanName}</div>
-        <div style="font-size:10px;color:#6a5a3a;margin-bottom:6px">${builtStr} · ${statusLabel}</div>
-        <div style="font-size:10px;color:#5a4a30;line-height:1.5;max-height:100px;overflow-y:auto">${g.note.substring(0, 280)}…</div>
-      </div>`,
-      { maxWidth: 270 }
-    );
-
-    marker.bindTooltip(
-      `<b>${g.polishName}</b><br><span style="font-size:10px;opacity:0.7">${g.surviving ? 'Surviving' : 'Demolished'} · c.${g.builtC}</span>`,
-      { direction: 'top', offset: [0, -10], opacity: 0.95 }
-    );
-
-    gatesLayerGroup.addLayer(marker);
-  });
-
-  if (showGates) gatesLayerGroup.addTo(leafletMap);
-}
-
-export function toggleGatesLayer() {
-  showGates = !showGates;
-  if (!gatesLayerGroup) return;
-  if (showGates) gatesLayerGroup.addTo(leafletMap);
-  else leafletMap.removeLayer(gatesLayerGroup);
-  buildMapLayerToggles();
-}
 
 export function toggleChurchesLayer() {
   showChurches = !showChurches;
@@ -446,7 +377,7 @@ export function buildMapLayerToggles() {
   if (!el) return;
 
   // All layers enabled?
-  const allOn = showChurches && showGates && showDistricts;
+  const allOn = showChurches && showDistricts;
 
   // Master toggle
   let html = `<div class="map-layer-toggle ${allOn ? 'on' : ''}" id="masterToggleAll" style="font-weight:700;border-bottom:1px solid var(--border-color);padding-bottom:8px;margin-bottom:8px;">
@@ -460,16 +391,6 @@ export function buildMapLayerToggles() {
     <div class="map-layer-swatch" style="background:#d4a574;border-radius:50%"></div>
     <div class="map-layer-name">Churches & Chapels
       <span style="font-size:8px;color:var(--text-muted);">(${churchCount} structures)</span>
-    </div>
-  </div>`;
-
-  // Gates toggle
-  const survivingCount  = gates.filter(g => g.surviving).length;
-  const demolishedCount = gates.length - survivingCount;
-  html += `<div class="map-layer-toggle ${showGates ? 'on' : ''}" id="gatesToggleAll">
-    <div class="map-layer-swatch" style="background:#c8860a;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)"></div>
-    <div class="map-layer-name">City Gates c.1500
-      <span style="font-size:8px;color:var(--text-muted);">(${survivingCount} surviving · ${demolishedCount} demolished)</span>
     </div>
   </div>`;
 
@@ -493,31 +414,16 @@ export function buildMapLayerToggles() {
   }
   el.innerHTML = html;
 
-  // Master toggle: toggles all three layers together
+  // Master toggle: toggles all layers together
   document.getElementById('masterToggleAll')?.addEventListener('click', () => {
-    const allCurrentlyOn = showChurches && showGates && showDistricts;
-    if (allCurrentlyOn) {
-      // Turn all off
-      showChurches = false;
-      showGates = false;
-      showDistricts = false;
-    } else {
-      // Turn all on
-      showChurches = true;
-      showGates = true;
-      showDistricts = true;
-    }
-    if (gatesLayerGroup) {
-      if (showGates) gatesLayerGroup.addTo(leafletMap);
-      else leafletMap.removeLayer(gatesLayerGroup);
-    }
+    const allCurrentlyOn = showChurches && showDistricts;
+    showChurches = showDistricts = !allCurrentlyOn;
     _updateDistrictYearVisibility();
     renderMap();
     buildMapLayerToggles();
   });
 
   document.getElementById('churchesToggleAll')?.addEventListener('click', toggleChurchesLayer);
-  document.getElementById('gatesToggleAll')?.addEventListener('click', toggleGatesLayer);
   document.getElementById('districtToggleAll')?.addEventListener('click', toggleDistrictLayer);
   el.querySelectorAll('.district-toggle-single').forEach(el2 => {
     el2.addEventListener('click', () => toggleSingleDistrict(+el2.dataset.idx));

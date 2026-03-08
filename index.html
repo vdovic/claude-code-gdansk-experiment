@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=3">
+<link rel="stylesheet" href="src/styles.css?v=8">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -209,17 +209,16 @@
 
       <!-- View Mode bar (always visible between axis and panels) -->
       <div class="view-mode-bar" id="viewModeBar">
-        <div class="view-mode-toggle" id="viewModeToggle" role="radiogroup" aria-label="View mode">
-          <button class="vm-btn active" data-mode="combined" role="radio" aria-checked="true">Combined</button>
-          <button class="vm-btn" data-mode="churches" role="radio" aria-checked="false">Churches</button>
-          <button class="vm-btn" data-mode="context" role="radio" aria-checked="false">Context</button>
+        <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
+          <div class="pill-indicator" aria-hidden="true"></div>
+          <button class="pill-btn active" data-mode="churches" role="radio" aria-checked="true">Churches Timeline</button>
+          <button class="pill-btn" data-mode="combined" role="radio" aria-checked="false">With Global Context</button>
         </div>
       </div>
 
       <!-- Onboarding tip -->
       <div class="onboarding-tip" id="onboardingTip" aria-hidden="true">
-        <span>Tip: Switch to <b>Churches</b> to explore freely,
-        or <b>Context</b> to study historical background.</span>
+        <span>Tip: Toggle <b>With Global Context</b> to overlay historical events on the church timeline.</span>
         <button class="onboarding-close" id="onboardingClose" aria-label="Dismiss">&times;</button>
       </div>
 
@@ -629,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=3"></script>
+<script type="module" src="src/main.js?v=8"></script>
 
 <!-- Global economic ribbon tooltip (fixed-position, escapes minimap overflow:hidden) -->
 <div id="minimapRibbonTooltip" class="minimap-ribbon-tooltip" aria-hidden="true"></div>

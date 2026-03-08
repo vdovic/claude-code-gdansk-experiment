@@ -20,7 +20,7 @@ import {
   typeColors, getCluster,
   patronageMode, getHighlightedChurchIds,
 } from './state.js';
-import { showTT, showChurchTT, showGenericTT, hideTT } from './tooltip.js';
+import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinnedFor } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
 import { getConfessionalPhases } from './data/confessional.js';
 import { eventMarkerSVG } from './theme.js';
@@ -614,13 +614,31 @@ function renderLanes() {
     el.addEventListener('click', () => openCD(ci, 0));
   });
 
-  // Attach event listeners to event dots (mouse + keyboard)
+  // Attach event listeners to event dots (mouse + keyboard + touch)
+  let _lastPtrType = 'mouse';
   lanesEl.querySelectorAll('.evt-dot').forEach(el => {
     const ci = +el.dataset.ci;
     const ei = +el.dataset.ei;
     el.addEventListener('mouseenter', ev => showTT(ev, 'c', ci, ei));
     el.addEventListener('mouseleave', hideTT);
-    el.addEventListener('click', () => openCD(ci, ei));
+    el.addEventListener('pointerdown', e => { _lastPtrType = e.pointerType; });
+    el.addEventListener('click', e => {
+      if (_lastPtrType === 'touch') {
+        // Touch: first tap pins the event tooltip; second tap on the same marker opens detail
+        if (isTTPinnedFor(ci, ei)) {
+          openCD(ci, ei);
+        } else {
+          const r = el.getBoundingClientRect();
+          const fakeEv = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+          unpinTT();                        // dismiss any previously pinned tooltip
+          showTT(fakeEv, 'c', ci, ei);
+          pinTT(fakeEv, ci, ei);
+        }
+        e.stopPropagation();              // prevent global pin-handler from fighting us
+      } else {
+        openCD(ci, ei);
+      }
+    });
     el.addEventListener('keydown', ev => {
       if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openCD(ci, ei); }
     });
