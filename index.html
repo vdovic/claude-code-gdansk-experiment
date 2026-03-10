@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=8">
+<link rel="stylesheet" href="src/styles.css?v=23">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -175,35 +175,26 @@
       </div>
     </div>
 
-    <!-- Minimap scrubber + range handles (expanded by default, collapsible + remembered) -->
-    <div class="minimap-toggle" id="minimapToggle">Overview</div>
-    <div class="minimap-bar" id="minimapBar" title="Stable timeline context">
-      <canvas id="minimapCanvas" height="34"></canvas>
-      <!-- Range selection: pill handles + optional connector -->
-      <div class="minimap-range-control">
-        <!-- Left pill handle + tooltip -->
-        <div class="minimap-handle minimap-handle-left" id="minimapHandleLeft" title="Drag to adjust view start">
-          <div class="minimap-pill-label">«</div>
-          <div class="minimap-year-tooltip" id="minimapTooltipLeft"></div>
-        </div>
-        <!-- Optional: connector line between handles -->
-        <div class="minimap-connector" id="minimapConnector" title="Drag to pan view"></div>
-        <!-- Right pill handle + tooltip -->
-        <div class="minimap-handle minimap-handle-right" id="minimapHandleRight" title="Drag to adjust view end">
-          <div class="minimap-pill-label">»</div>
-          <div class="minimap-year-tooltip" id="minimapTooltipRight"></div>
-        </div>
-      </div>
-    </div>
 
     <!-- Timeline: frozen axis + context tracks + church lanes -->
     <div class="tl-outer" id="tlOuter">
 
-      <!-- Frozen axis row -->
-      <div class="tl-axis-row">
-        <div class="tl-axis-stub"><span class="tl-axis-stub-txt"></span></div>
-        <div class="tl-axis-scroll" id="axisScroll">
+      <!-- Unified axis row — year scale + integrated range handles -->
+      <div class="tl-axis-row" id="axisRow">
+        <div class="tl-axis-stub">
+          <span class="range-label" id="rangeLabel">1200 – 1750</span>
+          <button class="range-reset" id="rangeReset" title="Reset to 1200–1750">↺</button>
+        </div>
+        <div class="axis-track" id="axisTrack">
           <div class="axis-inner" id="axisInner"></div>
+          <div class="range-mute range-mute-left"  id="rangeMuteL"></div>
+          <div class="range-mute range-mute-right" id="rangeMuteR"></div>
+          <div class="range-fill" id="rangeFill"></div>
+          <div class="range-handle" id="rangeHandleL" tabindex="0" role="slider"
+               aria-label="Start year" title="Drag to set start year"></div>
+          <div class="range-handle" id="rangeHandleR" tabindex="0" role="slider"
+               aria-label="End year" title="Drag to set end year"></div>
+          <div class="range-drag-label" id="rangeDragLabel" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -628,13 +619,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=8"></script>
+<script type="module" src="src/main.js?v=24"></script>
 
-<!-- Global economic ribbon tooltip (fixed-position, escapes minimap overflow:hidden) -->
-<div id="minimapRibbonTooltip" class="minimap-ribbon-tooltip" aria-hidden="true"></div>
-
-<!-- Global regime shift tooltip (fixed-position, z-index above ribbon tooltip) -->
-<div id="minimapRegimeTooltip" class="minimap-regime-tooltip" aria-hidden="true"></div>
 
 </body>
 </html>

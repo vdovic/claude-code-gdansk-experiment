@@ -85,7 +85,6 @@
   --lane-h:         54px;
   --axis-h:         34px;
   --ctx-h:          24px;
-  --minimap-h:      36px;
 
   /* Shadows */
   --shadow-sm:      0 1px 3px rgba(0,0,0,0.12);
@@ -325,7 +324,6 @@
 }
 [data-theme="light"] .denom-legend-item { color: #4a5260; }
 [data-theme="light"] .sort-bar-label { color: #5a6070; }
-[data-theme="light"] .minimap-bar { background: #eef0f4; }
 [data-theme="light"] .range-overlay { background: rgba(0,0,0,0.08); }
 [data-theme="light"] .tl-axis-stub,
 [data-theme="light"] .tl-ctx-stub {
@@ -339,6 +337,7 @@
 [data-theme="light"] .ch-label:hover { background: rgba(42,122,138,0.06); }
 [data-theme="light"] .lane { border-bottom-color: rgba(0,0,0,0.04); }
 [data-theme="light"] .axis-inner { background: #f4f5f7; }
+[data-theme="light"] .axis-track { background: #f4f5f7; }
 [data-theme="light"] .yr-tick-lbl { color: var(--accent); }
 [data-theme="light"] .search-box input {
   background: rgba(0,0,0,0.04);
@@ -660,262 +659,229 @@ body { animation: fadeSlideIn 0.4s ease-out; }
    ══════════════════════════════════════════════════════════════ */
 #scrTimeline { flex-direction: column; }
 
-/* Minimap scrubber */
-.minimap-bar {
-  position: relative; height: var(--minimap-h);
-  background: var(--parchment-dk);
-  border-bottom: 1px solid var(--tl-border);
-  cursor: pointer; flex-shrink: 0; overflow: hidden;
-}
-.minimap-bar canvas { width: 100%; height: 100%; display: block; clip-path: inset(0); }
-/* Minimap range control container */
-.minimap-range-control {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;  /* Let clicks pass through to canvas, but handles capture their own events */
-}
+/* Left stub — matches the label column so the canvas starts at the same x as the year ruler */
+/* Content area — holds canvas + range controls, fills remaining width */
 
 /* Pill-shaped range handles (robust, easy to grab) */
-.minimap-handle {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 18px; height: 26px;
-  border-radius: 999px;
-  background: var(--accent);
-  border: 2px solid rgba(255,255,255,0.3);
-  cursor: ew-resize;
-  z-index: 10;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-  pointer-events: auto;  /* Handles must capture events */
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
 
-.minimap-handle:hover {
-  filter: brightness(1.15) drop-shadow(0 2px 12px rgba(0,0,0,0.4));
-  height: 28px;
-}
 
-.minimap-handle.dragging {
-  filter: brightness(1.25) drop-shadow(0 4px 16px rgba(0,0,0,0.5));
-  cursor: grabbing;
-}
 
-.minimap-handle-left {
-  margin-left: -9px;  /* Center the pill (half of 18px width)  */
-}
 
-.minimap-handle-right {
-  margin-left: -9px;
-}
 
-.minimap-pill-label {
-  font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold;
-  color: rgba(255,255,255,0.9);
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
 
 /* Optional connector line between handles (subtle span indicator) */
-.minimap-connector {
-  position: absolute; top: 50%; height: 1px;
-  background: var(--accent);
-  opacity: 0.3;
-  pointer-events: auto;  /* Allow dragging the connector to pan */
-  transform: translateY(-50%);
-  z-index: 5;
-  cursor: grab;
-  transition: opacity 0.15s;
-}
 
-.minimap-connector:hover {
-  opacity: 0.5;
-  cursor: grab;
-}
 
-.minimap-connector.panning {
-  opacity: 0.8;
-  cursor: grabbing;
-}
 
-[data-theme="light"] .minimap-handle {
-  background: #2a7a9a;
-  border-color: rgba(255,255,255,0.5);
-}
+/* Scroll-position viewport indicator — tracks what part of the timeline
+   is actually visible in the lanes scroll pane right now. Sits below the
+   pill handles (z-index < 10) so handles always stay on top. */
 
-[data-theme="light"] .minimap-connector {
-  background: #2a7a9a;
-}
+
+
 
 /* Floating year tooltip for handles */
-.minimap-year-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-  opacity: 0;
-  transition: opacity 0.15s ease-out;
-  z-index: 20;
-}
 
-.minimap-handle:hover .minimap-year-tooltip,
-.minimap-handle.dragging .minimap-year-tooltip {
-  opacity: 1;
-}
 
-[data-theme="light"] .minimap-year-tooltip {
-  background: #f5f6f8;
-  border-color: rgba(0,0,0,0.08);
-  color: #6a7280;
-}
 
 /* ── Economic Ribbon Tooltip ───────────────────────────────────
-   Fixed-position so it is NOT clipped by minimap-bar overflow:hidden.
-   Appears above the minimap when hovering the canvas.
    ──────────────────────────────────────────────────────────── */
-.minimap-ribbon-tooltip {
-  position: fixed;
-  pointer-events: none;       /* Never blocks clicks or drags         */
-  user-select: none;
-  z-index: 9999;              /* Above everything                     */
 
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
 
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  padding: 3px 10px;
-
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--text-muted);
-
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.1s ease-out;
-}
-
-.minimap-ribbon-tooltip .mrt-year  { font-weight: 700; color: var(--accent); }
-.minimap-ribbon-tooltip .mrt-value { font-weight: 600; }
-.minimap-ribbon-tooltip .mrt-desc  { font-style: italic; opacity: 0.85; }
-.minimap-ribbon-tooltip .mrt-sep   { opacity: 0.4; margin: 0 2px; }
-
-[data-theme="light"] .minimap-ribbon-tooltip {
-  background: #f4f5f8;
-  border-color: rgba(0,0,0,0.1);
-  color: #5a6270;
-}
-[data-theme="light"] .minimap-ribbon-tooltip .mrt-year { color: #2a7a9a; }
 
 /* ── Regime Shift Tooltip ─────────────────────────────────────────────────── */
 /* Fixed-position, two-line tooltip for structural regime break markers.       */
 /* z-index: 10000 (above ribbon tooltip at 9999) so it takes visual priority.  */
-.minimap-regime-tooltip {
-  position: fixed;
-  pointer-events: none;
-  user-select: none;
-  z-index: 10000;
 
-  display: block;
 
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;       /* rounded rect, not pill — distinct from ribbon */
-  padding: 5px 10px 6px;
-
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--text-muted);
-
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.1s ease-out;
-}
-
-.minimap-regime-tooltip .mrg-header {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-bottom: 2px;
-}
-.minimap-regime-tooltip .mrg-year  { font-weight: 700; color: var(--accent); }
-.minimap-regime-tooltip .mrg-sep   { opacity: 0.4; margin: 0 3px; }
-.minimap-regime-tooltip .mrg-label { font-weight: 600; color: var(--text-primary, var(--ink-lt)); }
-.minimap-regime-tooltip .mrg-desc  { font-style: italic; opacity: 0.75; font-size: 10px; }
-
-[data-theme="light"] .minimap-regime-tooltip {
-  background: #f4f5f8;
-  border-color: rgba(0,0,0,0.1);
-  color: #5a6270;
-}
-[data-theme="light"] .minimap-regime-tooltip .mrg-year  { color: #2a7a9a; }
-[data-theme="light"] .minimap-regime-tooltip .mrg-label { color: #333840; }
 
 /* Timeline outer */
 .tl-outer { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
 
 /* Drag-to-pan cursors */
-.tl-axis-scroll, .tl-ctx-scroll, .tl-lanes-scroll { cursor: grab; }
+.tl-ctx-scroll, .tl-lanes-scroll { cursor: grab; }
+.axis-track { cursor: crosshair; }
 body.timeline-panning .tl-outer,
 body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: none !important; }
 
-/* ── FROZEN AXIS ROW ─────────────────────────────────────────── */
+/* ── UNIFIED AXIS ROW — year scale + integrated range handles ── */
 .tl-axis-row {
   flex-shrink: 0; display: flex;
   border-bottom: 2px solid var(--accent);
-  overflow: hidden;
+  overflow: visible;       /* handles can extend above */
+  user-select: none;
+  position: relative;
+  z-index: 4;              /* above context tracks so handles are clickable */
 }
 .tl-axis-stub {
   width: var(--label-w); flex-shrink: 0;
   background: var(--bg-base);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 4px; padding: 0 8px;
 }
-.tl-axis-stub-txt {
-  font-family: var(--font-ui); font-size: var(--fs-xs);
-  color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase;
+
+/* Range label + reset button (inside axis stub) */
+.range-label {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 500;
+  color: var(--tl-text-lt); white-space: nowrap; letter-spacing: 0.01em;
 }
-.tl-axis-scroll { flex: 1; overflow: hidden; }
-.axis-inner { height: var(--axis-h); background: var(--bg-base); position: relative; white-space: nowrap; }
-.yr-tick { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; }
+.range-reset {
+  background: none; border: 1px solid transparent;
+  font-size: 15px; line-height: 1; color: var(--tl-text-lt);
+  cursor: pointer; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
+  transition: color 150ms, background 150ms, border-color 150ms;
+}
+.range-reset:hover {
+  color: var(--amber); border-color: rgba(212,162,83,0.4);
+  background: rgba(212,162,83,0.08);
+}
+[data-theme="light"] .range-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Axis track — the full-range container for ticks, era bands, and handles */
+.axis-track {
+  flex: 1; position: relative;
+  height: 54px;            /* tall enough for prominent handles */
+  background: var(--bg-base);
+}
+.axis-inner {
+  position: absolute; left: 0; right: 0;
+  top: 16px; bottom: 0;   /* top 16px reserved for handle heads */
+  background: var(--bg-base);
+  white-space: nowrap;
+}
+.yr-tick {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
 .yr-tick-lbl {
-  font-family: var(--font-ui); font-size: 12px; color: var(--accent);
-  padding-top: 4px; white-space: nowrap; font-variant-numeric: tabular-nums;
+  font-family: var(--font-ui); font-size: 11px; color: var(--accent);
+  padding-top: 2px; white-space: nowrap; font-variant-numeric: tabular-nums;
   font-weight: 500; letter-spacing: 0.02em;
 }
 .yr-tick-line { flex: 1; width: 1px; background: rgba(212,162,83,0.22); }
 .yr-tick.minor .yr-tick-lbl { display: none; }
 .yr-tick.minor .yr-tick-line { background: rgba(212,162,83,0.08); }
 
-/* Era bands */
+/* Era bands (inside axis-inner) */
 .era-band { position: absolute; top: 0; height: 100%; pointer-events: none; }
-.era-label-bg {
-  position: absolute; top: 0; font-family: var(--font-ui); font-size: 8px;
-  color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;
-  white-space: nowrap; opacity: 0.6; transform: translateX(-50%);
-  padding-top: 4px;
-}
 
-/* Siege bands */
+/* Siege bands (inside axis-inner) */
 .siege-band {
   position: absolute; top: 0; height: 100%;
   background: repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(208,64,64,0.04) 4px,rgba(208,64,64,0.04) 8px);
   border-left: 1px dashed rgba(208,64,64,0.15); border-right: 1px dashed rgba(208,64,64,0.15);
   pointer-events: none;
+}
+
+/* ── Range selection overlays (positioned inside .axis-track) ── */
+.range-mute {
+  position: absolute; top: 16px; bottom: 0;
+  background: rgba(20, 22, 30, 0.45);
+  pointer-events: none;
+  z-index: 1;
+  transition: left 60ms ease-out, right 60ms ease-out, width 60ms ease-out;
+}
+[data-theme="light"] .range-mute { background: rgba(0, 0, 0, 0.10); }
+.range-mute-left  { left: 0; }
+.range-mute-right { right: 0; }
+
+.range-fill {
+  position: absolute; top: 0; bottom: 0;
+  background: rgba(212, 162, 83, 0.04);
+  border-left: 1px solid rgba(212, 162, 83, 0.40);
+  border-right: 1px solid rgba(212, 162, 83, 0.40);
+  pointer-events: none;
+  z-index: 1;
+  transition: left 60ms ease-out, width 60ms ease-out;
+}
+[data-theme="light"] .range-fill {
+  background: rgba(42, 122, 138, 0.04);
+  border-color: rgba(42, 122, 138, 0.40);
+}
+
+/* ── Drag handles (tabs sitting on the axis) ──────────────────── */
+/* Solid "head" above the tick line (top 16px), semi-transparent
+   body below so tick labels remain readable through the handle. */
+.range-handle {
+  position: absolute; top: 0;
+  width: 12px; height: 54px;
+  transform: translateX(-50%);
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--amber) 0,
+    var(--amber) 16px,
+    rgba(212, 162, 83, 0.22) 16px
+  );
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: ew-resize;
+  z-index: 5;
+  touch-action: none;
+  transition: box-shadow 100ms;
+}
+.range-handle::after {
+  /* grip lines — kept in the solid head area */
+  content: '';
+  position: absolute; top: 4px; left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 7px;
+  border-left: 1px solid rgba(0,0,0,0.25);
+  border-right: 1px solid rgba(0,0,0,0.25);
+}
+.range-handle:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(
+    to bottom,
+    #e0a838 0,
+    #e0a838 16px,
+    rgba(224, 168, 56, 0.30) 16px
+  );
+}
+.range-handle:active, .range-handle.dragging {
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(
+    to bottom,
+    #eab94a 0,
+    #eab94a 16px,
+    rgba(234, 185, 74, 0.35) 16px
+  );
+}
+[data-theme="light"] .range-handle {
+  background: linear-gradient(
+    to bottom,
+    var(--accent) 0,
+    var(--accent) 16px,
+    rgba(42, 122, 138, 0.18) 16px
+  );
+}
+[data-theme="light"] .range-handle:hover {
+  background: linear-gradient(
+    to bottom,
+    #1d7a8e 0,
+    #1d7a8e 16px,
+    rgba(29, 122, 142, 0.25) 16px
+  );
+}
+[data-theme="light"] .range-handle::after {
+  border-left-color: rgba(255,255,255,0.4);
+  border-right-color: rgba(255,255,255,0.4);
+}
+
+/* ── Drag feedback label ──────────────────────────────────────── */
+.range-drag-label {
+  position: absolute; top: -20px;
+  transform: translateX(-50%);
+  font-family: var(--font-ui); font-size: 10px; font-weight: 600;
+  color: var(--amber); background: var(--bg-base);
+  padding: 1px 5px; border-radius: 3px;
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; z-index: 6;
+  transition: opacity 120ms;
+  border: 1px solid rgba(212,162,83,0.3);
+}
+.range-drag-label.visible { opacity: 1; }
+[data-theme="light"] .range-drag-label {
+  color: var(--accent); border-color: rgba(42,122,138,0.3);
 }
 
 /* ── CONTEXT PANEL BACKGROUND ───────────────────────────────── */
@@ -1313,11 +1279,14 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   color: var(--text-primary);
   border: 1px solid var(--border-emphasis); border-radius: 12px;
   padding: 14px 18px; max-width: 400px;
-  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  pointer-events: none; opacity: 0; transition: opacity 0.08s;
   box-shadow: var(--shadow-lg);
+  word-wrap: break-word; overflow-wrap: break-word;
 }
-.tooltip.visible { opacity: 1; }
-.tooltip.pinned { pointer-events: auto; border-color: var(--accent); box-shadow: var(--shadow-lg), var(--shadow-glow); }
+/* When visible, allow pointer events so mouse can travel from trigger into
+   the tooltip without triggering the delayed hide. */
+.tooltip.visible { opacity: 1; pointer-events: auto; }
+.tooltip.pinned { border-color: var(--accent); box-shadow: var(--shadow-lg), var(--shadow-glow); }
 .tooltip .tt-close {
   position: absolute; top: 8px; right: 10px;
   background: none; border: none; color: var(--text-muted); font-size: 14px;
@@ -1393,8 +1362,92 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .drawer-evt-title    { font-family: var(--font-display); font-size: var(--fs-md); color: var(--accent); margin-bottom: 5px; }
 .drawer-evt-year     { font-size: var(--fs-base); color: var(--accent-hover); margin-bottom: 10px; font-family: var(--font-ui); }
 
-.drawer-shield { display: flex; justify-content: center; margin: 8px 0 12px; }
-.drawer-shield svg { width: 64px; height: auto; }
+.drawer-shield {
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: center; margin: 8px 0 8px; gap: 6px;
+}
+.drawer-shield svg { width: 64px; height: auto; transition: transform 150ms ease, filter 150ms ease; }
+
+/* Interactive shield trigger (when symbol meanings are available) */
+#shieldTrigger { cursor: pointer; outline: none; }
+#shieldTrigger:hover svg,
+#shieldTrigger:focus-visible svg {
+  transform: scale(1.08);
+  filter: drop-shadow(0 3px 10px rgba(212,162,83,0.5));
+}
+.shield-hint {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 500;
+  color: var(--accent); letter-spacing: 0.07em; text-transform: lowercase;
+  opacity: 0; transition: opacity 150ms ease;
+}
+#shieldTrigger:hover .shield-hint,
+#shieldTrigger:focus-visible .shield-hint { opacity: 0.75; }
+
+/* ── Heraldic symbol meaning tooltip card ─────────────────────
+   Museum-label style floating panel. Position set via JS.      */
+.hsym-tt {
+  position: fixed;
+  z-index: 2000;
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  background: var(--bg-base);
+  border: 1px solid rgba(212,162,83,0.22);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.42), 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms cubic-bezier(0.4,0,0.2,1);
+  transform: translateY(6px) scale(0.98);
+  overflow: hidden;
+}
+.hsym-tt.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+.hsym-tt-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 14px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hsym-tt-title {
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent);
+}
+.hsym-tt-close {
+  border: none; background: transparent;
+  color: var(--text-muted); font-size: 14px; line-height: 1;
+  cursor: pointer; padding: 2px 4px; border-radius: 4px;
+  transition: color 120ms ease; display: flex; align-items: center;
+}
+.hsym-tt-close:hover { color: var(--text-primary); }
+.hsym-tt-symbols {
+  padding: 10px 14px 12px;
+  display: flex; flex-direction: column; gap: 0;
+  max-height: 60vh; overflow-y: auto;
+}
+.hsym-symbol { padding: 8px 0; }
+.hsym-symbol + .hsym-symbol {
+  border-top: 1px solid var(--border-subtle);
+}
+.hsym-symbol-name {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  color: var(--text-primary); margin-bottom: 3px;
+}
+.hsym-symbol-desc {
+  font-family: var(--font-body); font-size: 11px;
+  line-height: 1.62; color: var(--text-secondary);
+}
+
+/* Light theme */
+[data-theme="light"] .hsym-tt {
+  background: #ffffff;
+  border-color: rgba(42,122,138,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.07);
+}
+[data-theme="light"] .hsym-symbol-name { color: var(--text-primary); }
+[data-theme="light"] .hsym-symbol-desc { color: var(--text-secondary); }
 
 .drawer-body {
   flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--sp-5);
@@ -1513,7 +1566,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   position: absolute; top: 2px; bottom: 2px;
   border-radius: 5px; padding: 3px 7px;
   display: flex; flex-direction: column; justify-content: center;
-  overflow: hidden; cursor: pointer;
+  overflow: hidden; cursor: zoom-in;
   border: 1px solid rgba(255,255,255,0.08);
   transition: border-color 0.15s, filter 0.15s, transform 0.12s;
 }
@@ -1618,8 +1671,6 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   .map-church-list { max-height: 120px; }
   .map-year-display { font-size: 20px; }
 
-  .minimap-bar { display: none; }
-  .minimap-toggle { display: none; }
   .legend-panel { width: 180px; }
   .church-selector-dropdown { width: 200px; }
 
@@ -1802,20 +1853,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 [data-theme="light"] .ctrl-hint { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06); color: #8a90a0; }
 
 /* ══════════════════════════════════════════════════════════════
-   MINIMAP COLLAPSED STATE + TOGGLE
    ══════════════════════════════════════════════════════════════ */
-.minimap-toggle {
-  font-family: var(--font-ui); font-size: 9px; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.08em;
-  background: var(--parchment-dk); border-bottom: 1px solid var(--tl-border);
-  padding: 3px var(--sp-4); cursor: pointer; flex-shrink: 0;
-  transition: background 0.15s; user-select: none;
-}
-.minimap-toggle:hover { background: rgba(212,162,83,0.06); color: var(--accent); }
-.minimap-toggle::before { content: '▸ '; font-size: 8px; }
-.minimap-toggle.open::before { content: '▾ '; }
-.minimap-bar.minimap-collapsed { height: 0; overflow: hidden; border-bottom: none; }
-[data-theme="light"] .minimap-toggle { background: #f0f1f4; border-color: rgba(0,0,0,0.06); color: #6a7280; }
 
 /* ══════════════════════════════════════════════════════════════
    SORT VALUE IN LABEL — always visible, right-aligned
@@ -2113,24 +2151,26 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 
 /* Combined: context rows appear above churches with smooth reveal */
 body.mode-combined #contextPanel {
-  flex: 0 1 auto; max-height: 45%; overflow-y: auto;
+  flex: none;                              /* explicit height controls, not flex */
+  height: clamp(120px, 38vh, 360px);      /* 38% viewport, min 120px, max 360px */
+  overflow-y: auto;
   opacity: 1;
-  transition: max-height 280ms cubic-bezier(0.4, 0, 0.2, 1),
+  transition: height 280ms cubic-bezier(0.4, 0, 0.2, 1),
               opacity 250ms ease;
 }
-body.mode-combined #churchPanel { min-height: 100px; }
+body.mode-combined #churchPanel { flex: 1 1 0; min-height: 80px; }
 
 /* Churches: context panel collapses */
 body.mode-churches #contextPanel {
-  max-height: 0; opacity: 0; overflow: hidden;
+  flex: none; height: 0; opacity: 0; overflow: hidden;
   pointer-events: none; padding: 0; border: none;
-  transition: max-height 250ms cubic-bezier(0.4, 0, 0.2, 1),
+  transition: height 250ms cubic-bezier(0.4, 0, 0.2, 1),
               opacity 200ms ease;
 }
 
 /* Context-only mode (legacy fallback — maps to combined behaviour) */
 body.mode-context #contextPanel {
-  flex: 0 1 auto; max-height: 45%; overflow-y: auto; opacity: 1;
+  flex: none; height: clamp(120px, 38vh, 360px); overflow-y: auto; opacity: 1;
 }
 body.mode-context #churchPanel,
 body.mode-context #churchesLabel {

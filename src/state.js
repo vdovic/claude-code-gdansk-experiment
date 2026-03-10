@@ -11,9 +11,13 @@ import { district1450ByChurchId } from './data/districts1450.js';
 export const START_YEAR = 1200;
 export const END_YEAR   = 2005;
 
-// Visible range (controlled by range slider). Defaults to full range.
-export let viewStart = START_YEAR;
-export let viewEnd   = END_YEAR;
+// ── Default focused view (medieval / early-modern Gdańsk) ──
+export const DEFAULT_VIEW_START = 1200;
+export const DEFAULT_VIEW_END   = 1750;
+
+// Visible range (controlled by the range navigator strip). Defaults to medieval focus.
+export let viewStart = DEFAULT_VIEW_START;
+export let viewEnd   = DEFAULT_VIEW_END;
 export function setViewStart(v) { viewStart = Math.max(START_YEAR, Math.min(v, viewEnd - 50)); }
 export function setViewEnd(v)   { viewEnd   = Math.min(END_YEAR,   Math.max(v, viewStart + 50)); }
 export function resetViewRange() { viewStart = START_YEAR; viewEnd = END_YEAR; }

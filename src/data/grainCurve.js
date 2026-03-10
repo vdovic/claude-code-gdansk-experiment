@@ -23,12 +23,12 @@ function lerp(series, year, key) {
 
 // ── Pre-computed constants ──────────────────────────────────────────────────
 
-export const GRAIN_MAX = Math.max(...grainExport.map(d => d.val));   // 132 (year 1618)
+export const GRAIN_MAX = Math.max(...grainExport.map(d => d.val));   // 1 000 000 t (year 2000)
 export const SHIPS_MAX = Math.max(...shipTraffic.map(d => d.ships)); // 2800 (year 1900)
 
 // ── Public interpolation API ────────────────────────────────────────────────
 
-/** Grain export in thousands of łaszts at any year (linear interpolation). */
+/** Grain export in metric tonnes at any year (linear interpolation). */
 export function getGrainValue(year) {
   return lerp(grainExport, year, 'val');
 }

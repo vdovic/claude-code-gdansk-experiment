@@ -8,13 +8,22 @@ import { clusterDefs } from './data/clusters.js';
 import { typeColors, denomColors, getCluster, getMostSimilar } from './state.js';
 import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
 
-const TT_MAX_BODY = 280;
+const TT_OPEN_DELAY  = 100;  // ms before hover preview appears (skipped when warm)
+const TT_CLOSE_DELAY = 60;   // ms before hover preview hides
+const TT_CORRIDOR_MS = 250;  // grace ms when cursor is heading toward the tooltip
+const TT_MAX_PREVIEW = 220;  // body chars shown in hover preview
+const TT_MAX_BODY    = 280;  // body chars shown in pinned / click-expanded state
 
 let ttEl        = null;
 let ttPinned    = false;
 let ttPinnedCI  = -1;
 let ttPinnedEI  = -1;
 let ttContent   = '';
+let _openTimer  = null;   // delayed-show timer (warm-up delay)
+let _closeTimer = null;   // delayed-hide timer
+let _mx = 0, _my = 0;    // current mouse position (corridor detection)
+let _pmx = 0, _pmy = 0;  // previous mouse position (one move event ago)
+let _warm = false;        // true while a tooltip is visible — skip open delay when scanning
 
 function _el() {
   if (!ttEl) ttEl = document.getElementById('tooltip');
@@ -28,9 +37,9 @@ function _positionAt(ev) {
   const ttW = Math.min(tt.offsetWidth || 360, 380);
   const ttH = tt.offsetHeight || 200;
   let x = ev.clientX + 14;
-  let y = ev.clientY - 10;
+  let y = ev.clientY + 24;  // below cursor so same-row marks to the right aren't obscured
   if (x + ttW + 10 > w) x = Math.max(5, ev.clientX - ttW - 14);
-  if (y + ttH + 10 > h) y = Math.max(5, h - ttH - 10);
+  if (y + ttH + 10 > h) y = Math.max(5, ev.clientY - ttH - 10);  // flip above if no room below
   if (y < 5) y = 5;
   if (x < 5) x = 5;
   tt.style.left = x + 'px';
@@ -41,7 +50,35 @@ function _buildBase(html) {
   return `<button class="tt-close" id="ttClose">✕</button>${html}<div class="tt-pin-hint">click to pin</div>`;
 }
 
+/** Returns true if the mouse velocity vector is pointing toward the tooltip's bounds. */
+function _headingTowardTT() {
+  const tt = _el();
+  if (!tt || !tt.classList.contains('visible')) return false;
+  const r  = tt.getBoundingClientRect();
+  const dx = _mx - _pmx, dy = _my - _pmy;
+  if (dx === 0 && dy === 0) return false;
+  for (let s = 1; s <= 8; s++) {
+    const px = _mx + dx * s, py = _my + dy * s;
+    if (px >= r.left - 8 && px <= r.right + 8 &&
+        py >= r.top  - 8 && py <= r.bottom + 8) return true;
+  }
+  return false;
+}
+
+/** Schedule a show — bypasses the open delay when the user is already warm (scanning marks). */
+function _scheduleShow(html, ev, extraClass, immediate) {
+  clearTimeout(_openTimer);
+  if (immediate || _warm) {
+    _show(html, ev, extraClass);
+  } else {
+    _openTimer = setTimeout(() => _show(html, ev, extraClass), TT_OPEN_DELAY);
+  }
+}
+
 function _show(html, ev, extraClass) {
+  clearTimeout(_openTimer);
+  clearTimeout(_closeTimer);
+  _warm = true;
   const tt = _el();
   ttContent = html;
   tt.innerHTML = _buildBase(html);
@@ -56,29 +93,35 @@ function _show(html, ev, extraClass) {
   document.getElementById('ttClose')?.addEventListener('click', unpinTT);
 }
 
-export function showTT(ev, kind, idx, sub) {
+export function showTT(ev, kind, idx, sub, opts = {}) {
   if (ttPinned) return;
   let body = '';
 
   if (kind === 'p') {
     const e   = politicalEvents[idx];
     const col = e.color || 'var(--amber)';
+    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${Math.floor(e.year)}</div>
       <div class="tt-type" style="background:${col}20;color:${col}">Political</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body">${e.detail.substring(0, TT_MAX_BODY)}${e.detail.length > TT_MAX_BODY ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'war') {
     const e = wars[idx];
+    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.start}–${e.end}</div>
       <div class="tt-type" style="background:rgba(192,48,48,0.15);color:var(--ev-siege)">War / Conflict</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body">${e.detail.substring(0, TT_MAX_BODY)}${e.detail.length > TT_MAX_BODY ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'cal') {
     const e = calamities[idx];
+    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.year}</div>
       <div class="tt-type" style="background:rgba(106,64,128,0.15);color:var(--ev-plague)">Plague / Epidemic</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body">${e.detail.substring(0, TT_MAX_BODY)}${e.detail.length > TT_MAX_BODY ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'ruler') {
     const r   = rulers[idx];
     const col = r.color || 'var(--amber)';
@@ -91,18 +134,20 @@ export function showTT(ev, kind, idx, sub) {
       ${r.note ? `<div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${r.note.substring(0, RULER_MAX)}${hasMore ? '… <em style="color:var(--amber-lt)">click to pin</em>' : ''}</div>` : ''}`;
   } else {
     // Church event (kind === 'c')
-    const ch  = churches[idx];
-    const e   = ch.events[sub];
-    const col = typeColors[e.type] || 'var(--amber)';
+    const ch      = churches[idx];
+    const e       = ch.events[sub];
+    const col     = typeColors[e.type] || 'var(--amber)';
     const typeLabel = e.type === 'cornerstone' ? 'brick cornerstone' : e.type;
-    const hasMore   = e.detail.length > TT_MAX_BODY;
+    const maxLen  = opts.immediate ? TT_MAX_BODY : TT_MAX_PREVIEW;
+    const hasMore = e.detail.length > maxLen;
+    const escaped = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.year} · ${ch.name}</div>
       <div class="tt-type" style="background:${col}20;color:${col}">${typeLabel}</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body">${e.detail.substring(0, TT_MAX_BODY)}${hasMore ? '… <em style="color:var(--amber-lt)">click</em>' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${e.detail.substring(0, maxLen)}${hasMore ? '… <em style="color:var(--amber-lt)">click</em>' : ''}</div>`;
   }
 
-  _show(body, ev);
+  _scheduleShow(body, ev, undefined, opts.immediate);
 }
 
 export function showChurchTT(ev, ci) {
@@ -205,13 +250,20 @@ export function showClusterTT(ev, clusterId) {
 /** Generic tooltip — accepts pre-built HTML, used by grain, religious, and urban power tracks. */
 export function showGenericTT(ev, html) {
   if (ttPinned) return;
-  _show(html, ev);
+  _scheduleShow(html, ev);
 }
 
 export function hideTT() {
   if (ttPinned) return;
-  const tt = _el();
-  tt.classList.remove('visible', 'church-info-tt');
+  clearTimeout(_openTimer);   // cancel any pending show
+  clearTimeout(_closeTimer);
+  const delay = _headingTowardTT() ? TT_CORRIDOR_MS : TT_CLOSE_DELAY;
+  _closeTimer = setTimeout(() => {
+    if (ttPinned) return;
+    _warm = false;
+    const tt = _el();
+    tt.classList.remove('visible', 'church-info-tt');
+  }, delay);
 }
 
 export function pinTT(ev, ci = -1, ei = -1) {
@@ -232,6 +284,7 @@ export function unpinTT() {
   ttPinned   = false;
   ttPinnedCI = -1;
   ttPinnedEI = -1;
+  _warm = false;
   const tt = _el();
   tt.classList.remove('pinned', 'visible', 'church-info-tt');
 }
@@ -239,12 +292,49 @@ export function unpinTT() {
 export function isTTPinned() { return ttPinned; }
 export function isTTPinnedFor(ci, ei) { return ttPinned && ttPinnedCI === ci && ttPinnedEI === ei; }
 
-// Global click handler: pin on click-over-element, unpin on click-elsewhere
+// Global click/hover handler setup — call once after DOM is ready.
+// NOTE: .evt-dot clicks are handled locally in render.js (with stopPropagation)
+//       .ch-label no longer shows a hover tooltip (detail drawer on click only)
 export function setupTooltipClickHandling() {
+  const tt = _el();
+
+  // Track mouse position for corridor detection in hideTT()
+  document.addEventListener('mousemove', e => {
+    _pmx = _mx; _pmy = _my;
+    _mx = e.clientX; _my = e.clientY;
+  });
+
+  // Esc closes a pinned tooltip
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && ttPinned) unpinTT();
+  });
+
+  // Allow mouse to travel from a trigger element into the tooltip without
+  // triggering the delayed hide — clear the timers on enter, restart on leave.
+  if (tt) {
+    tt.addEventListener('mouseenter', () => {
+      clearTimeout(_openTimer);
+      clearTimeout(_closeTimer);
+    });
+    tt.addEventListener('mouseleave', () => {
+      if (!ttPinned) {
+        clearTimeout(_closeTimer);
+        _closeTimer = setTimeout(() => {
+          if (!ttPinned) {
+            _warm = false;
+            tt.classList.remove('visible', 'church-info-tt');
+          }
+        }, TT_CLOSE_DELAY);
+      }
+    });
+  }
+
+  // Context-track items (rulers, wars, political, calamity) pin on click.
+  // evt-dot is handled locally in render.js; ch-label tooltip removed.
   document.addEventListener('click', ev => {
     const tt = _el();
     if (tt.contains(ev.target)) return;
-    const trigger = ev.target.closest('.evt-dot, .ch-label, .political-marker, .calamity-marker, .war-bar, .ruler-bar');
+    const trigger = ev.target.closest('.political-marker, .calamity-marker, .war-bar, .ruler-bar');
     if (trigger && tt.classList.contains('visible')) {
       pinTT(ev);
       return;

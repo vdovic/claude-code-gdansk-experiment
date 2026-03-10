@@ -20,7 +20,7 @@ import {
   typeColors, getCluster,
   patronageMode, getHighlightedChurchIds,
 } from './state.js';
-import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinnedFor } from './tooltip.js';
+import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
 import { getConfessionalPhases } from './data/confessional.js';
 import { eventMarkerSVG } from './theme.js';
@@ -37,36 +37,39 @@ function _cathYears(ch) {
   return ch.denomBars.filter(b => b.type === 'catholic').reduce((s, b) => s + (b.end - b.start), 0);
 }
 
-// ── Axis tick renderer ────────────────────────────────────────
+// ── Axis tick renderer (full-range overview with percentage positioning) ──
+// The axis always shows START_YEAR–END_YEAR. Year ticks and era bands share
+// the same percentage coordinate system as the integrated range handles.
+const _AXIS_SPAN = END_YEAR - START_YEAR;   // 805
+function _yearPct(y) { return ((y - START_YEAR) / _AXIS_SPAN) * 100; }
+
 export function renderAxis() {
   const inner = document.getElementById('axisInner');
   if (!inner) return;
-  const tw = getTotalWidth() - labelOffset;
-  inner.style.width = tw + 'px';
   let html = '';
 
-  // Era bands (behind tick marks, inside axis background)
+  // Era bands (behind tick marks)
   eras.forEach(e => {
-    if (e.end < viewStart || e.start > viewEnd) return;
-    const x1 = yearToX(Math.max(e.start, viewStart)) - labelOffset;
-    const x2 = yearToX(Math.min(e.end, viewEnd))     - labelOffset;
-    html += `<div class="era-band" style="left:${x1}px;width:${x2-x1}px;background:${e.color}"></div>`;
+    const p1 = _yearPct(Math.max(e.start, START_YEAR));
+    const p2 = _yearPct(Math.min(e.end, END_YEAR));
+    html += `<div class="era-band" style="left:${p1}%;width:${p2 - p1}%;background:${e.color}"></div>`;
   });
 
   // Siege hazard overlay
   siegeBands.forEach(s => {
-    if (s.end < viewStart || s.start > viewEnd) return;
-    const x1 = yearToX(Math.max(s.start, viewStart)) - labelOffset;
-    const x2 = yearToX(Math.min(s.end, viewEnd))     - labelOffset;
-    html += `<div class="siege-band" style="left:${x1}px;width:${Math.max(x2-x1, 4)}px"></div>`;
+    const p1 = _yearPct(Math.max(s.start, START_YEAR));
+    const p2 = _yearPct(Math.min(s.end, END_YEAR));
+    html += `<div class="siege-band" style="left:${p1}%;width:${Math.max(p2 - p1, 0.5)}%"></div>`;
   });
 
-  // Year ticks — start from nearest decade at or after viewStart
-  const tickStart = Math.ceil(viewStart / 10) * 10;
-  for (let y = tickStart; y <= viewEnd; y += 10) {
-    const x   = yearToX(y) - labelOffset;
-    const maj = y % 50 === 0;
-    html += `<div class="yr-tick ${maj ? '' : 'minor'}" style="left:${x}px">`;
+  // Year ticks — 100-year major, 25-year minor (fixed, since we always show 805 years)
+  const majorTick = 100;
+  const minorTick = 50;
+  const tickStart = Math.ceil(START_YEAR / minorTick) * minorTick;
+  for (let y = tickStart; y <= END_YEAR; y += minorTick) {
+    const pct = _yearPct(y);
+    const maj = y % majorTick === 0;
+    html += `<div class="yr-tick ${maj ? '' : 'minor'}" style="left:${pct}%">`;
     if (maj) html += `<div class="yr-tick-lbl">${y}</div>`;
     html += `<div class="yr-tick-line"></div></div>`;
   }
@@ -352,11 +355,11 @@ function renderGrain() {
     const gTrough = visGrain.reduce((a, b) => b.val < a.val ? b : a);
     const px = yearToX(gPeak.year) - labelOffset;
     const py = gH - (gPeak.val / maxG) * (gH - pad * 2);
-    svg += `<text x="${px}" y="${py - 3}" class="econ-label" fill="var(--amber)" text-anchor="middle">${gPeak.val}k</text>`;
+    svg += `<text x="${px}" y="${py - 3}" class="econ-label" fill="var(--amber)" text-anchor="middle">${Math.round(gPeak.val / 1000)}k t</text>`;
     if (gTrough.val < gPeak.val * 0.2) {
       const tx = yearToX(gTrough.year) - labelOffset;
       const ty = gH - (gTrough.val / maxG) * (gH - pad * 2);
-      svg += `<text x="${tx}" y="${ty - 3}" class="econ-label" fill="var(--amber)" text-anchor="middle">${gTrough.val}k</text>`;
+      svg += `<text x="${tx}" y="${ty - 3}" class="econ-label" fill="var(--amber)" text-anchor="middle">${Math.round(gTrough.val / 1000)}k t</text>`;
     }
   }
 
@@ -376,7 +379,7 @@ function renderGrain() {
   svg += `</g>`; // close clip group
 
   // Legend (outside clip so it's always visible at right edge)
-  svg += `<text x="${svgW - 4}" y="8" class="econ-label" fill="var(--amber)" text-anchor="end" opacity="0.6">Grain export (k łaszts)</text>`;
+  svg += `<text x="${svgW - 4}" y="8" class="econ-label" fill="var(--amber)" text-anchor="end" opacity="0.6">Grain export (kt)</text>`;
 
   // Transparent hit-area for tooltip (covers entire SVG)
   svg += `<rect width="${svgW}" height="${gH}" fill="transparent" class="grain-hit"/>`;
@@ -413,7 +416,7 @@ export function initGrainTooltip() {
       `<div class="tt-year">${Math.round(year)}</div>` +
       `<div class="tt-type" style="background:rgba(200,134,10,0.15);color:var(--amber)">Grain Export</div>` +
       `<div style="font-size:11px;margin:4px 0 2px;">` +
-        `<div style="margin:2px 0;"><strong>Grain export:</strong> ${grain.toFixed(0)}k łaszt</div>` +
+        `<div style="margin:2px 0;"><strong>Grain export:</strong> ${Math.round(grain / 1000)}k t</div>` +
         `<div style="margin:2px 0;"><strong>Ships per year:</strong> ~${Math.round(ships)}</div>` +
         `<div style="margin:2px 0;"><strong>Ships trend:</strong> ${trend}</div>` +
       `</div>`;
@@ -606,11 +609,12 @@ function renderLanes() {
   labelsEl.innerHTML  = labHtml;
   lanesEl.innerHTML   = laneHtml;
 
-  // Attach event listeners to labels
+  // Attach event listeners to labels.
+  // Church metadata is shown only in the detail drawer (explicit click).
+  // Hover tooltip removed from labels — avoids conflating marker-level
+  // hover state with full church metadata.
   labelsEl.querySelectorAll('.ch-label').forEach(el => {
     const ci = +el.dataset.ci;
-    el.addEventListener('mouseenter', ev => showChurchTT(ev, ci));
-    el.addEventListener('mouseleave', hideTT);
     el.addEventListener('click', () => openCD(ci, 0));
   });
 
@@ -631,12 +635,21 @@ function renderLanes() {
           const r = el.getBoundingClientRect();
           const fakeEv = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
           unpinTT();                        // dismiss any previously pinned tooltip
-          showTT(fakeEv, 'c', ci, ei);
+          showTT(fakeEv, 'c', ci, ei, { immediate: true });
           pinTT(fakeEv, ci, ei);
         }
         e.stopPropagation();              // prevent global pin-handler from fighting us
       } else {
-        openCD(ci, ei);
+        // Desktop: first click pins tooltip (same UX as touch first tap);
+        // second click on the SAME already-pinned marker opens the detail drawer.
+        if (isTTPinnedFor(ci, ei)) {
+          openCD(ci, ei);
+        } else {
+          if (isTTPinned()) unpinTT();    // release any existing pin first
+          showTT(e, 'c', ci, ei, { immediate: true });  // show tooltip without open-delay
+          pinTT(e, ci, ei);               // sticky-pin it
+        }
+        e.stopPropagation();              // prevent global handler from unpinning on same click
       }
     });
     el.addEventListener('keydown', ev => {

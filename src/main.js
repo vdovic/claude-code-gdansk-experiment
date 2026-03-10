@@ -5,7 +5,8 @@
 import { churches } from './data/churches.js';
 import { eras }     from './data/context.js';
 import {
-  START_YEAR, END_YEAR, viewStart, viewEnd,
+  START_YEAR, END_YEAR, DEFAULT_VIEW_START, DEFAULT_VIEW_END,
+  viewStart, viewEnd,
   pixelsPerYear, setPixelsPerYear, labelOffset, setLabelOffset,
   yearToX, getTotalWidth,
   currentSort, getSortedIndices, sortedIndices,
@@ -15,7 +16,7 @@ import {
 } from './state.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { renderMinimap, updateMinimapViewport, updateViewRangeLabel, minimapClick, renderRangeSlider, initRangeSlider, initMinimapHandles, initMinimapRibbonTooltip, initMinimapRegimeTooltip, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=5';
+import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=6';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT } from './tooltip.js';
@@ -42,9 +43,8 @@ export function zoomFit() {
 
 function _afterZoom() {
   render();
-  renderMinimap();
-  renderRangeSlider();
   updateViewRangeLabel();
+  window._updateRangeHandles?.();
 }
 
 // ── Navigation ────────────────────────────────────────────────
@@ -141,10 +141,10 @@ function _hideKb() {
 }
 
 // ── Scroll sync (v6 pattern) ──────────────────────────────────
-// lanesScroll drives: axisScroll, all ctx-scroll elements, tlLabels (Y only)
+// lanesScroll drives: all ctx-scroll elements, tlLabels (Y only)
+// Note: axis is now static (full-range overview), so no horizontal sync needed.
 function _initScrollSync() {
   const lanesScroll = document.getElementById('lanesScroll');
-  const axisScroll  = document.getElementById('axisScroll');
   const tlLabels    = document.getElementById('tlLabels');
   if (!lanesScroll) return;
 
@@ -152,13 +152,11 @@ function _initScrollSync() {
     const sx = lanesScroll.scrollLeft;
     const sy = lanesScroll.scrollTop;
 
-    if (axisScroll)  axisScroll.scrollLeft  = sx;
     if (tlLabels)    tlLabels.scrollTop      = sy;
 
     // Context track scroll rows
     document.querySelectorAll('.tl-ctx-scroll').forEach(el => { el.scrollLeft = sx; });
 
-    updateMinimapViewport();
   }, { passive: true });
 }
 
@@ -171,50 +169,15 @@ function _initResize() {
       setLabelOffset(window.innerWidth <= 768 ? 110 : 180);
       setRenderSortKey(currentSort);
       render();
-      renderMinimap();
       updateViewRangeLabel();
     }, 120);
   });
 }
 
-// ── Minimap toggle + persistence ─────────────────────────────
-function _initMinimapToggle() {
-  const toggle = document.getElementById('minimapToggle');
-  const bar    = document.getElementById('minimapBar');
-  if (!toggle || !bar) return;
-
-  // Restore saved state or default to collapsed
-  const saved = localStorage.getItem('overviewCollapsed');
-  const shouldCollapse = saved !== '0';
-
-  if (shouldCollapse) {
-    bar.classList.add('minimap-collapsed');
-    toggle.classList.remove('open');
-  } else {
-    bar.classList.remove('minimap-collapsed');
-    toggle.classList.add('open');
-  }
-
-  // Toggle on click
-  toggle.addEventListener('click', () => {
-    const isCollapsed = bar.classList.toggle('minimap-collapsed');
-    toggle.classList.toggle('open', !isCollapsed);
-
-    // Save state to localStorage
-    localStorage.setItem('overviewCollapsed', isCollapsed ? '1' : '0');
-
-    if (!isCollapsed) {
-      bar.style.height = '';
-      renderMinimap();
-      renderRangeSlider();
-      updateViewRangeLabel();
-    }
-  });
-}
 
 // ── Drag-to-pan (desktop) ─────────────────────────────────────
 // Click-drag on the main timeline area pans horizontally by changing scrollLeft.
-// The existing scroll-sync handler keeps axis, context tracks, and minimap in sync.
+// The existing scroll-sync handler keeps axis and context tracks in sync.
 function _initDragToPan() {
   const tlOuter     = document.getElementById('tlOuter');
   const lanesScroll = document.getElementById('lanesScroll');
@@ -226,7 +189,7 @@ function _initDragToPan() {
   const INTERACTIVE = 'button, input, select, a, .evt-dot, .war-bar, .ruler-bar, '
     + '.political-marker, .calamity-marker, .econ-era-block, .filter-chip, '
     + '.church-selector, .sort-btn, .ctrl-btn, .track-toggle, .ch-label, '
-    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle';
+    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle, .axis-track';
 
   let pointerId    = null;   // active pointer id (null = not tracking)
   let startX       = 0;      // clientX at pointerdown
@@ -360,6 +323,159 @@ function _applyViewMode(mode) {
   }
 }
 
+// ── Integrated Range Handles (on the unified axis) ────────────
+// Handles and ticks share one coordinate system:
+//   percentage = (year − START_YEAR) / (END_YEAR − START_YEAR) × 100
+// The axis never re-renders during drag — only handle/fill CSS positions
+// update, eliminating the layout-reflow jitter that plagued the old strip.
+
+const _AX_SPAN = END_YEAR - START_YEAR;     // 805
+function _yearPct(y)  { return ((y - START_YEAR) / _AX_SPAN) * 100; }
+function _pctToYear(p) { return Math.round(START_YEAR + Math.max(0, Math.min(100, p)) / 100 * _AX_SPAN); }
+
+function initRangeHandles() {
+  const track     = document.getElementById('axisTrack');
+  const fill      = document.getElementById('rangeFill');
+  const muteL     = document.getElementById('rangeMuteL');
+  const muteR     = document.getElementById('rangeMuteR');
+  const hl        = document.getElementById('rangeHandleL');
+  const hr        = document.getElementById('rangeHandleR');
+  const label     = document.getElementById('rangeLabel');
+  const reset     = document.getElementById('rangeReset');
+  const dragLabel = document.getElementById('rangeDragLabel');
+  if (!track) return;
+
+  // ── clientX → year using the SAME coordinate system as ticks ──
+  function _clientToYear(clientX) {
+    const rect = track.getBoundingClientRect();
+    const pct  = ((clientX - rect.left) / rect.width) * 100;
+    return _pctToYear(pct);
+  }
+
+  // ── Position handles, fill, and mute overlays ──────────────────
+  function _syncUI() {
+    const lPct = _yearPct(viewStart);
+    const rPct = _yearPct(viewEnd);
+
+    // Handles
+    hl.style.left = lPct + '%';
+    hr.style.left = rPct + '%';
+
+    // Fill highlight (full height of axis-track)
+    fill.style.left  = lPct + '%';
+    fill.style.width = (rPct - lPct) + '%';
+
+    // Muted overlays (only cover the tick area, top:14px via CSS)
+    muteL.style.width = lPct + '%';
+    muteR.style.width = (100 - rPct) + '%';
+
+    // Label
+    label.textContent = viewStart + ' – ' + viewEnd;
+    hl.setAttribute('aria-valuenow', viewStart);
+    hr.setAttribute('aria-valuenow', viewEnd);
+  }
+
+  // ── Throttled render for drag (timeline content updates) ────────
+  let _rafId = null;
+  function _scheduleRender() {
+    if (_rafId) return;
+    _rafId = requestAnimationFrame(() => {
+      _rafId = null;
+      render();
+      updateViewRangeLabel();
+    });
+  }
+
+  // ── Drag feedback label ─────────────────────────────────────────
+  function _showDragLabel(handle, year) {
+    dragLabel.textContent = year;
+    dragLabel.style.left = handle.style.left;
+    dragLabel.classList.add('visible');
+  }
+  function _hideDragLabel() {
+    dragLabel.classList.remove('visible');
+  }
+
+  // ── Pointer-capture drag ────────────────────────────────────────
+  // setPointerCapture routes ALL pointer events to the capturing element,
+  // preventing lost tracking when cursor leaves the handle or scrollable areas.
+  // The axis is static (never re-renders during drag), so getBoundingClientRect()
+  // on the track is stable — no jitter from layout reflows.
+  function _makeDraggable(handle, isLeft) {
+    handle.addEventListener('pointerdown', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      handle.setPointerCapture(ev.pointerId);
+      handle.classList.add('dragging');
+
+      function onMove(e) {
+        if (!handle.hasPointerCapture(e.pointerId)) return;
+        const yr = _clientToYear(e.clientX);
+        // Consistent 50-year minimum gap (matches setViewStart/setViewEnd clamping)
+        if (isLeft) {
+          setViewStart(Math.min(yr, viewEnd - 50));
+        } else {
+          setViewEnd(Math.max(yr, viewStart + 50));
+        }
+        _syncUI();
+        _showDragLabel(handle, isLeft ? viewStart : viewEnd);
+        _scheduleRender();
+      }
+      function onUp(e) {
+        handle.releasePointerCapture(e.pointerId);
+        handle.classList.remove('dragging');
+        handle.removeEventListener('pointermove',   onMove);
+        handle.removeEventListener('pointerup',     onUp);
+        handle.removeEventListener('pointercancel', onUp);
+        _hideDragLabel();
+        // Auto-fit the timeline width to the newly selected range
+        zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _syncUI
+      }
+      handle.addEventListener('pointermove',   onMove);
+      handle.addEventListener('pointerup',     onUp);
+      handle.addEventListener('pointercancel', onUp);
+    });
+  }
+
+  _makeDraggable(hl, true);
+  _makeDraggable(hr, false);
+
+  // ── Click anywhere on track → snap nearest handle ──────────────
+  track.addEventListener('pointerdown', ev => {
+    if (ev.target === hl || ev.target === hr) return;
+    // Ignore clicks on tick labels
+    if (ev.target.closest('.yr-tick')) return;
+    ev.preventDefault();
+    const yr   = _clientToYear(ev.clientX);
+    const dL   = Math.abs(yr - viewStart);
+    const dR   = Math.abs(yr - viewEnd);
+    const doLeft = dL <= dR;
+    if (doLeft) setViewStart(Math.min(yr, viewEnd - 50));
+    else        setViewEnd(Math.max(yr, viewStart + 50));
+    _syncUI();
+    _scheduleRender();
+
+    // Hand off to the nearest handle's drag
+    const handle = doLeft ? hl : hr;
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+      pointerId: ev.pointerId, pointerType: ev.pointerType,
+      clientX: ev.clientX, clientY: ev.clientY,
+      bubbles: true, cancelable: true,
+    }));
+  });
+
+  // ── Reset button ────────────────────────────────────────────────
+  reset.addEventListener('click', () => {
+    setViewStart(DEFAULT_VIEW_START);
+    setViewEnd(DEFAULT_VIEW_END);
+    zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _syncUI
+  });
+
+  // Export so external code (zoom, _afterZoom) can sync the handles
+  window._updateRangeHandles = _syncUI;
+  _syncUI();
+}
+
 // ── Onboarding tip ─────────────────────────────────────────────
 function _initOnboarding() {
   if (localStorage.getItem('onboardingSeen')) return;
@@ -467,7 +583,8 @@ function _wireButtons() {
     });
   });
 
-  // Economic era blocks — click to zoom/focus timeline on that period
+  // Economic era blocks — click to focus the period with context padding so
+  // adjacent periods remain partially visible and clickable for easy navigation.
   document.getElementById('econErasInner')?.addEventListener('click', e => {
     const block = e.target.closest('.econ-era-block');
     if (!block) return;
@@ -475,31 +592,19 @@ function _wireButtons() {
     const era = economicEras[idx];
     if (!era) return;
 
-    // Use integer boundaries to prevent floating-point drift
-    const pad = 15;
-    const targetStart = Math.round(era.start - pad);
-    const targetEnd   = Math.round(era.end   + pad);
-    setViewStart(targetStart);
-    setViewEnd(targetEnd);
+    // Pad 15% of era width each side (min 15 years) so adjacent period blocks
+    // stay visible and clickable — preserves the "navigate by clicking" UX.
+    const eraWidth = era.end - era.start;
+    const pad = Math.max(15, Math.round(eraWidth * 0.15));
+    setViewStart(Math.max(START_YEAR, era.start - pad));
+    setViewEnd(Math.min(END_YEAR,   era.end   + pad));
 
-    // Auto-fit zoom so the period fills the viewport exactly
+    // Auto-fit zoom and sync handles + labels in one call
+    zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _updateRangeHandles
+
+    // Scroll content to the beginning of the period
     const lanesScroll = document.getElementById('lanesScroll');
-    if (lanesScroll) {
-      // Use target range (not viewStart/viewEnd which may be clamped)
-      const range = Math.max(targetEnd - targetStart, 50);
-      const fitPPY = (lanesScroll.clientWidth * 0.92) / range;
-      setPixelsPerYear(Math.max(Math.min(fitPPY, 50), 2));
-    }
-
-    render();
-    renderMinimap();
-    renderRangeSlider();
-    updateViewRangeLabel();
-
-    // Scroll to the start of the era
-    setTimeout(() => {
-      if (lanesScroll) lanesScroll.scrollTo({ left: 0, behavior: 'smooth' });
-    }, 50);
+    if (lanesScroll) lanesScroll.scrollTo({ left: 0, behavior: 'smooth' });
   });
 
   // Tab bar
@@ -507,19 +612,15 @@ function _wireButtons() {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 
-  // Minimap
-  document.getElementById('minimapBar')?.addEventListener('click', minimapClick);
-
   // KB help button
   document.getElementById('btnKbHelp')?.addEventListener('click', toggleKbHelp);
 
-  // Range slider reset
+  // Range slider reset (goes to full 1200–2005)
   document.getElementById('btnResetRange')?.addEventListener('click', () => {
     resetViewRange();
     render();
-    renderMinimap();
-    renderRangeSlider();
     updateViewRangeLabel();
+    window._updateRangeHandles?.();
   });
 }
 
@@ -527,6 +628,10 @@ function _wireButtons() {
 document.addEventListener('DOMContentLoaded', () => {
   // Determine label column width
   setLabelOffset(window.innerWidth <= 768 ? 110 : 180);
+
+  // Apply default focus view (medieval / early-modern) before first render
+  setViewStart(DEFAULT_VIEW_START);   // 1200
+  setViewEnd(DEFAULT_VIEW_END);       // 1750
 
   // Prime sorted indices with default sort (setSort handles direction + button state)
   setSort(currentSort);
@@ -563,6 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Controls chrome — default collapsed
   _initChromeCollapse();
 
+  // Integrated range handles (on the unified axis)
+  initRangeHandles();
+
   // View Mode segmented control (Combined / Churches / Context)
   _initViewMode();
 
@@ -581,30 +689,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mobile bottom sheet
   initBottomSheet();
 
-  // Minimap toggle
-  _initMinimapToggle();
-
   // Drag-to-pan (desktop)
   _initDragToPan();
 
   // Mobile touch dismiss
   setupMobileTouchDismiss();
 
-  // Range slider init
-  initRangeSlider();
-
-  // Minimap handle dragging init (pill handles)
-  initMinimapHandles();
-
-  // Economic ribbon hover tooltip (fixed-position, escapes overflow:hidden)
-  initMinimapRibbonTooltip();
-
-  // Regime shift marker hover tooltip (fixed-position, z-index above ribbon)
-  initMinimapRegimeTooltip();
-
-  // Minimap (after a brief layout settle)
+  // Auto-fit + initial view range label (after brief layout settle)
   setTimeout(() => {
-    // Auto-fit if timeline is too wide for viewport
     const lanesScroll = document.getElementById('lanesScroll');
     if (lanesScroll) {
       const fitPPY = lanesScroll.clientWidth / (viewEnd - viewStart);
@@ -613,9 +705,8 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
       }
     }
-    renderMinimap();
-    renderRangeSlider();
     updateViewRangeLabel();
+    window._updateRangeHandles?.();
   }, 150);
 
 });

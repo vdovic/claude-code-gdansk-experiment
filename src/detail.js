@@ -13,6 +13,7 @@ import { calamities, politicalEvents, wars } from './data/context.js';
 import { typeColors, denomColors, getCluster, getMostSimilar, setSelectedCI } from './state.js';
 import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
 import { churchPatronData } from './data/patrons.js';
+import { churchSymbolMeanings } from './data/symbolMeanings.js';
 import { unpinTT } from './tooltip.js';
 
 // ── Drawer element references ─────────────────────────────────
@@ -29,12 +30,127 @@ function _open() {
   _drawer().classList.add('open');
 }
 
+// ── Heraldic tooltip cleanup (stored so we can remove listeners on re-open) ──
+let _shieldCleanup = null;
+
 export function closePanel() {
   _overlay()?.classList.remove('open');
   _drawer()?.classList.remove('open');
   setSelectedCI(-1);
   document.querySelectorAll('.map-church-item.selected').forEach(el =>
     el.classList.remove('selected'));
+  if (_shieldCleanup) { _shieldCleanup(); _shieldCleanup = null; }
+}
+
+// ── Heraldic symbol tooltip ───────────────────────────────────
+function _attachShieldTooltip(churchId) {
+  if (_shieldCleanup) { _shieldCleanup(); _shieldCleanup = null; }
+
+  const data = churchSymbolMeanings[churchId];
+  if (!data?.symbols?.length) return;
+
+  const trigger = document.getElementById('shieldTrigger');
+  if (!trigger) return;
+
+  // Build or reuse the fixed tooltip element
+  let tt = document.getElementById('heraldicTT');
+  if (!tt) {
+    tt = document.createElement('div');
+    tt.id = 'heraldicTT';
+    tt.className = 'hsym-tt';
+    tt.setAttribute('role', 'tooltip');
+    document.body.appendChild(tt);
+  }
+
+  const symbolsHTML = data.symbols.map(s =>
+    `<div class="hsym-symbol">
+      <div class="hsym-symbol-name">${s.symbol}</div>
+      <div class="hsym-symbol-desc">${s.explanation}</div>
+    </div>`
+  ).join('');
+
+  tt.innerHTML = `
+    <div class="hsym-tt-header">
+      <span class="hsym-tt-title">Symbol Meanings</span>
+      <button class="hsym-tt-close" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="hsym-tt-symbols">${symbolsHTML}</div>`;
+
+  // Position tooltip below (or above if near viewport bottom)
+  function positionTT() {
+    const rect = trigger.getBoundingClientRect();
+    const TT_W = 320;
+    const approxH = data.symbols.length * 68 + 50;
+    let top = rect.bottom + 10;
+    let left = rect.left + rect.width / 2 - TT_W / 2;
+    // Horizontal clamp
+    left = Math.max(8, Math.min(left, window.innerWidth - TT_W - 8));
+    // Flip above if insufficient space below
+    if (top + approxH > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - approxH - 10);
+    }
+    tt.style.top  = top  + 'px';
+    tt.style.left = left + 'px';
+  }
+
+  let visible = false;
+  function showTT() {
+    if (visible) return;
+    visible = true;
+    positionTT();
+    tt.classList.add('visible');
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  function hideTT() {
+    if (!visible) return;
+    visible = false;
+    tt.classList.remove('visible');
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+
+  // Event handlers
+  let _ptr = 'mouse';
+  const onPointerDown   = e => { _ptr = e.pointerType; };
+  const onMouseEnter    = () => { if (_ptr !== 'touch') showTT(); };
+  const onMouseLeave    = e  => { if (!tt.contains(e.relatedTarget)) hideTT(); };
+  const onTTMouseLeave  = e  => { if (!trigger.contains(e.relatedTarget)) hideTT(); };
+  const onFocus         = () => showTT();
+  const onBlur          = e  => { if (!tt.contains(e.relatedTarget)) hideTT(); };
+  const onKeyDown       = e  => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTT(); }
+    if (e.key === 'Escape') hideTT();
+  };
+  const onClick = e => {
+    if (_ptr === 'touch') { visible ? hideTT() : showTT(); e.stopPropagation(); }
+  };
+  const onCloseClick  = () => hideTT();
+  const onDocClick    = e  => {
+    if (!trigger.contains(e.target) && !tt.contains(e.target)) hideTT();
+  };
+
+  trigger.addEventListener('pointerdown', onPointerDown);
+  trigger.addEventListener('mouseenter',  onMouseEnter);
+  trigger.addEventListener('mouseleave',  onMouseLeave);
+  trigger.addEventListener('focus',       onFocus);
+  trigger.addEventListener('blur',        onBlur);
+  trigger.addEventListener('click',       onClick);
+  trigger.addEventListener('keydown',     onKeyDown);
+  tt.addEventListener('mouseleave',       onTTMouseLeave);
+  tt.querySelector('.hsym-tt-close')?.addEventListener('click', onCloseClick);
+  document.addEventListener('click',     onDocClick);
+
+  _shieldCleanup = () => {
+    trigger.removeEventListener('pointerdown', onPointerDown);
+    trigger.removeEventListener('mouseenter',  onMouseEnter);
+    trigger.removeEventListener('mouseleave',  onMouseLeave);
+    trigger.removeEventListener('focus',       onFocus);
+    trigger.removeEventListener('blur',        onBlur);
+    trigger.removeEventListener('click',       onClick);
+    trigger.removeEventListener('keydown',     onKeyDown);
+    tt.removeEventListener('mouseleave',       onTTMouseLeave);
+    document.removeEventListener('click',      onDocClick);
+    hideTT();
+  };
 }
 
 // ── Church detail ─────────────────────────────────────────────
@@ -56,7 +172,15 @@ export function openCD(ci, ei = 0) {
   // Heraldic shield
   const svgArt = shieldSVGs[ch.id];
   if (svgArt) {
-    html += `<div class="drawer-shield">${svgArt}</div>`;
+    const hasMeanings = !!(churchSymbolMeanings[ch.id]?.symbols?.length);
+    if (hasMeanings) {
+      html += `<div class="drawer-shield" id="shieldTrigger" tabindex="0" role="button" aria-label="View symbol meanings" aria-haspopup="true">
+        ${svgArt}
+        <div class="shield-hint">ⓘ symbol meanings</div>
+      </div>`;
+    } else {
+      html += `<div class="drawer-shield">${svgArt}</div>`;
+    }
   }
 
   // Photo links
@@ -290,6 +414,9 @@ export function openCD(ci, ei = 0) {
       openCD(tCI, tEI);
     });
   });
+
+  // Attach heraldic symbol tooltip
+  _attachShieldTooltip(ch.id);
 
   _open();
 

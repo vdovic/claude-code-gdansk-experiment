@@ -1,28 +1,37 @@
 // ═══════════ ECONOMIC DATA ═══════════
 
-// ── Grain Export (thousands of łaszts) — expanded with interpolations ──
+// ── Grain Export (metric tonnes, Port of Gdańsk) ─────────────────────────────
+// Pre-1900 values converted from archival łaszt figures (1 ship-łaszt ≈ 2 metric tonnes;
+// original data expressed in thousands of łaszts → ×2 000 to obtain tonnes).
+// Anchor points for the modern era (1900–2000) corrected to port records:
+//   1912 = 208 000 t  |  2000 = 1 000 000 t
+// Series ends at 2000; post-2000 data removed (cargo mix shifted to containers).
 export const grainExport = [
-  {year:1350, val:0.5},  {year:1380, val:1.2},
-  {year:1400, val:2.5},  {year:1420, val:4},    {year:1440, val:5.5},
-  {year:1460, val:8},    {year:1470, val:10.5},  {year:1480, val:14},
-  {year:1491, val:18},   {year:1500, val:22},    {year:1510, val:28},
-  {year:1520, val:35},   {year:1530, val:44},    {year:1540, val:54},
-  {year:1550, val:66},   {year:1557, val:75},    {year:1560, val:80},
-  {year:1570, val:95},   {year:1580, val:108},   {year:1590, val:118},
-  {year:1600, val:125},  {year:1610, val:130},   {year:1618, val:132},
-  {year:1625, val:125},  {year:1635, val:110},   {year:1645, val:95},
-  {year:1651, val:55},   {year:1655, val:48},    {year:1660, val:28},
-  {year:1670, val:25},   {year:1680, val:22},    {year:1690, val:20},
-  {year:1700, val:18},   {year:1709, val:8},     {year:1720, val:15},
-  {year:1730, val:22},   {year:1740, val:35},    {year:1754, val:42},
-  {year:1760, val:38},   {year:1770, val:40},    {year:1780, val:35},
-  {year:1793, val:28},   {year:1800, val:30},    {year:1810, val:20},
-  {year:1820, val:32},   {year:1830, val:42},    {year:1840, val:52},
-  {year:1850, val:58},   {year:1865, val:65},    {year:1875, val:72},
-  {year:1885, val:68},   {year:1900, val:55},    {year:1910, val:45},
-  {year:1920, val:28},   {year:1930, val:35},    {year:1939, val:22},
-  {year:1945, val:2},    {year:1950, val:8},     {year:1960, val:5},
-  {year:1970, val:3},    {year:1980, val:2},     {year:2000, val:1},
+  // ─── Medieval / Early-modern (converted from thousands of łaszts × 2 000) ───
+  {year:1350, val:1000},   {year:1380, val:2400},
+  {year:1400, val:5000},   {year:1420, val:8000},   {year:1440, val:11000},
+  {year:1460, val:16000},  {year:1470, val:21000},  {year:1480, val:28000},
+  {year:1491, val:36000},  {year:1500, val:44000},  {year:1510, val:56000},
+  {year:1520, val:70000},  {year:1530, val:88000},  {year:1540, val:108000},
+  {year:1550, val:132000}, {year:1557, val:150000}, {year:1560, val:160000},
+  {year:1570, val:190000}, {year:1580, val:216000}, {year:1590, val:236000},
+  {year:1600, val:250000}, {year:1610, val:260000}, {year:1618, val:264000},
+  {year:1625, val:250000}, {year:1635, val:220000}, {year:1645, val:190000},
+  {year:1651, val:110000}, {year:1655, val:96000},  {year:1660, val:56000},
+  {year:1670, val:50000},  {year:1680, val:44000},  {year:1690, val:40000},
+  {year:1700, val:36000},  {year:1709, val:16000},  {year:1720, val:30000},
+  {year:1730, val:44000},  {year:1740, val:70000},  {year:1754, val:84000},
+  {year:1760, val:76000},  {year:1770, val:80000},  {year:1780, val:70000},
+  {year:1793, val:56000},  {year:1800, val:60000},  {year:1810, val:40000},
+  {year:1820, val:64000},  {year:1830, val:84000},  {year:1840, val:104000},
+  {year:1850, val:116000}, {year:1865, val:130000}, {year:1875, val:144000},
+  {year:1885, val:136000},
+  // ─── Modern era (metric tonnes, port records) ────────────────────────────────
+  {year:1900, val:175000}, {year:1912, val:208000},
+  {year:1920, val:80000},  {year:1930, val:160000}, {year:1939, val:180000},
+  {year:1945, val:5000},   {year:1950, val:50000},  {year:1960, val:200000},
+  {year:1970, val:450000}, {year:1980, val:650000}, {year:1990, val:800000},
+  {year:2000, val:1000000},
 ];
 
 // Ensure years are numeric and sorted ascending (defensive — data is authored sorted)
