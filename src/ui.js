@@ -724,10 +724,13 @@ function _buildBsChurchListHtml(query = '') {
     const allSel = visible.every(c => visibleChurches.has(c.id));
     const noneSel = visible.every(c => !visibleChurches.has(c.id));
     const indet = !allSel && !noneSel;
+    // Each district is a single row: name label on the left, items flowing to the right
+    html += `<div class="church-district-row">`;
     html += `<div class="church-district-header" data-district="${district}">
       <div class="church-district-checkbox ${allSel ? 'on' : ''} ${indet ? 'indeterminate' : ''}" data-action="selectDistrict:${district}"></div>
-      <span class="church-district-label">${district} (${visible.length})</span>
+      <span class="church-district-label">${district}</span>
     </div>`;
+    html += `<div class="church-district-items">`;
     visible.forEach(c => {
       const on = visibleChurches.has(c.id);
       html += `<div class="church-selector-item ${on ? 'on' : ''}" data-action="church:${c.id}">
@@ -735,6 +738,7 @@ function _buildBsChurchListHtml(query = '') {
         <span>${c.shortName}</span>
       </div>`;
     });
+    html += `</div></div>`;
   });
   return html;
 }
@@ -759,21 +763,24 @@ export function initBottomSheet() {
 
   trigger.addEventListener('click', () => {
     if (_bottomSheetOpen) closeSheet(); else openSheet();
+    // Fade out the "Sort & Filter" hint label after first click — stays gone for the session
+    const lbl = trigger.previousElementSibling;
+    if (lbl) lbl.style.opacity = '0';
   });
   overlay.addEventListener('click', closeSheet);
 
-  // Tab switching
+  // Tab switching + action delegation
   sheet.addEventListener('click', e => {
     const tab = e.target.closest('.bottom-sheet-tab');
     if (tab) {
       _bottomSheetTab = tab.dataset.bsTab;
       _buildBottomSheetContent();
     }
-    // Handle filter chip clicks inside bottom sheet
-    const chip = e.target.closest('.filter-chip');
-    if (chip && chip.dataset.action) {
-      const act = chip.dataset.action;
-      _handleBottomSheetAction(act);
+    // Handle ANY element with data-action: filter chips, church items,
+    // district checkboxes, Select-all/none — all route through the same handler
+    const actionEl = e.target.closest('[data-action]');
+    if (actionEl) {
+      _handleBottomSheetAction(actionEl.dataset.action);
       _buildBottomSheetContent();
       render();
       renderMap();
@@ -837,7 +844,6 @@ function _handleBottomSheetAction(action) {
       const dc = churches.filter(c => district1450ByChurchId[c.id] === rawVal);
       const allSel = dc.every(c => visibleChurches.has(c.id));
       dc.forEach(c => { if (allSel ? visibleChurches.has(c.id) : !visibleChurches.has(c.id)) toggleChurch(c.id); });
-      applyFilters();
       break;
     }
     case 'track':    toggleTrack(rawVal); break;

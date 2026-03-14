@@ -37,7 +37,24 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''styles\\\\.css\\\\?v=22'',''styles.css?v=23'' -replace ''main\\\\.js\\\\?v=23'',''main.js?v=24'' | Set-Content index.html\")"
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''styles\\\\.css\\\\?v=22'',''styles.css?v=23'' -replace ''main\\\\.js\\\\?v=23'',''main.js?v=24'' | Set-Content index.html\")",
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''main\\\\.js\\\\?v=24'',''main.js?v=25'' | Set-Content index.html\")",
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''styles\\\\.css\\\\?v=24'',''styles.css?v=25'' -replace ''ui\\\\.js\\\\?v=6'',''ui.js?v=7'' | Set-Content index.html\")",
+      "Bash(powershell -Command \"Select-String -Path index.html -Pattern ''styles\\\\.css\\\\?v=|ui\\\\.js\\\\?v=|main\\\\.js\\\\?v=''\")",
+      "Bash(powershell -Command \"Select-String -Path index.html -Pattern ''ui\\\\.js''\")",
+      "Bash(powershell -Command \"Select-String -Path src/main.js -Pattern ''ui\\\\.js''\")",
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''main\\\\.js\\\\?v=25'',''main.js?v=26'' | Set-Content index.html && Select-String -Path index.html -Pattern ''styles\\\\.css\\\\?v=|main\\\\.js\\\\?v=''\")",
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''main\\\\.js\\\\?v=25'',''main.js?v=26'' | Set-Content index.html\")",
+      "Bash(powershell -Command \"Select-String -Path index.html -Pattern ''styles\\\\.css\\\\?v=|main\\\\.js\\\\?v=''\")",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri ''http://localhost:8091/'' -UseBasicParsing | Select-Object -ExpandProperty StatusCode\")",
+      "Bash(python serve.py 8091)",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 2; Invoke-WebRequest -Uri ''http://localhost:8091/'' -UseBasicParsing | Select-Object -ExpandProperty StatusCode\")",
+      "Bash(python -c \":*)",
+      "Bash(powershell -Command \"\\(Get-Content index.html\\) -replace ''styles\\\\.css\\\\?v=26'',''styles.css?v=27'' -replace ''main\\\\.js\\\\?v=26'',''main.js?v=27'' | Set-Content index.html\")",
+      "Bash(powershell -Command \"\\(Get-Content src/main.js\\) -replace ''ui\\\\.js\\\\?v=8'',''ui.js?v=9'' | Set-Content src/main.js\")",
+      "WebSearch",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue | Select-Object OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_OwningProcess -Force -ErrorAction SilentlyContinue }\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue\")"
     ]
   }
 }

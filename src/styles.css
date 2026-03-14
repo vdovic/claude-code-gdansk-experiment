@@ -868,6 +868,49 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 }
 
 /* ── Drag feedback label ──────────────────────────────────────── */
+.range-year-label {
+  position: absolute; top: 1px;
+  transform: translateX(-50%);
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  color: var(--bg-base);
+  background: var(--amber);
+  padding: 0 3px; border-radius: 2px;
+  line-height: 13px;
+  white-space: nowrap; pointer-events: none;
+  z-index: 7;
+  letter-spacing: 0.02em;
+}
+[data-theme="light"] .range-year-label {
+  color: #fff;
+  background: var(--accent);
+}
+
+/* ── Period boundary markers (exact era start/end) ──────────── */
+.period-marker {
+  position: absolute; top: 14px; bottom: 0;
+  width: 1px;
+  background: var(--amber);
+  opacity: 0; pointer-events: none;
+  z-index: 6;
+  transition: opacity 200ms ease;
+  transform: translateX(-0.5px);
+}
+.period-marker.visible { opacity: 0.7; }
+.period-marker-yr {
+  position: absolute; bottom: -1px;
+  left: 50%; transform: translateX(-50%);
+  font-family: var(--font-ui); font-size: 8px; font-weight: 700;
+  color: var(--amber);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 3px var(--bg-base), 0 0 5px var(--bg-base), 0 0 8px var(--bg-base);
+}
+[data-theme="light"] .period-marker { background: var(--accent); }
+[data-theme="light"] .period-marker-yr {
+  color: var(--accent);
+  text-shadow: 0 0 3px #fff, 0 0 5px #fff, 0 0 8px #fff;
+}
+
 .range-drag-label {
   position: absolute; top: -20px;
   transform: translateX(-50%);
@@ -1514,6 +1557,25 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .evt-row-dot   { width: 9px; height: 9px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
 .evt-row-label { font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.5; font-family: var(--font-body); }
 
+/* Nav-list: current event highlighted, neighbours dimmed but clickable */
+.drawer-events-list .evt-row--active {
+  background: rgba(212,162,83,0.08);
+  border-left: 2px solid var(--amber);
+  padding-left: 6px;
+  margin-left: -2px;
+}
+.drawer-events-list .evt-row--active .evt-row-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.drawer-events-list .evt-row--dim { opacity: 0.55; transition: opacity 0.14s, background 0.12s; }
+.drawer-events-list .evt-row--dim:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+[data-theme="light"] .drawer-events-list .evt-row--active {
+  background: rgba(42,122,138,0.07);
+  border-left-color: var(--accent);
+}
+[data-theme="light"] .drawer-events-list .evt-row--dim:hover { background: rgba(42,122,138,0.05); }
+
 /* Cluster badge in drawer */
 .cluster-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 12px;
@@ -1790,6 +1852,48 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 }
 .bs-church-list {
   max-height: 220px; overflow-y: auto; flex: none;
+}
+
+/* ── Church district rows (bottom-sheet layout) ───────────────────
+   Each district = one row: bold district name on the left, church
+   items flowing inline to its right on desktop.
+   Mobile: stacked column (name above items).                       */
+.church-district-row { margin-bottom: 2px; }
+.church-district-items { display: flex; flex-direction: column; gap: 1px; }
+
+@media (min-width: 769px) {
+  /* More vertical room on desktop */
+  .bs-church-list { max-height: min(52vh, 460px); }
+
+  /* District name on the left, items wrap to the right */
+  .bs-church-list .church-district-row {
+    display: flex; align-items: baseline;
+    gap: 0 6px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(212,162,83,0.07);
+  }
+
+  /* Compact header — acts as an inline row label */
+  .bs-church-list .church-district-header {
+    flex-shrink: 0; min-width: 120px;
+    margin-top: 0; padding: 2px 6px;
+    background: none; font-weight: 700;
+    color: var(--accent);
+  }
+  [data-theme="light"] .bs-church-list .church-district-header {
+    background: none; color: var(--accent);
+  }
+
+  /* Items flow and wrap horizontally beside the district name */
+  .bs-church-list .church-district-items {
+    flex: 1; display: flex; flex-wrap: wrap;
+    gap: 1px 4px;
+  }
+
+  /* Tighter padding so more items fit on a line */
+  .bs-church-list .church-district-items .church-selector-item {
+    padding: 2px 6px;
+  }
 }
 .church-selector-item {
   display: flex; align-items: center; gap: 7px;
@@ -2201,10 +2305,34 @@ body.mode-context #churchesLabel {
 /* ══════════════════════════════════════════════════════════════
    MOBILE BOTTOM SHEET (filter controls)
    ══════════════════════════════════════════════════════════════ */
+/* Wrapper positions the label + button together as a fixed unit */
+.bst-group {
+  position: fixed; bottom: calc(var(--tab-h) + 12px); right: 12px;
+  z-index: 190;
+  display: flex; align-items: center; gap: 8px;
+  pointer-events: none; /* children re-enable as needed */
+}
+
+/* Floating "Sort & Filter" label — same accent colour as button, pill bg for contrast */
+.bst-label {
+  pointer-events: none;
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap;
+  color: var(--accent);
+  background: rgba(10, 12, 18, 0.55);
+  padding: 4px 9px; border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.25);
+  transition: opacity 350ms ease;
+}
+[data-theme="light"] .bst-label {
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.15);
+}
+
 .bottom-sheet-trigger {
   display: flex; align-items: center; justify-content: center;
-  position: fixed; bottom: calc(var(--tab-h) + 12px); right: 12px;
-  z-index: 190; width: 48px; height: 48px;
+  pointer-events: auto;
+  width: 48px; height: 48px; flex-shrink: 0;
   border-radius: 50%; border: none; cursor: pointer;
   background: var(--accent); color: #fff;
   font-size: 20px; line-height: 1;

@@ -432,9 +432,15 @@ export function openCD(ci, ei = 0) {
 // ── Political event detail ────────────────────────────────────
 export function openPD(idx) {
   const evt = politicalEvents[idx];
-  const nearby = politicalEvents
-    .filter(e => Math.abs(e.year - evt.year) < 30)
-    .sort((a, b) => a.year - b.year);
+
+  // Build nav slice: 1 before + current + 2 after
+  const navItems = [];
+  for (let offset = -1; offset <= 2; offset++) {
+    const ni = idx + offset;
+    if (ni >= 0 && ni < politicalEvents.length) {
+      navItems.push({ evt: politicalEvents[ni], evtIdx: ni, isCurrent: offset === 0 });
+    }
+  }
 
   _header().innerHTML = `
     <div class="drawer-church-name">${evt.label}</div>
@@ -447,10 +453,10 @@ export function openPD(idx) {
   <div class="drawer-section">
     <div class="drawer-section-title">Nearby Political Events</div>
     <div class="drawer-events-list">`;
-  nearby.forEach(e => {
-    const col   = e.color || 'var(--amber)';
-    const active = e === evt ? '' : 'opacity:0.45;';
-    html += `<div class="evt-row" style="${active}" data-scroll-year="${Math.floor(e.year)}">
+  navItems.forEach(({ evt: e, evtIdx, isCurrent }) => {
+    const col = e.color || 'var(--amber)';
+    const rowClass = isCurrent ? 'evt-row evt-row--active' : 'evt-row evt-row--dim';
+    html += `<div class="${rowClass}" data-pol-idx="${evtIdx}">
       <div class="evt-row-year" style="color:${col}">${Math.floor(e.year)}</div>
       <div class="evt-row-dot" style="background:${col}"></div>
       <div class="evt-row-label">${e.label}</div>
@@ -458,19 +464,28 @@ export function openPD(idx) {
   });
   html += '</div></div>';
   _body().innerHTML = html;
-  _body().querySelectorAll('.evt-row').forEach(el => {
-    const yr = +el.dataset.scrollYear;
-    el.addEventListener('click', () => window._scrollToYear?.(yr));
+  _body().querySelectorAll('.evt-row[data-pol-idx]').forEach(el => {
+    const ni = +el.dataset.polIdx;
+    el.addEventListener('click', () => {
+      window._scrollToYear?.(Math.floor(politicalEvents[ni].year));
+      openPD(ni);
+    });
   });
   _open();
 }
 
 // ── Calamity detail ───────────────────────────────────────────
 export function openCalD(idx) {
-  const evt    = calamities[idx];
-  const nearby = calamities
-    .filter(e => Math.abs(e.year - evt.year) < 60)
-    .sort((a, b) => a.year - b.year);
+  const evt = calamities[idx];
+
+  // Build nav slice: 1 before + current + 2 after
+  const navItems = [];
+  for (let offset = -1; offset <= 2; offset++) {
+    const ni = idx + offset;
+    if (ni >= 0 && ni < calamities.length) {
+      navItems.push({ evt: calamities[ni], evtIdx: ni, isCurrent: offset === 0 });
+    }
+  }
 
   _header().innerHTML = `
     <div class="drawer-church-name">${evt.label}</div>
@@ -483,9 +498,9 @@ export function openCalD(idx) {
   <div class="drawer-section">
     <div class="drawer-section-title">Other Epidemics</div>
     <div class="drawer-events-list">`;
-  nearby.forEach(e => {
-    const active = e === evt ? '' : 'opacity:0.45;';
-    html += `<div class="evt-row" style="${active}">
+  navItems.forEach(({ evt: e, evtIdx, isCurrent }) => {
+    const rowClass = isCurrent ? 'evt-row evt-row--active' : 'evt-row evt-row--dim';
+    html += `<div class="${rowClass}" data-cal-idx="${evtIdx}">
       <div class="evt-row-year" style="color:var(--ev-plague)">${e.year}</div>
       <div class="evt-row-dot" style="background:var(--ev-plague)"></div>
       <div class="evt-row-label">${e.label}</div>
@@ -493,16 +508,29 @@ export function openCalD(idx) {
   });
   html += '</div></div>';
   _body().innerHTML = html;
+  _body().querySelectorAll('.evt-row[data-cal-idx]').forEach(el => {
+    const ni = +el.dataset.calIdx;
+    el.addEventListener('click', () => {
+      window._scrollToYear?.(calamities[ni].year);
+      openCalD(ni);
+    });
+  });
   _open();
 }
 
 // ── War detail ───────────────────────────────────────────────
 export function openWarD(idx) {
-  const evt    = wars[idx];
-  const dur    = evt.end - evt.start;
-  const nearby = wars
-    .filter(e => Math.abs(e.start - evt.start) < 50)
-    .sort((a, b) => a.start - b.start);
+  const evt = wars[idx];
+  const dur = evt.end - evt.start;
+
+  // Build nav slice: 1 before + current + 2 after
+  const navItems = [];
+  for (let offset = -1; offset <= 2; offset++) {
+    const ni = idx + offset;
+    if (ni >= 0 && ni < wars.length) {
+      navItems.push({ war: wars[ni], warIdx: ni, isCurrent: offset === 0 });
+    }
+  }
 
   _header().innerHTML = `
     <div class="drawer-church-name">${evt.label}</div>
@@ -515,16 +543,23 @@ export function openWarD(idx) {
   <div class="drawer-section">
     <div class="drawer-section-title">Nearby Conflicts</div>
     <div class="drawer-events-list">`;
-  nearby.forEach(e => {
-    const active = e === evt ? '' : 'opacity:0.45;';
-    html += `<div class="evt-row" style="${active}">
-      <div class="evt-row-year" style="color:var(--ev-siege)">${e.start}–${e.end}</div>
+  navItems.forEach(({ war, warIdx, isCurrent }) => {
+    const rowClass = isCurrent ? 'evt-row evt-row--active' : 'evt-row evt-row--dim';
+    html += `<div class="${rowClass}" data-war-idx="${warIdx}">
+      <div class="evt-row-year" style="color:var(--ev-siege)">${war.start}–${war.end}</div>
       <div class="evt-row-dot" style="background:var(--ev-siege)"></div>
-      <div class="evt-row-label">${e.label}</div>
+      <div class="evt-row-label">${war.label}</div>
     </div>`;
   });
   html += '</div></div>';
   _body().innerHTML = html;
+  _body().querySelectorAll('.evt-row[data-war-idx]').forEach(el => {
+    const ni = +el.dataset.warIdx;
+    el.addEventListener('click', () => {
+      window._scrollToYear?.(wars[ni].start);
+      openWarD(ni);
+    });
+  });
   _open();
 }
 

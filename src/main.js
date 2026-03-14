@@ -16,7 +16,7 @@ import {
 } from './state.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=6';
+import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=10';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT } from './tooltip.js';
@@ -343,6 +343,10 @@ function initRangeHandles() {
   const label     = document.getElementById('rangeLabel');
   const reset     = document.getElementById('rangeReset');
   const dragLabel = document.getElementById('rangeDragLabel');
+  const yearLblL  = document.getElementById('rangeYearL');
+  const yearLblR  = document.getElementById('rangeYearR');
+  const pMarkerL  = document.getElementById('periodMarkerL');
+  const pMarkerR  = document.getElementById('periodMarkerR');
   if (!track) return;
 
   // ── clientX → year using the SAME coordinate system as ticks ──
@@ -373,6 +377,10 @@ function initRangeHandles() {
     label.textContent = viewStart + ' – ' + viewEnd;
     hl.setAttribute('aria-valuenow', viewStart);
     hr.setAttribute('aria-valuenow', viewEnd);
+
+    // Year labels pinned to each handle
+    if (yearLblL) { yearLblL.textContent = viewStart; yearLblL.style.left = lPct + '%'; }
+    if (yearLblR) { yearLblR.textContent = viewEnd;   yearLblR.style.left = rPct + '%'; }
   }
 
   // ── Throttled render for drag (timeline content updates) ────────
@@ -407,6 +415,7 @@ function initRangeHandles() {
       ev.stopPropagation();
       handle.setPointerCapture(ev.pointerId);
       handle.classList.add('dragging');
+      _hidePeriodMarkers();
 
       function onMove(e) {
         if (!handle.hasPointerCapture(e.pointerId)) return;
@@ -466,13 +475,33 @@ function initRangeHandles() {
 
   // ── Reset button ────────────────────────────────────────────────
   reset.addEventListener('click', () => {
+    _hidePeriodMarkers();
     setViewStart(DEFAULT_VIEW_START);
     setViewEnd(DEFAULT_VIEW_END);
     zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _syncUI
   });
 
+  // ── Period boundary markers ─────────────────────────────────
+  function _showPeriodMarkers(startYear, endYear) {
+    if (!pMarkerL || !pMarkerR) return;
+    const lPct = _yearPct(startYear);
+    const rPct = _yearPct(endYear);
+    pMarkerL.style.left = lPct + '%';
+    pMarkerR.style.left = rPct + '%';
+    pMarkerL.querySelector('.period-marker-yr').textContent = startYear;
+    pMarkerR.querySelector('.period-marker-yr').textContent = endYear;
+    pMarkerL.classList.add('visible');
+    pMarkerR.classList.add('visible');
+  }
+  function _hidePeriodMarkers() {
+    if (pMarkerL) pMarkerL.classList.remove('visible');
+    if (pMarkerR) pMarkerR.classList.remove('visible');
+  }
+
   // Export so external code (zoom, _afterZoom) can sync the handles
   window._updateRangeHandles = _syncUI;
+  window._showPeriodMarkers = _showPeriodMarkers;
+  window._hidePeriodMarkers = _hidePeriodMarkers;
   _syncUI();
 }
 
@@ -596,11 +625,15 @@ function _wireButtons() {
     // stay visible and clickable — preserves the "navigate by clicking" UX.
     const eraWidth = era.end - era.start;
     const pad = Math.max(15, Math.round(eraWidth * 0.15));
-    setViewStart(Math.max(START_YEAR, era.start - pad));
+    // Set END first so setViewStart's 50-yr clamp uses the NEW viewEnd, not the old one.
     setViewEnd(Math.min(END_YEAR,   era.end   + pad));
+    setViewStart(Math.max(START_YEAR, era.start - pad));
 
     // Auto-fit zoom and sync handles + labels in one call
     zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _updateRangeHandles
+
+    // Show exact period boundary markers at the un-padded start/end
+    if (window._showPeriodMarkers) window._showPeriodMarkers(era.start, era.end);
 
     // Scroll content to the beginning of the period
     const lanesScroll = document.getElementById('lanesScroll');
