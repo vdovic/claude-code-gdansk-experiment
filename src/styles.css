@@ -220,6 +220,11 @@
   background: rgba(255,255,255,0.95);
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
+[data-theme="light"] .controls {
+  background: rgba(255,255,255,0.97);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-bottom-color: rgba(0,0,0,0.10);
+}
 [data-theme="light"] .m-chrome-toggle {
   background: rgba(42,122,138,0.06);
   border-color: rgba(0,0,0,0.12);
@@ -519,9 +524,11 @@ body { animation: fadeSlideIn 0.4s ease-out; }
    ══════════════════════════════════════════════════════════════ */
 .controls {
   display: flex; gap: 5px; padding: 5px var(--sp-4);
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(255,255,255,0.02);
-  align-items: center; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-emphasis);
+  background: rgba(15,15,20,0.92);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  align-items: center; flex-wrap: wrap; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 .ctrl-btn {
   background: rgba(212,162,83,0.06);
@@ -1014,6 +1021,42 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   opacity: 0.06; pointer-events: none;
 }
 
+/* ── Distinct context marker shapes (one per row type) ─────────────────── */
+
+/* Shared base */
+.ctx-diamond, .ctx-circle, .ctx-triangle, .ctx-square {
+  flex-shrink: 0; margin: 0 auto; opacity: 0.8;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+/* Political Events — rotated square (diamond) */
+.ctx-diamond {
+  width: 8px; height: 8px;
+  transform: rotate(45deg); border-radius: 1px;
+}
+.political-marker:hover .ctx-diamond {
+  opacity: 1; transform: rotate(45deg) scale(1.45);
+}
+
+/* Religious Events — filled circle */
+.ctx-circle {
+  width: 9px; height: 9px; border-radius: 50%;
+}
+.religious-marker:hover .ctx-circle { opacity: 1; transform: scale(1.45); }
+
+/* Plagues & Epidemics — downward-pointing triangle */
+.ctx-triangle {
+  width: 10px; height: 9px;
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+}
+.calamity-marker:hover .ctx-triangle { opacity: 1; transform: scale(1.4); }
+
+/* Urban Power — rounded square */
+.ctx-square {
+  width: 8px; height: 8px; border-radius: 2px;
+}
+.urban-marker:hover .ctx-square { opacity: 1; transform: scale(1.45) rotate(12deg); }
+
 /* Calamity markers */
 .calamity-marker {
   position: absolute; top: 0; bottom: 0;
@@ -1226,6 +1269,13 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   transition: border-color var(--ease-default), box-shadow var(--ease-default);
 }
 .list-search input:focus { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+
+/* Founders & Guilds row inside the church list screen */
+.list-patronage-row {
+  flex-shrink: 0; padding: 6px var(--sp-4);
+  background: var(--parchment-dk); border-bottom: 1px solid var(--tl-border);
+}
+.list-patronage-btn { font-size: var(--fs-base); }
 
 /* List filters — horizontal scrollable chip bar */
 .list-filters {
@@ -1684,6 +1734,225 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 }
 
 /* ══════════════════════════════════════════════════════════════
+   WAR DETAIL INFOBOX COMPONENTS
+   Used inside wars[].detail HTML, rendered in .drawer-text via innerHTML.
+   Provides combatant cards, key-event list, outcome & Gdańsk highlights,
+   and a Wikipedia link — responsive on both desktop and mobile.
+   ══════════════════════════════════════════════════════════════ */
+
+/* "Also known as" subtitle line */
+.war-also-known {
+  font-size: 10px;
+  font-style: italic;
+  opacity: 0.65;
+  margin-bottom: 9px;
+  font-family: var(--font-ui);
+}
+
+/* Combatants row — two cards separated by ⚔ */
+.war-combatants {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.war-side {
+  flex: 1;
+  min-width: 100px;
+  border-radius: 6px;
+  padding: 7px 10px;
+}
+.war-side-label {
+  font-size: 8px;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  opacity: 0.60;
+  margin-bottom: 3px;
+}
+.war-side-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  font-family: var(--font-ui);
+}
+.war-vs {
+  align-self: center;
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Key events — compact bulleted list */
+.war-facts {
+  margin: 0 0 12px 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  line-height: 1.65;
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+}
+.war-facts li { margin-bottom: 4px; }
+.war-facts strong { color: var(--text-primary); }
+
+/* Outcome card — green tint */
+.war-outcome {
+  background: rgba(42,106,72,0.10);
+  border-radius: 6px;
+  padding: 8px 11px;
+  border-left: 3px solid rgba(42,106,72,0.50);
+  margin-bottom: 10px;
+}
+.war-outcome-label {
+  font-size: 8px;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  opacity: 0.70;
+  margin-bottom: 3px;
+}
+.war-outcome-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.45;
+  font-family: var(--font-ui);
+}
+
+/* Gdańsk card — amber tint */
+.war-gdansk {
+  background: rgba(212,162,83,0.07);
+  border-radius: 6px;
+  padding: 8px 11px;
+  border-left: 3px solid rgba(212,162,83,0.40);
+  margin-bottom: 12px;
+}
+.war-gdansk-label {
+  font-size: 8px;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+.war-gdansk-text {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+}
+
+/* Wikipedia pill link */
+.war-wiki-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: 14px;
+  background: rgba(212,162,83,0.08);
+  border: 1px solid rgba(212,162,83,0.22);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2px;
+}
+.war-wiki-link:hover {
+  background: rgba(212,162,83,0.18);
+  border-color: rgba(212,162,83,0.45);
+}
+
+/* Light-theme card overrides */
+[data-theme="light"] .war-outcome {
+  background: rgba(42,106,72,0.07);
+}
+[data-theme="light"] .war-gdansk {
+  background: rgba(200,134,10,0.06);
+}
+[data-theme="light"] .war-wiki-link {
+  background: rgba(42,122,138,0.06);
+  border-color: rgba(42,122,138,0.22);
+  color: var(--accent);
+}
+[data-theme="light"] .war-wiki-link:hover {
+  background: rgba(42,122,138,0.12);
+  border-color: rgba(42,122,138,0.40);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   [EXPERIMENT] SYNCED PERIODS — percentage-positioned period bands
+   When .synced-periods is applied to #econErasRow, the period blocks
+   use the same % coordinate system as the axis ruler, ensuring
+   visual alignment. See: state.js (syncedPeriodsExperiment flag),
+   render.js (renderEconErasSynced), main.js (_initSyncedPeriodsToggle).
+   ══════════════════════════════════════════════════════════════ */
+
+/* [EXPERIMENT] Override the scroll container — periods now match the
+   fixed axis width, so scrolling is not needed for this row. */
+.tl-ctx-row.synced-periods .tl-ctx-scroll {
+  overflow: visible;
+}
+.tl-ctx-row.synced-periods .ctx-inner {
+  width: 100% !important;   /* Override JS-set pixel width */
+}
+
+/* [EXPERIMENT] Muted overlays that dim areas outside the selected
+   range, matching the axis's own mute overlays for visual parity. */
+.synced-mute {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(20, 22, 30, 0.30);
+  pointer-events: none;
+  z-index: 3;
+  transition: width 0.1s;
+}
+.synced-mute-left  { left: 0; }
+.synced-mute-right { right: 0; }
+[data-theme="light"] .synced-mute {
+  background: rgba(0, 0, 0, 0.10);
+}
+
+/* [EXPERIMENT] Toggle button — small beaker icon in the Periods stub */
+.sync-experiment-toggle {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(212,162,83,0.25);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: 4px;
+  font-family: var(--font-ui);
+  line-height: 1.4;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.sync-experiment-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sync-experiment-toggle.active {
+  background: rgba(212,162,83,0.18);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+[data-theme="light"] .sync-experiment-toggle {
+  border-color: rgba(42,122,138,0.25);
+}
+[data-theme="light"] .sync-experiment-toggle:hover,
+[data-theme="light"] .sync-experiment-toggle.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(42,122,138,0.08);
+}
+
+/* ══════════════════════════════════════════════════════════════
    DESKTOP OVERRIDES  (≥ 769px)
    ══════════════════════════════════════════════════════════════ */
 @media (min-width: 769px) {
@@ -2048,14 +2317,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   border: 1px solid rgba(212,162,83,0.12); white-space: nowrap;
 }
 
-/* Patronage highlight / dim on church lanes and labels */
-.ch-lane.pat-dim { opacity: 0.3; transition: opacity 0.2s ease; }
-.ch-label.pat-dim { opacity: 0.35; transition: opacity 0.2s ease; }
-.ch-lane.pat-hi { opacity: 1; transition: opacity 0.2s ease; border-left: 3px solid var(--accent); }
-.ch-label.pat-hi {
-  opacity: 1; transition: opacity 0.2s ease;
-  color: var(--accent) !important; font-weight: 600;
-}
+/* pat-dim / pat-hi removed — guild panel is now informational only, no filtering */
 
 /* Patronage toggle button active state */
 #patronageToggleBtn.active {
@@ -2070,7 +2332,6 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 [data-theme="light"] .pat-tab { background: rgba(42,122,138,0.03); border-color: rgba(0,0,0,0.12); color: #6a7280; }
 [data-theme="light"] .pat-tab.active { background: rgba(42,122,138,0.12); color: var(--accent); border-color: var(--accent); }
 [data-theme="light"] .pat-founder-name { color: var(--accent); }
-[data-theme="light"] .ch-label.pat-hi { color: var(--accent) !important; }
 
 /* ══════════════════════════════════════════════════════════════
    CONFESSIONAL REALIGNMENT OVERLAY (1525–1557)
@@ -2174,12 +2435,13 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tl-ctx-row .ctx-inner .econ-era-block { pointer-events: auto; }
 
 /* ══════════════════════════════════════════════════════════════
-   VIEW MODE BAR — pill toggle [Churches Timeline / With Global Context]
+   VIEW MODE BAR — pill toggle [Churches Only / + Global Context]
    ══════════════════════════════════════════════════════════════ */
 .view-mode-bar {
   display: flex; align-items: center; justify-content: center;
+  /* Extra vertical breathing room makes the switcher feel like a primary control */
   background: var(--tl-bg); border-bottom: 1px solid var(--tl-border);
-  padding: 6px 10px; flex-shrink: 0;
+  padding: 9px 16px; flex-shrink: 0;
 }
 
 /* Sliding pill container */
@@ -2187,9 +2449,11 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   position: relative;
   display: inline-flex;
   align-items: stretch;
-  background: rgba(0,0,0,0.08);
+  /* Slightly deeper background + subtle amber border for contrast */
+  background: rgba(0,0,0,0.11);
+  border: 1px solid rgba(212,162,83,0.22);
   border-radius: 24px;
-  padding: 3px;
+  padding: 4px;
   gap: 0;
   flex-shrink: 0;
   max-width: 100%;
@@ -2198,8 +2462,8 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Sliding background indicator — covers whichever button is active */
 .pill-indicator {
   position: absolute;
-  top: 3px; bottom: 3px; left: 3px;
-  width: calc(50% - 3px);
+  top: 4px; bottom: 4px; left: 4px;
+  width: calc(50% - 4px);
   border-radius: 20px;
   background: rgba(212,162,83,0.38);
   box-shadow: 0 1px 4px rgba(0,0,0,0.18);
@@ -2214,12 +2478,13 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 .pill-btn {
   position: relative; z-index: 1;
   flex: 1;
-  min-height: 38px;
-  padding: 4px 16px;
+  min-height: 40px;
+  /* More generous padding makes each option feel intentionally important */
+  padding: 6px 22px;
   border: none; border-radius: 20px;
   background: transparent;
   color: var(--tl-text-lt);
-  font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 500;
   letter-spacing: 0.01em; white-space: nowrap;
   cursor: pointer;
   transition: color 150ms ease;
@@ -2230,7 +2495,10 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 .pill-btn:hover:not(.active) { color: var(--tl-text); }
 
 /* Light theme */
-[data-theme="light"] .pill-toggle { background: rgba(0,0,0,0.07); }
+[data-theme="light"] .pill-toggle {
+  background: rgba(0,0,0,0.06);
+  border-color: rgba(42,122,138,0.28);
+}
 [data-theme="light"] .pill-indicator {
   background: var(--accent);
   box-shadow: 0 1px 5px rgba(42,122,138,0.35);
@@ -2240,7 +2508,24 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 
 /* Very narrow screens */
 @media (max-width: 380px) {
-  .pill-btn { font-size: 10px; padding: 4px 10px; }
+  .pill-btn { font-size: 11px; padding: 5px 12px; }
+}
+
+/* ── First-visit discovery pulse ─────────────────────────────── */
+/* Gentle outward glow ring: 3 soft pulses, no layout shift.
+   Applied via JS only on first visit (localStorage guard). */
+@keyframes pill-discover {
+  0%   { box-shadow: 0 0 0 0   rgba(212, 162, 83, 0); }
+  45%  { box-shadow: 0 0 0 5px rgba(212, 162, 83, 0.32); }
+  100% { box-shadow: 0 0 0 0   rgba(212, 162, 83, 0); }
+}
+.pill-toggle.pill-discover {
+  animation-name: pill-discover;
+  animation-duration: 1.5s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: 3;
+  /* Do not alter layout or fill between pulses */
+  animation-fill-mode: none;
 }
 
 .panel-label {

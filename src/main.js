@@ -283,10 +283,30 @@ function _initViewMode() {
 
   _applyViewMode(saved);
 
+  // ── First-visit discovery pulse ──
+  // Runs 3 gentle glows on first visit only; never repeats after seen.
+  const PULSE_KEY = 'switcherPulseSeen';
+  if (!localStorage.getItem(PULSE_KEY)) {
+    // Delay until the page-load fade-in has settled (~1 s)
+    setTimeout(() => {
+      toggle.classList.add('pill-discover');
+      // Mark seen once all 3 pulses complete (animationend fires once at end)
+      toggle.addEventListener('animationend', () => {
+        toggle.classList.remove('pill-discover');
+        localStorage.setItem(PULSE_KEY, '1');
+      }, { once: true });
+    }, 1000);
+  }
+
   toggle.addEventListener('click', e => {
     const btn = e.target.closest('.pill-btn');
     if (!btn) return;
     const mode = btn.dataset.mode;
+    // If user clicks before pulse finishes, cancel it and mark as seen
+    if (!localStorage.getItem(PULSE_KEY)) {
+      toggle.classList.remove('pill-discover');
+      localStorage.setItem(PULSE_KEY, '1');
+    }
     _applyViewMode(mode);
     localStorage.setItem('viewMode', mode);
     _dismissOnboarding();
@@ -343,8 +363,6 @@ function initRangeHandles() {
   const label     = document.getElementById('rangeLabel');
   const reset     = document.getElementById('rangeReset');
   const dragLabel = document.getElementById('rangeDragLabel');
-  const yearLblL  = document.getElementById('rangeYearL');
-  const yearLblR  = document.getElementById('rangeYearR');
   const pMarkerL  = document.getElementById('periodMarkerL');
   const pMarkerR  = document.getElementById('periodMarkerR');
   if (!track) return;
@@ -378,9 +396,6 @@ function initRangeHandles() {
     hl.setAttribute('aria-valuenow', viewStart);
     hr.setAttribute('aria-valuenow', viewEnd);
 
-    // Year labels pinned to each handle
-    if (yearLblL) { yearLblL.textContent = viewStart; yearLblL.style.left = lPct + '%'; }
-    if (yearLblR) { yearLblR.textContent = viewEnd;   yearLblR.style.left = rPct + '%'; }
   }
 
   // ── Throttled render for drag (timeline content updates) ────────
@@ -539,9 +554,6 @@ function _wireButtons() {
   document.getElementById('btnZoomOut')?.addEventListener('click', zoomOut);
   document.getElementById('btnZoomFit')?.addEventListener('click', zoomFit);
 
-  // Map toggle
-  document.getElementById('mapToggleBtn')?.addEventListener('click', toggleMapPanel);
-
   // Map year slider (desktop)
   document.getElementById('mapYearSlider')?.addEventListener('input', e => setMapYear(+e.target.value));
 
@@ -573,45 +585,6 @@ function _wireButtons() {
     });
   });
 
-  // Jump (era nav) buttons — zoom to fit the entire era
-  document.querySelectorAll('.jump-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const clickedYear = +btn.dataset.year;
-
-      // Find the era that matches this year
-      const era = eras.find(e => clickedYear >= e.start && clickedYear < e.end);
-      if (!era) {
-        scrollToYear(clickedYear);
-        return;
-      }
-
-      // Fit the timeline to exactly this era's date range
-      const eraWidth = era.end - era.start;
-      const lanesScroll = document.getElementById('lanesScroll');
-      if (lanesScroll) {
-        // Calculate pixels-per-year needed to fit the era in the available viewport width
-        const viewportWidth = lanesScroll.clientWidth;
-        const idealPPY = (viewportWidth * 0.85) / eraWidth; // Use 85% of viewport for padding
-
-        // Set zoom to fit era
-        setPixelsPerYear(Math.max(Math.min(idealPPY, 50), 2)); // Clamp between 2 and 50
-
-        // Then scroll to center the era
-        setTimeout(() => {
-          const eraStartX = yearToX(era.start);
-          const eraMidX = yearToX((era.start + era.end) / 2);
-          const scrollX = Math.max(0, eraMidX - viewportWidth / 2);
-          lanesScroll.scrollTo({ left: scrollX, behavior: 'smooth' });
-
-          // Sync map year to era start
-          if (isMapExpanded() && era.start >= 1186 && era.start <= 2000) {
-            setMapYear(Math.round(era.start));
-          }
-        }, 50);
-      }
-    });
-  });
-
   // Economic era blocks — click to focus the period with context padding so
   // adjacent periods remain partially visible and clickable for easy navigation.
   document.getElementById('econErasInner')?.addEventListener('click', e => {
@@ -621,13 +594,10 @@ function _wireButtons() {
     const era = economicEras[idx];
     if (!era) return;
 
-    // Pad 15% of era width each side (min 15 years) so adjacent period blocks
-    // stay visible and clickable — preserves the "navigate by clicking" UX.
-    const eraWidth = era.end - era.start;
-    const pad = Math.max(15, Math.round(eraWidth * 0.15));
-    // Set END first so setViewStart's 50-yr clamp uses the NEW viewEnd, not the old one.
-    setViewEnd(Math.min(END_YEAR,   era.end   + pad));
-    setViewStart(Math.max(START_YEAR, era.start - pad));
+    // Snap exactly to the period's start and end — no padding.
+    // Set END first so setViewStart's 50-yr clamp uses the new viewEnd.
+    setViewEnd(Math.min(END_YEAR,   era.end));
+    setViewStart(Math.max(START_YEAR, era.start));
 
     // Auto-fit zoom and sync handles + labels in one call
     zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _updateRangeHandles
@@ -645,9 +615,6 @@ function _wireButtons() {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
   });
 
-  // KB help button
-  document.getElementById('btnKbHelp')?.addEventListener('click', toggleKbHelp);
-
   // Range slider reset (goes to full 1200–2005)
   document.getElementById('btnResetRange')?.addEventListener('click', () => {
     resetViewRange();
@@ -655,6 +622,19 @@ function _wireButtons() {
     updateViewRangeLabel();
     window._updateRangeHandles?.();
   });
+}
+
+// ── [EXPERIMENT] Synced Periods toggle ─────────────────────────
+// Creates a small ⚗ Sync button inside the Periods row stub.
+// Clicking it toggles between the original pixel-positioned layout
+// (scrollable, drift-prone) and the experimental %-positioned layout
+// (fixed, aligned with axis ruler). The current implementation is
+// preserved — the experiment only changes the rendering path for the
+// econEras row. Rollback: set syncedPeriodsExperiment = false in
+// state.js syncedPeriodsExperiment is permanently true; no toggle button exposed.
+function _initSyncedPeriodsToggle() {
+  // Synced-periods mode is always on — apply the class and nothing else.
+  document.getElementById('econErasRow')?.classList.add('synced-periods');
 }
 
 // ── Init sequence ─────────────────────────────────────────────
@@ -667,8 +647,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setViewEnd(DEFAULT_VIEW_END);       // 1750
 
   // Prime sorted indices with default sort (setSort handles direction + button state)
-  setSort(currentSort);
-  setRenderSortKey(currentSort);
+  setSort('established');
+  setRenderSortKey('established');
 
   // Apply initial filter state (all visible)
   applyFilters();
@@ -724,6 +704,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Drag-to-pan (desktop)
   _initDragToPan();
+
+  // [EXPERIMENT] Synced periods toggle (align period bands with ruler)
+  _initSyncedPeriodsToggle();
 
   // Mobile touch dismiss
   setupMobileTouchDismiss();

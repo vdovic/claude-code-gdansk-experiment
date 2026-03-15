@@ -8,11 +8,11 @@ import { clusterDefs, distMatrix } from './data/clusters.js';
 import { district1450ByChurchId } from './data/districts1450.js';
 
 // ── Timeline layout constants ──
-export const START_YEAR = 1200;
+export const START_YEAR = 1150;
 export const END_YEAR   = 2005;
 
 // ── Default focused view (medieval / early-modern Gdańsk) ──
-export const DEFAULT_VIEW_START = 1200;
+export const DEFAULT_VIEW_START = 1150;
 export const DEFAULT_VIEW_END   = 1750;
 
 // Visible range (controlled by the range navigator strip). Defaults to medieval focus.
@@ -267,19 +267,15 @@ export function toggleTrack(key) {
 export function allTracksOn()  { Object.keys(trackVisibility).forEach(k => { trackVisibility[k] = true;  }); }
 export function allTracksOff() { Object.keys(trackVisibility).forEach(k => { trackVisibility[k] = false; }); }
 
-// ── Patronage Mode ──
-export let patronageMode = false;
-export let selectedGuildId = null;
-export function setPatronageMode(v) { patronageMode = v; if (!v) selectedGuildId = null; }
-export function setSelectedGuild(id) { selectedGuildId = id; }
+// ── [EXPERIMENT] Synced Periods Mode ──────────────────────────
+// When true, the Periods (economic eras) row uses percentage-based
+// positioning aligned with the axis ruler (1200–2005 full range)
+// instead of pixel-based positioning tied to the scrollable content.
+// This fixes the visual drift between the ruler year-scale and the
+// period bands. Toggle via the ⚗ button on the Periods row label.
+export let syncedPeriodsExperiment = true;
+export function setSyncedPeriodsExperiment(v) { syncedPeriodsExperiment = v; }
 
-/** Returns Set of churchIds highlighted by the currently selected guild. */
-import { patronageGuilds } from './data/patronage.js';
-export function getHighlightedChurchIds() {
-  if (!patronageMode || !selectedGuildId) return null;
-  const guild = patronageGuilds.find(g => g.id === selectedGuildId);
-  if (!guild) return null;
-  const set = new Set();
-  guild.targetsConfirmed.forEach(t => set.add(t.churchId));
-  return set;
-}
+// ── Patronage Mode (panel open/close only — no filtering) ──
+export let patronageMode = false;
+export function setPatronageMode(v) { patronageMode = v; }

@@ -18,7 +18,7 @@ import {
   yearToX, getTotalWidth,
   visibleChurches, sortedIndices, trackVisibility,
   typeColors, getCluster,
-  patronageMode, getHighlightedChurchIds,
+  syncedPeriodsExperiment,          // [EXPERIMENT] synced periods flag
 } from './state.js';
 import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
@@ -137,8 +137,7 @@ function renderPolitical() {
     const col = ev.color || 'var(--amber)';
     html += `<div class="political-marker" data-pol="${i}" style="left:${x}px">
       <div class="marker-label" style="color:${col}">${Math.floor(ev.year)} · ${ev.label.substring(0, 42)}${ev.label.length > 42 ? '…' : ''}</div>
-      <div class="marker-diamond" style="background:${col}"></div>
-      <div class="marker-line"></div>
+      <div class="ctx-diamond" style="background:${col}"></div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -160,8 +159,7 @@ function renderPlagues() {
     const x = yearToX(c.year) - labelOffset;
     html += `<div class="calamity-marker" data-cal="${i}" style="left:${x}px">
       <div class="marker-label" style="color:var(--ev-plague)">${c.year} · ${c.label}</div>
-      <div class="calamity-icon"></div>
-      <div class="calamity-line"></div>
+      <div class="ctx-triangle" style="background:var(--ev-plague)"></div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -259,6 +257,51 @@ function renderEconEras() {
       <div class="econ-era-desc">${era.desc}</div>
     </div>`;
   });
+  inner.innerHTML = html;
+}
+
+// ── [EXPERIMENT] Synced economic eras — percentage positioning ──
+// This renderer positions period blocks using the SAME percentage
+// coordinate system as the axis ruler (_yearPct), so they align
+// perfectly with the year ticks above. The container width is left
+// at 100% (not set to a pixel value), matching the axis-track width.
+// Defined here: _yearPct() at line 44. Consumed by: renderEconErasSynced().
+function renderEconErasSynced() {
+  const inner = document.getElementById('econErasInner');
+  if (!inner) return;
+
+  // [EXPERIMENT] Clear any pixel width from the original renderer;
+  // let the container fill its flex parent (same width as axis-track).
+  inner.style.width = '';
+
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  let html = '';
+
+  // [EXPERIMENT] Muted overlays that dim areas outside the selected
+  // range, matching the axis's own mute overlays for visual parity.
+  const lPct = _yearPct(viewStart);
+  const rPct = _yearPct(viewEnd);
+  html += `<div class="synced-mute synced-mute-left" style="width:${lPct}%"></div>`;
+  html += `<div class="synced-mute synced-mute-right" style="width:${100 - rPct}%"></div>`;
+
+  // [EXPERIMENT] Render ALL periods using percentage positioning.
+  // No viewStart/viewEnd clipping — every era is always visible,
+  // just like the axis always shows the full 1200–2005 range.
+  economicEras.forEach((era, idx) => {
+    const p1 = _yearPct(Math.max(era.start, START_YEAR));
+    const p2 = _yearPct(Math.min(era.end, END_YEAR));
+    const w  = p2 - p1;
+    const bg = isLight ? era.bgLight : era.bg;
+    const ttText = era.tooltip || era.desc;
+    const tag = era.tag ? `<span class="econ-era-tag">${era.tag}</span>` : '';
+    html += `<div class="econ-era-block" data-idx="${idx}"
+      style="left:${p1}%;width:${w}%;background:${bg};"
+      title="${era.label} (${era.start}–${era.end}): ${ttText}">
+      <div class="econ-era-label">${era.label} ${tag}</div>
+      <div class="econ-era-desc">${era.desc}</div>
+    </div>`;
+  });
+
   inner.innerHTML = html;
 }
 
@@ -438,8 +481,7 @@ function renderReligious() {
     const col = ev.color || '#5a3a6e';
     html += `<div class="political-marker religious-marker" data-rel="${i}" style="left:${x}px">
       <div class="marker-label" style="color:${col}">${Math.floor(ev.year)} · ${ev.label.substring(0, 42)}${ev.label.length > 42 ? '…' : ''}</div>
-      <div class="marker-diamond" style="background:${col}"></div>
-      <div class="marker-line"></div>
+      <div class="ctx-circle" style="background:${col}"></div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -474,8 +516,7 @@ function renderUrbanPower() {
     prevX = x;
     html += `<div class="political-marker urban-marker" data-urb="${i}" style="left:${x}px">
       <div class="marker-label" style="color:#6a5a20${labelExtra ? ';' + labelExtra : ''}">${ev.year} · ${ev.label.substring(0, 38)}${ev.label.length > 38 ? '…' : ''}</div>
-      <div class="marker-diamond" style="background:#8a7a30"></div>
-      <div class="marker-line"></div>
+      <div class="ctx-square" style="background:#a08030"></div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -515,7 +556,7 @@ function renderLanes() {
     cornerstone:   c => c.cornerstoneYear || '\u2014',
     established:   c => {
       const ev = c.events.find(e => e.type === 'founded');
-      return ev ? ev.year : '\u2014';
+      return ev ? ev.year : (c.cornerstoneYear || '\u2014');
     },
     height:        c => c.height ? c.height + 'm' : '\u2014',
     capacity:      c => c.capacity ? c.capacity.toLocaleString() : '\u2014',
@@ -538,9 +579,6 @@ function renderLanes() {
     gridHtml += `<div class="grid-vl ${maj ? 'maj' : 'min'}" style="left:${x}px"></div>`;
   }
 
-  // Patronage highlight set (null = mode off or no guild selected)
-  const patHi = patronageMode ? getHighlightedChurchIds() : null;
-
   let labHtml  = '';
   let laneHtml = `<div class="lanes-grid">${gridHtml}</div>`;
 
@@ -560,13 +598,9 @@ function renderLanes() {
       ? `<span style="font-size:9px;margin-right:1px;" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
       : '';
 
-    // Patronage dim/highlight CSS class
-    const patClass = patHi ? (patHi.has(ch.id) ? ' pat-hi' : ' pat-dim') : '';
-
-    // Label column — name left, sort value right
-    labHtml += `<div class="ch-label${patClass}" data-ci="${ci}">
+    // Label column — name only (sort value removed to reduce clutter)
+    labHtml += `<div class="ch-label" data-ci="${ci}">
       <div class="ch-lbl-left">${clDotHtml}${symHtml}<div class="ch-lbl-text">${ch.shortName}</div></div>
-      ${mv ? `<span class="ch-lbl-val">${mv}</span>` : ''}
     </div>`;
 
     // Lane content
@@ -603,7 +637,7 @@ function renderLanes() {
         aria-label="${ev.year} ${ev.type}: ${ev.label}">${dotSvg}</div>`;
     });
 
-    laneHtml += `<div class="ch-lane${patClass}" data-ci="${ci}">${denomHtml}${confHtml}${evtHtml}</div>`;
+    laneHtml += `<div class="ch-lane" data-ci="${ci}">${denomHtml}${confHtml}${evtHtml}</div>`;
   });
 
   labelsEl.innerHTML  = labHtml;
@@ -661,7 +695,7 @@ function renderLanes() {
 }
 
 // Track current sort key (needed inside renderLanes without import cycle)
-let _currentSortKey = 'cornerstone';
+let _currentSortKey = 'established';
 export function setRenderSortKey(k) { _currentSortKey = k; }
 
 // ── Main render entry point ───────────────────────────────────
@@ -688,10 +722,19 @@ export function renderContextTracks() {
   if (trackVisibility.religious)  renderReligious();
   if (trackVisibility.plagues)    renderPlagues();
   if (trackVisibility.population) renderPopulation();
-  if (trackVisibility.econEras)   renderEconEras();
+  // [EXPERIMENT] Choose between original pixel-positioned renderer
+  // and synced percentage-positioned renderer based on experiment flag.
+  if (trackVisibility.econEras) {
+    syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+  }
   if (trackVisibility.urbanPower) renderUrbanPower();
   if (trackVisibility.grain)      renderGrain();
 }
 
 // Global hook so the non-module theme-switcher script can trigger re-render
-window._reRenderEconEras = () => { if (trackVisibility.econEras) renderEconEras(); };
+// [EXPERIMENT] Delegates to synced renderer when experiment is active.
+window._reRenderEconEras = () => {
+  if (trackVisibility.econEras) {
+    syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+  }
+};

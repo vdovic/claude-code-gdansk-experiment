@@ -22,9 +22,9 @@ import {
   toggleChurch, toggleAllChurches, deselectAllChurches, selectAllChurches,
   toggleTrack, allTracksOn, allTracksOff,
   denomColors,
-  patronageMode, setPatronageMode, selectedGuildId, setSelectedGuild, getHighlightedChurchIds,
+  patronageMode, setPatronageMode,
 } from './state.js';
-import { patronageGuilds, churchPatrons } from './data/patronage.js';
+import { churchPatrons } from './data/patronage.js';
 import { render }        from './render.js';
 import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }    from './detail.js';
@@ -32,13 +32,61 @@ import { hideTT, showGenericTT } from './tooltip.js';
 import { eventShapes, eventMarkerSVG, eventColors } from './theme.js';
 
 // ── Legend panel ──────────────────────────────────────────────
+
+/** Inline HTML for a global-context marker shape (used in legend). */
+function _ctxShapeHtml(shape, color) {
+  const base = `flex-shrink:0;`;
+  switch (shape) {
+    case 'bar-ruler':
+      return `<div style="${base}width:22px;height:5px;border-radius:2px;background:${color};opacity:0.85;"></div>`;
+    case 'bar-war':
+      return `<div style="${base}width:22px;height:5px;border-radius:2px;background:${color};opacity:0.85;"></div>`;
+    case 'diamond':
+      return `<div style="${base}width:9px;height:9px;transform:rotate(45deg);border-radius:1px;background:${color};opacity:0.9;"></div>`;
+    case 'circle':
+      return `<div style="${base}width:10px;height:10px;border-radius:50%;background:${color};opacity:0.9;"></div>`;
+    case 'triangle':
+      return `<div style="${base}width:10px;height:10px;clip-path:polygon(0% 0%,100% 0%,50% 100%);background:${color};opacity:0.9;"></div>`;
+    case 'square':
+      return `<div style="${base}width:9px;height:9px;border-radius:2px;background:${color};opacity:0.9;"></div>`;
+    default: return '';
+  }
+}
+
 export function renderLegend() {
   // Populate the Legend panel (right-side collapsible)
+  const globalEl = document.getElementById('legendGlobal');
   const eventsEl = document.getElementById('legendEvents');
   const denomsEl = document.getElementById('legendDenoms');
   if (!eventsEl || !denomsEl) return;
 
-  // Event markers — with shape indicators and tooltip descriptions
+  // ── Global Events section ────────────────────────────────────
+  if (globalEl) {
+    const globalItems = [
+      { shape: 'bar-ruler', color: 'rgba(212,162,83,0.45)', label: 'Kings & Rulers',
+        desc: 'Named ruler periods shown as horizontal bands above the timeline' },
+      { shape: 'bar-war',   color: 'rgba(160,55,45,0.55)',  label: 'Wars & Conflicts',
+        desc: 'Armed conflicts and sieges affecting Gdańsk shown as span bars' },
+      { shape: 'diamond',   color: 'var(--amber)',           label: 'Political Events',
+        desc: 'Key political milestones: treaties, seizures, incorporations, rebellions' },
+      { shape: 'circle',    color: '#8a5ab8',                label: 'Religious Events',
+        desc: 'Ecclesiastical milestones: reformations, synods, missions, schisms' },
+      { shape: 'triangle',  color: 'var(--ev-plague)',       label: 'Plagues & Epidemics',
+        desc: 'Disease outbreaks and epidemics with major demographic impact' },
+      { shape: 'square',    color: '#a08030',                label: 'Urban Power',
+        desc: 'Municipal governance changes: law grants, privileges, council shifts' },
+    ];
+    globalEl.innerHTML = globalItems.map(g =>
+      `<div class="legend-item" tabindex="0" aria-label="${g.label}: ${g.desc}">
+        <div class="legend-item-shape" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;">${_ctxShapeHtml(g.shape, g.color)}</div>
+        <span>${g.label}</span>
+        <div class="legend-item-desc">${g.desc}</div>
+      </div>`
+    ).join('');
+  }
+
+  // ── Church-related event markers ────────────────────────────
+  // Shape indicators and tooltip descriptions
   const shapeEntries = Object.entries(eventShapes);
   eventsEl.innerHTML = shapeEntries.map(([type, info]) => {
     const color = eventColors[type] || 'var(--accent)';
@@ -53,15 +101,22 @@ export function renderLegend() {
 
   // Denomination colours
   const denoms = [
-    { key: 'catholic',  label: 'Catholic' },
-    { key: 'lutheran',  label: 'Lutheran' },
-    { key: 'calvinist', label: 'Calvinist' },
-    { key: 'armenian',  label: 'Armenian' },
-    { key: 'secular',   label: 'Secular' },
+    { key: 'catholic',  label: 'Catholic',
+      desc: 'Original confession; dominant until the 1557 Reformation, restored post-1945' },
+    { key: 'lutheran',  label: 'Lutheran',
+      desc: 'Dominant from 1557 until 1945; most Old Town churches converted at the Reformation' },
+    { key: 'calvinist', label: 'Calvinist',
+      desc: 'Reformed (Calvinist) minority; two churches permitted by royal decree from 1651' },
+    { key: 'armenian',  label: 'Armenian',
+      desc: 'Armenian Catholic rite; maintained at Ss. Peter & Paul 1817–1835' },
+    { key: 'secular',   label: 'Secular',
+      desc: 'No active religious use — museum, concert hall, archive, or ruin' },
   ];
   denomsEl.innerHTML = denoms.map(d =>
-    `<div class="legend-item" tabindex="0" aria-label="${d.label} denomination">
-      <div class="legend-item-swatch" style="background:var(--${d.key})"></div>${d.label}
+    `<div class="legend-item" tabindex="0" aria-label="${d.label}: ${d.desc}">
+      <div class="legend-item-swatch" style="background:var(--${d.key})"></div>
+      <span>${d.label}</span>
+      <div class="legend-item-desc">${d.desc}</div>
     </div>`
   ).join('');
 }
@@ -827,16 +882,7 @@ function _handleBottomSheetAction(action) {
     case 'status':   _exclusiveToggle(statusFilters, rawVal, false); applyFilters(); break;
     case 'origin':   _exclusiveToggle(originFilters, rawVal, false); applyFilters(); break;
     case 'cluster':  _exclusiveToggle(clusterFilters, rawVal, false); applyFilters(); break;
-    case 'clearAll': clearAllFilters(); setPatronageMode(false); break;
-    case 'guild':
-      if (patronageMode && selectedGuildId === rawVal) {
-        setPatronageMode(false);
-      } else {
-        setSelectedGuild(rawVal);
-        setPatronageMode(true);
-      }
-      render();
-      break;
+    case 'clearAll': clearAllFilters(); break;
     case 'selectAll':  selectAllChurches(); break;
     case 'deselectAll':deselectAllChurches(); break;
     case 'church':   toggleChurch(rawVal); break;
@@ -908,20 +954,12 @@ function _buildBottomSheetContent() {
       .forEach(o => { html += `<div class="filter-chip ${originFilters.has(o.k) ? 'on' : ''}" data-action="origin:${o.k}"><div class="chip-dot"></div>${o.l}</div>`; });
     html += '</div></div>';
 
-    html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Guild</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
-    patronageGuilds.forEach(g => {
-      const icon = _guildIcons[g.id] || '🏛';
-      const on = patronageMode && selectedGuildId === g.id ? 'on' : '';
-      html += `<div class="filter-chip ${on}" data-action="guild:${g.id}"><div class="chip-dot"></div>${icon} ${g.name}</div>`;
-    });
-    html += '</div></div>';
-
     html += '<div class="bottom-sheet-section"><div class="bottom-sheet-section-title">Size</div><div style="display:flex;flex-wrap:wrap;gap:5px;">';
     [{ k: 'A', l: 'Large' }, { k: 'B', l: 'Medium' }, { k: 'C', l: 'Small' }]
       .forEach(s => { html += `<div class="filter-chip ${clusterFilters.has(s.k) ? 'on' : ''}" data-action="cluster:${s.k}"><div class="chip-dot"></div>${s.l}</div>`; });
     html += '</div></div>';
 
-    const hasAny = statusFilters.size || originFilters.size || clusterFilters.size || patronageMode;
+    const hasAny = statusFilters.size || originFilters.size || clusterFilters.size;
     if (hasAny) {
       html += `<div class="bottom-sheet-section"><div style="display:flex;flex-wrap:wrap;gap:5px;"><div class="filter-chip" data-action="clearAll" style="border-color:var(--ev-destroyed);color:var(--ev-destroyed)"><div class="chip-dot" style="background:var(--ev-destroyed);opacity:1"></div>Clear all</div></div></div>`;
     }
@@ -948,14 +986,9 @@ function _buildBottomSheetContent() {
   content.innerHTML = html;
 }
 
-// ── Patronage Mode (Guild Lens) ─────────────────────────────
+// ── Founders & Guilds Panel ──────────────────────────────────
 
-let _patTab = 'guilds'; // 'guilds' | 'founders'
-
-const _guildIcons = {
-  merchants: '⚓', maritime: '🚢', brewers: '🍺', butchers: '🥩',
-  bakers: '🍞', goldsmiths: '💎', weavers: '🧵', stgeorge: '🛡',
-};
+let _patTab = 'founders'; // 'founders' | 'guilds'
 
 export function buildPatronageBar() {
   const bar = document.getElementById('patronageBar');
@@ -965,20 +998,9 @@ export function buildPatronageBar() {
 
   // Tab switcher
   html += `<div class="pat-tabs">
-    <div class="pat-tab ${_patTab === 'guilds' ? 'active' : ''}" data-pat-tab="guilds">Guilds</div>
     <div class="pat-tab ${_patTab === 'founders' ? 'active' : ''}" data-pat-tab="founders">Founders</div>
+    <div class="pat-tab ${_patTab === 'guilds' ? 'active' : ''}" data-pat-tab="guilds">Guilds</div>
   </div>`;
-
-  // Guilds panel
-  html += `<div class="pat-panel ${_patTab !== 'guilds' ? 'hidden' : ''}" id="patGuildsPanel">`;
-  patronageGuilds.forEach(g => {
-    const icon = _guildIcons[g.id] || '🏛';
-    const sel = selectedGuildId === g.id ? 'selected' : '';
-    html += `<div class="patron-guild-item ${sel}" data-guild="${g.id}">
-      <span class="pat-icon">${icon}</span>${g.name}
-    </div>`;
-  });
-  html += '</div>';
 
   // Founders panel
   html += `<div class="pat-panel ${_patTab !== 'founders' ? 'hidden' : ''}" id="patFoundersPanel">`;
@@ -996,6 +1018,18 @@ export function buildPatronageBar() {
   });
   html += '</div></div>';
 
+  // Guilds panel — informational list, church → associated guilds
+  html += `<div class="pat-panel ${_patTab !== 'guilds' ? 'hidden' : ''}" id="patGuildsPanel">`;
+  html += '<div class="pat-founders-list">';
+  churches.forEach(ch => {
+    if (!ch.guilds || !ch.guilds.length) return;
+    html += `<div class="pat-founder-row">
+      <span class="pat-founder-name">${ch.shortName}</span>
+      <span class="pat-founder-detail">${ch.guilds.join(', ')}</span>
+    </div>`;
+  });
+  html += '</div></div>';
+
   bar.innerHTML = html;
 
   // Attach tab click handlers
@@ -1004,41 +1038,6 @@ export function buildPatronageBar() {
       _patTab = tab.dataset.patTab;
       buildPatronageBar();
     });
-  });
-
-  // Attach guild click handlers (single-select)
-  bar.querySelectorAll('.patron-guild-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const gid = item.dataset.guild;
-      if (selectedGuildId === gid) {
-        setSelectedGuild(null); // deselect
-      } else {
-        setSelectedGuild(gid);
-      }
-      buildPatronageBar();
-      render();
-    });
-    // Hover tooltip for guild details
-    item.addEventListener('mouseenter', ev => {
-      const g = patronageGuilds.find(x => x.id === item.dataset.guild);
-      if (!g) return;
-      let ttHtml = `<div class="tt-title" style="font-size:11px;margin-bottom:3px;">${g.name}</div>`;
-      ttHtml += `<div class="tt-body" style="font-size:10px;margin-bottom:4px;">${g.description}</div>`;
-      ttHtml += `<div style="font-size:9px;color:var(--accent);margin-bottom:2px;">Confirmed links:</div>`;
-      g.targetsConfirmed.forEach(t => {
-        const ch = churches.find(c => c.id === t.churchId);
-        ttHtml += `<div style="font-size:9px;color:var(--text-secondary);margin-left:6px;">• ${ch ? ch.shortName : t.churchId}</div>`;
-      });
-      if (g.targetsPossible && g.targetsPossible.length) {
-        ttHtml += `<div style="font-size:9px;color:var(--text-muted);margin-top:3px;">Possible links:</div>`;
-        g.targetsPossible.forEach(t => {
-          const ch = churches.find(c => c.id === t.churchId);
-          ttHtml += `<div style="font-size:9px;color:var(--text-muted);margin-left:6px;font-style:italic;">• ${ch ? ch.shortName : t.churchId}</div>`;
-        });
-      }
-      showGenericTT(ev, ttHtml);
-    });
-    item.addEventListener('mouseleave', hideTT);
   });
 }
 
@@ -1054,7 +1053,7 @@ export function togglePatronageMode() {
   if (newMode) {
     buildPatronageBar();
   }
-  render();
+  // No render() call — panel is informational only, doesn't filter the timeline
 }
 
 export function initPatronageToggle() {

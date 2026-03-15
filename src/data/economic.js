@@ -64,7 +64,7 @@ export const shipTraffic = [
 // plus dark-theme bg + light-theme bg for the Period bar rendering.
 export const economicEras = [
   {
-    start: 1200, end: 1308, label: 'Pomerelian Port',
+    start: 1150, end: 1308, label: 'Pomerelian Port',
     tag: 'Catholic', bg: '#2e4a3a', bgLight: '#c8ddd0',
     desc: 'Early ducal Baltic port within fragmented Piast sphere',
     tooltip: 'Under the Samborides of Pomerelia, Gdańsk functioned as a regional Baltic port linking inland trade routes with maritime exchange. Church institutions were fully integrated into Latin Catholic structures before Teutonic intervention reshaped urban governance.',

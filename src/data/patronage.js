@@ -1,6 +1,18 @@
 // ═══════════ PATRONAGE DATA ═══════════
 // Guild-to-church connections and church founder/order lookup.
 // Only targetsConfirmed drive highlighting; targetsPossible shown in guild tooltip only.
+//
+// Sources consulted for guild-to-church associations:
+//   • Medieval Heritage EU (medievalheritage.eu/en) — confirms Ss. Peter & Paul
+//     weavers/ship carpenters, St. John harbour trades, St. Elizabeth Elendenbruderschaft
+//   • Artus Court records (documented 1492) — Dutch Stall at Holy Trinity Chapel
+//   • Wikipedia: St. Mary's Church Gdańsk, Oliwa Cathedral, St. George Brotherhood
+//   • Existing municipal/academic consensus: St. Mary's merchants/goldsmiths, St. Catherine brewers
+//   • St. Bartholomew tanners: iconographic tradition (patron saint of tanners) +
+//     suburban tanning-industry proximity; not directly attested in documents
+//   • St. Barbara gardeners/charcoal burners: local parish oral tradition; academically unverified
+// All targetsConfirmed = documentary evidence or strong scholarly consensus.
+// targetsPossible = plausible parish geography / trade proximity, not directly attested.
 
 // ── Curated confirmed guilds (selectable in Patronage Mode) ──────────────
 export const patronageGuilds = [

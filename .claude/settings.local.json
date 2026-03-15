@@ -54,7 +54,9 @@
       "Bash(powershell -Command \"\\(Get-Content src/main.js\\) -replace ''ui\\\\.js\\\\?v=8'',''ui.js?v=9'' | Set-Content src/main.js\")",
       "WebSearch",
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue | Select-Object OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_OwningProcess -Force -ErrorAction SilentlyContinue }\")",
-      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue\")"
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue\")",
+      "Bash(python3 -c \":*)",
+      "WebFetch(domain:localhost)"
     ]
   }
 }

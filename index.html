@@ -42,13 +42,15 @@
 <!-- ══════════════════════════════════════════════
      LEGEND PANEL  (right-side collapsible)
      ══════════════════════════════════════════════ -->
-<div class="legend-panel collapsed" id="legendPanel">
+<div class="legend-panel" id="legendPanel">
   <div class="legend-panel-header">
     <span>Legend</span>
     <button class="legend-panel-close" id="legendPanelClose">✕</button>
   </div>
   <div class="legend-panel-body">
-    <div class="legend-section-title">Event Markers</div>
+    <div class="legend-section-title">Global Events</div>
+    <div class="legend-section" id="legendGlobal"></div>
+    <div class="legend-section-title">Church-related Events</div>
     <div class="legend-section" id="legendEvents"></div>
     <div class="legend-section-title">Denomination Colours</div>
     <div class="legend-section" id="legendDenoms"></div>
@@ -63,46 +65,29 @@
   <!-- ─── TIMELINE SCREEN ─── -->
   <div class="screen active" id="scrTimeline">
 
-    <!-- COLLAPSIBLE CHROME (inside timeline screen so it doesn't overlap) -->
-    <div class="m-chrome" id="mChrome">
-
-      <!-- Controls bar (zoom, search, jump, map, kb) -->
-      <div class="controls" id="controlsBar">
-        <!-- Zoom -->
-        <div style="display:flex;gap:2px;flex-shrink:0;">
-          <button class="ctrl-btn" id="btnZoomIn" title="Zoom in (+)">+</button>
-          <button class="ctrl-btn" id="btnZoomOut" title="Zoom out (−)">−</button>
-          <button class="ctrl-btn" id="btnZoomFit" title="Fit to screen (F)">Fit</button>
-          <button class="ctrl-btn" id="btnResetRange" title="Reset to full time range" style="display:none">⟲ Full</button>
-        </div>
-
-        <!-- View range readout -->
-        <span class="view-range-label" id="viewRangeLabel">View: 1200–2005</span>
-
-        <!-- Search -->
-        <div class="search-box">
-          <span style="color:var(--text-muted);font-size:12px;">⌕</span>
-          <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
-        </div>
-
-        <div class="ctrl-sep"></div>
-
-        <!-- Era navigation -->
-        <span class="ctrl-label">Jump:</span>
-        <div class="era-nav">
-          <button class="jump-btn" data-year="1200">Pomeranian</button>
-          <button class="jump-btn" data-year="1308">Teutonic</button>
-          <button class="jump-btn" data-year="1454">Polish</button>
-          <button class="jump-btn" data-year="1793">Prussian</button>
-          <button class="jump-btn" data-year="1920">Free City</button>
-          <button class="jump-btn" data-year="1945">Post-WWII</button>
-        </div>
-
-        <div class="ctrl-sep"></div>
-        <button class="ctrl-btn" id="mapToggleBtn" title="Toggle map panel (M)">🔍 Map</button>
-        <button class="ctrl-btn" id="patronageToggleBtn" title="Toggle patronage mode (guild lens)">🏛 Guilds</button>
-        <button class="ctrl-btn" id="btnKbHelp" title="Keyboard shortcuts (?)" style="font-size:11px;padding:2px 6px;">⌨ <span class="kbd">?</span></button>
+    <!-- Always-visible controls bar (outside collapsible chrome) -->
+    <div class="controls" id="controlsBar">
+      <!-- Zoom -->
+      <div style="display:flex;gap:2px;flex-shrink:0;">
+        <button class="ctrl-btn" id="btnZoomIn" title="Zoom in (+)">+</button>
+        <button class="ctrl-btn" id="btnZoomOut" title="Zoom out (−)">−</button>
+        <button class="ctrl-btn" id="btnZoomFit" title="Fit to screen (F)">Fit</button>
+        <button class="ctrl-btn" id="btnResetRange" title="Reset to full time range" style="display:none">⟲ Full</button>
       </div>
+
+      <!-- View range readout -->
+      <span class="view-range-label" id="viewRangeLabel">View: 1200–2005</span>
+
+      <!-- Search -->
+      <div class="search-box">
+        <span style="color:var(--text-muted);font-size:12px;">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search…" autocomplete="off">
+      </div>
+
+    </div>
+
+    <!-- COLLAPSIBLE CHROME (tracks, filters, sort) -->
+    <div class="m-chrome" id="mChrome">
 
       <!-- Track toggles -->
       <div class="filter-bar" id="trackToggles"></div>
@@ -126,18 +111,15 @@
       <!-- Filter chips: Status, Type, Size -->
       <div class="filter-bar" id="filterBar"></div>
 
-      <!-- Patronage bar (hidden by default) -->
-      <div class="filter-bar patronage-bar" id="patronageBar" style="display:none"></div>
-
       <!-- Sort bar -->
       <div class="filter-bar sort-bar" id="sortBar">
         <span class="sort-bar-label">Sort:</span>
-        <button class="ctrl-btn sort-btn active" data-sort="cornerstone">Cornerstone</button>
-        <button class="ctrl-btn sort-btn" data-sort="established">Established</button>
-        <button class="ctrl-btn sort-btn" data-sort="height">Height</button>
-        <button class="ctrl-btn sort-btn" data-sort="capacity">Capacity</button>
-        <button class="ctrl-btn sort-btn" data-sort="distance">Dist. St.Mary</button>
-        <button class="ctrl-btn sort-btn" data-sort="catholicism">Catholicism</button>
+        <button class="ctrl-btn sort-btn active" data-sort="established" title="Year first established or founded">Established</button>
+        <button class="ctrl-btn sort-btn" data-sort="cornerstone" title="Year the brick cornerstone was laid">Cornerstone</button>
+        <button class="ctrl-btn sort-btn" data-sort="height" title="Height of the church tower / nave">Height</button>
+        <button class="ctrl-btn sort-btn" data-sort="catholicism" title="Total years of Catholic affiliation">Catholicism yrs</button>
+        <button class="ctrl-btn sort-btn" data-sort="distance" title="Straight-line distance from St. Mary's">Dist. St.Mary</button>
+        <button class="ctrl-btn sort-btn" data-sort="capacity" title="Approximate seating capacity">Capacity</button>
       </div>
 
     </div><!-- end .m-chrome -->
@@ -194,8 +176,7 @@
                aria-label="Start year" title="Drag to set start year"></div>
           <div class="range-handle" id="rangeHandleR" tabindex="0" role="slider"
                aria-label="End year" title="Drag to set end year"></div>
-          <div class="range-year-label" id="rangeYearL" aria-hidden="true"></div>
-          <div class="range-year-label" id="rangeYearR" aria-hidden="true"></div>
+
           <div class="period-marker" id="periodMarkerL" aria-hidden="true"><span class="period-marker-yr"></span></div>
           <div class="period-marker" id="periodMarkerR" aria-hidden="true"><span class="period-marker-yr"></span></div>
           <div class="range-drag-label" id="rangeDragLabel" aria-hidden="true"></div>
@@ -206,8 +187,8 @@
       <div class="view-mode-bar" id="viewModeBar">
         <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
           <div class="pill-indicator" aria-hidden="true"></div>
-          <button class="pill-btn active" data-mode="churches" role="radio" aria-checked="true">Churches Timeline</button>
-          <button class="pill-btn" data-mode="combined" role="radio" aria-checked="false">With Global Context</button>
+          <button class="pill-btn active" data-mode="churches" role="radio" aria-checked="true">Churches Only</button>
+          <button class="pill-btn" data-mode="combined" role="radio" aria-checked="false">+ Global Context</button>
         </div>
       </div>
 
@@ -313,6 +294,11 @@
     <div class="list-search">
       <input type="text" id="listSearchInput" placeholder="Search churches…" autocomplete="off">
     </div>
+    <!-- Founders & Guilds button + panel -->
+    <div class="list-patronage-row">
+      <button class="ctrl-btn list-patronage-btn" id="patronageToggleBtn" title="Show founders and guild associations per church">🏛 Founders &amp; Guilds</button>
+    </div>
+    <div class="filter-bar patronage-bar" id="patronageBar" style="display:none"></div>
     <div class="list-filters" id="listFilters"></div>
     <div class="list-scroll" id="listScroll"></div>
   </div>
@@ -378,8 +364,7 @@
 <div class="bottom-sheet" id="bottomSheet">
   <div class="bottom-sheet-handle"><div class="bottom-sheet-handle-bar"></div></div>
   <div class="bottom-sheet-tabs">
-    <button class="bottom-sheet-tab active" data-bs-tab="tracks">Tracks</button>
-    <button class="bottom-sheet-tab" data-bs-tab="churches">Churches</button>
+    <button class="bottom-sheet-tab active" data-bs-tab="churches">Churches</button>
     <button class="bottom-sheet-tab" data-bs-tab="sort">Sort</button>
     <button class="bottom-sheet-tab" data-bs-tab="search">Search</button>
   </div>
