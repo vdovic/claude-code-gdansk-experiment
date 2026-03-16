@@ -30,7 +30,6 @@
      HEADER  (fixed top)
      ══════════════════════════════════════════════ -->
 <header class="hdr">
-  <button class="m-chrome-toggle" id="mChromeToggle" title="Toggle controls">▼</button>
   <div style="flex:1;min-width:0;">
     <div class="hdr-title">Gdansk history through the lenses of churches</div>
     <div class="hdr-sub">8 centuries · 16 churches · 5 denominations</div>
@@ -87,43 +86,6 @@
 
     </div>
 
-    <!-- COLLAPSIBLE CHROME (tracks, filters, sort) -->
-    <div class="m-chrome" id="mChrome">
-
-      <!-- Track toggles -->
-      <div class="filter-bar" id="trackToggles"></div>
-
-      <!-- Churches compact selector -->
-      <div class="filter-bar" id="churchSelectorBar">
-        <span class="filter-section-label" style="flex-shrink:0;">Churches:</span>
-        <div class="church-selector" id="churchSelector">
-          <button class="church-selector-btn" id="churchSelectorBtn">All selected</button>
-          <div class="church-selector-dropdown" id="churchDropdown">
-            <input type="text" class="church-selector-search" id="churchDropdownSearch" placeholder="Search churches…" autocomplete="off">
-            <div class="church-selector-actions">
-              <span class="church-selector-act" id="churchSelAll">Select all</span>
-              <span class="church-selector-act" id="churchSelNone">Select none</span>
-            </div>
-            <div class="church-selector-list" id="churchDropdownList"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filter chips: Status, Type, Size -->
-      <div class="filter-bar" id="filterBar"></div>
-
-      <!-- Sort bar -->
-      <div class="filter-bar sort-bar" id="sortBar">
-        <span class="sort-bar-label">Sort:</span>
-        <button class="ctrl-btn sort-btn active" data-sort="established" title="Year first established or founded">Established</button>
-        <button class="ctrl-btn sort-btn" data-sort="cornerstone" title="Year the brick cornerstone was laid">Cornerstone</button>
-        <button class="ctrl-btn sort-btn" data-sort="height" title="Height of the church tower / nave">Height</button>
-        <button class="ctrl-btn sort-btn" data-sort="catholicism" title="Total years of Catholic affiliation">Catholicism yrs</button>
-        <button class="ctrl-btn sort-btn" data-sort="distance" title="Straight-line distance from St. Mary's">Dist. St.Mary</button>
-        <button class="ctrl-btn sort-btn" data-sort="capacity" title="Approximate seating capacity">Capacity</button>
-      </div>
-
-    </div><!-- end .m-chrome -->
 
     <!-- Map panel (collapsible) -->
     <div class="map-container collapsed" id="mapContainer">
@@ -184,20 +146,14 @@
         </div>
       </div>
 
-      <!-- View Mode bar (always visible between axis and panels) -->
-      <div class="view-mode-bar" id="viewModeBar">
-        <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
-          <div class="pill-indicator" aria-hidden="true"></div>
-          <button class="pill-btn active" data-mode="churches" role="radio" aria-checked="true">Churches Only</button>
-          <button class="pill-btn" data-mode="combined" role="radio" aria-checked="false">+ Global Context</button>
-        </div>
-      </div>
-
       <!-- Onboarding tip -->
       <div class="onboarding-tip" id="onboardingTip" aria-hidden="true">
         <span>Tip: Toggle <b>With Global Context</b> to overlay historical events on the church timeline.</span>
         <button class="onboarding-close" id="onboardingClose" aria-label="Dismiss">&times;</button>
       </div>
+
+      <!-- Track toggles — embedded in Global Context area, hidden in Churches-Only mode -->
+      <div class="filter-bar" id="trackToggles"></div>
 
       <!-- Context panel (collapsible) -->
       <div id="contextPanel">
@@ -211,7 +167,7 @@
       </div>
 
       <!-- Rulers context row -->
-      <div class="tl-ctx-row" id="rulersRow" style="height:24px;background:rgba(212,162,83,0.03);overflow:hidden;">
+      <div class="tl-ctx-row" id="rulersRow" style="height:24px;overflow:hidden;">
         <div class="tl-ctx-stub" data-track="rulers">Kings / Rulers</div>
         <div class="tl-ctx-scroll">
           <div class="ctx-inner" id="rulersInner" style="height:24px;"></div>
@@ -276,8 +232,53 @@
 
       </div><!-- end #contextPanel -->
 
-      <!-- Churches section label -->
-      <div class="panel-label" id="churchesLabel">CHURCHES</div>
+      <!-- Churches section label / drag handle -->
+      <div class="panel-label" id="churchesLabel"></div>
+
+      <!-- Church controls: selector, filters, sort — pinned between handle and lanes -->
+      <div id="churchControls">
+
+        <!-- ── View mode switch — first thing users see in the church section ── -->
+        <div class="view-mode-row">
+          <span class="vm-label">View:</span>
+          <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
+            <div class="pill-indicator" aria-hidden="true"></div>
+            <button class="pill-btn" data-mode="churches" role="radio">Churches Only</button>
+            <button class="pill-btn" data-mode="combined" role="radio">+ Global Context</button>
+          </div>
+        </div>
+
+        <!-- Churches compact selector -->
+        <div class="filter-bar" id="churchSelectorBar">
+          <span class="filter-section-label" style="flex-shrink:0;">Churches:</span>
+          <div class="church-selector" id="churchSelector">
+            <button class="church-selector-btn" id="churchSelectorBtn">All selected</button>
+            <div class="church-selector-dropdown" id="churchDropdown">
+              <input type="text" class="church-selector-search" id="churchDropdownSearch" placeholder="Search churches…" autocomplete="off">
+              <div class="church-selector-actions">
+                <span class="church-selector-act" id="churchSelAll">Select all</span>
+                <span class="church-selector-act" id="churchSelNone">Select none</span>
+              </div>
+              <div class="church-selector-list" id="churchDropdownList"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter chips: Status, Type, Size -->
+        <div class="filter-bar" id="filterBar"></div>
+
+        <!-- Sort bar -->
+        <div class="filter-bar sort-bar" id="sortBar">
+          <span class="sort-bar-label">Sort:</span>
+          <button class="ctrl-btn sort-btn active" data-sort="established" title="Year first established or founded">Established</button>
+          <button class="ctrl-btn sort-btn" data-sort="cornerstone" title="Year the brick cornerstone was laid">Cornerstone</button>
+          <button class="ctrl-btn sort-btn" data-sort="height" title="Height of the church tower / nave">Height</button>
+          <button class="ctrl-btn sort-btn" data-sort="catholicism" title="Total years of Catholic affiliation">Catholicism yrs</button>
+          <button class="ctrl-btn sort-btn" data-sort="distance" title="Straight-line distance from St. Mary's">Dist. St.Mary</button>
+          <button class="ctrl-btn sort-btn" data-sort="capacity" title="Approximate seating capacity">Capacity</button>
+        </div>
+
+      </div><!-- end #churchControls -->
 
       <!-- Church lanes: frozen label column + scrolling lanes -->
       <div class="tl-lanes-wrap" id="churchPanel">
@@ -295,6 +296,15 @@
     <div class="list-search">
       <input type="text" id="listSearchInput" placeholder="Search churches…" autocomplete="off">
     </div>
+
+    <!-- Historical panorama banner -->
+    <div class="list-panorama">
+      <img src="assets/images/gdansk-panorama.png"
+           alt="Panoramic view of Dantzig, 17th century engraving"
+           class="list-panorama-img">
+      <span class="list-panorama-caption">Dantzig · c. 1652</span>
+    </div>
+
     <div class="list-filters" id="listFilters"></div>
     <div class="list-scroll" id="listScroll"></div>
   </div>

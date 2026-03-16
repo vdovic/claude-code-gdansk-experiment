@@ -82,9 +82,8 @@
   --tab-h:          48px;
   --label-w:        110px;
   --label-w-desktop:180px;
-  --lane-h:         54px;
+  --lane-h:         43px;
   --axis-h:         34px;
-  --ctx-h:          24px;
 
   /* Shadows */
   --shadow-sm:      0 1px 3px rgba(0,0,0,0.12);
@@ -945,6 +944,9 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   flex-shrink: 0; display: flex;
   border-bottom: 1px solid var(--tl-row-border); overflow: visible;
   position: relative; z-index: 1;
+  /* Explicit background keeps rows parchment-coloured even when the panel
+     behind them is dark (the dark zone shows only in the empty overflow space) */
+  background: var(--parchment-dk);
 }
 .tl-ctx-stub {
   width: var(--label-w); flex-shrink: 0; background: var(--parchment-dk);
@@ -1081,7 +1083,8 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .tl-lanes-wrap { flex: 1; overflow: hidden; display: flex; min-height: 0; }
 .tl-labels {
   width: var(--label-w); flex-shrink: 0;
-  overflow-y: hidden; background: var(--parchment-dk);
+  /* Lighter tone (--tl-bg) vs context stubs (--parchment-dk) — creates tonal separation */
+  overflow-y: hidden; background: var(--tl-bg);
   border-right: 1px solid var(--tl-border);
 }
 .tl-lanes-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; }
@@ -1269,6 +1272,55 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   transition: border-color var(--ease-default), box-shadow var(--ease-default);
 }
 .list-search input:focus { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+
+/* Historical panorama banner — between search and filters */
+.list-panorama {
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  /* Top fade blends into parchment search bar, bottom fade into filter bar */
+  border-bottom: 1px solid var(--tl-border);
+}
+.list-panorama-img {
+  display: block;
+  width: 100%;
+  height: 126px;
+  object-fit: cover;
+  object-position: center 25%;
+  /* Warm sepia treatment to harmonise with the parchment palette */
+  filter: sepia(35%) contrast(1.08) brightness(0.97);
+}
+/* Soft gradient at top and bottom so the image melts into the surrounding bars */
+.list-panorama::before,
+.list-panorama::after {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  height: 28px;
+  pointer-events: none;
+  z-index: 1;
+}
+.list-panorama::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--parchment-dk), transparent);
+}
+.list-panorama::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--parchment-dk), transparent);
+}
+/* Period caption — bottom-right corner */
+.list-panorama-caption {
+  position: absolute; bottom: 7px; right: 10px;
+  font-family: var(--font-display); font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--tl-text-lt); opacity: 0.7;
+  z-index: 2; pointer-events: none;
+}
+[data-theme="light"] .list-panorama::before {
+  background: linear-gradient(to bottom, var(--parchment-dk), transparent);
+}
+[data-theme="light"] .list-panorama::after {
+  background: linear-gradient(to top, var(--parchment-dk), transparent);
+}
 
 /* Founders & Guilds row inside the church list screen */
 .list-patronage-row {
@@ -2481,14 +2533,26 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tl-ctx-row .ctx-inner .econ-era-block { pointer-events: auto; }
 
 /* ══════════════════════════════════════════════════════════════
-   VIEW MODE BAR — pill toggle [Churches Only / + Global Context]
+   VIEW MODE ROW — pill toggle [Churches Only / + Global Context]
+   Lives as the first row inside #churchControls, directly below
+   the CHURCHES drag handle. Single instance, visible on all sizes.
    ══════════════════════════════════════════════════════════════ */
-.view-mode-bar {
-  display: flex; align-items: center; justify-content: center;
-  /* Extra vertical breathing room makes the switcher feel like a primary control */
-  background: var(--tl-bg); border-bottom: 1px solid var(--tl-border);
-  padding: 9px 16px; flex-shrink: 0;
+.view-mode-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; flex-shrink: 0;
+  /* Subtle amber tint distinguishes this from the plain filter bars below */
+  background: rgba(212,162,83,0.08);
+  border-bottom: 1px solid rgba(212,162,83,0.22);
 }
+.vm-label {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.10em;
+  color: var(--tl-text-lt); flex-shrink: 0;
+}
+/* Slightly more prominent pill than the old tiny header version */
+.view-mode-row .pill-toggle  { padding: 4px; }
+.view-mode-row .pill-btn     { min-height: 26px; padding: 5px 14px; font-size: 11px; font-weight: 500; }
+.view-mode-row .pill-indicator { top: 4px; bottom: 4px; left: 4px; }
 
 /* Sliding pill container */
 .pill-toggle {
@@ -2552,9 +2616,9 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 [data-theme="light"] .pill-btn.active { color: #fff; }
 [data-theme="light"] .pill-btn:hover:not(.active) { color: var(--tl-text); }
 
-/* Very narrow screens */
+/* Very narrow screens — keep pill text legible */
 @media (max-width: 380px) {
-  .pill-btn { font-size: 11px; padding: 5px 12px; }
+  .view-mode-row .pill-btn { font-size: 10px; padding: 5px 10px; }
 }
 
 /* ── First-visit discovery pulse ─────────────────────────────── */
@@ -2575,24 +2639,67 @@ body.mode-combined .pill-indicator { transform: translateX(100%); }
 }
 
 .panel-label {
-  font-family: var(--font-ui); font-size: 9px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--tl-text-lt); padding: 2px 8px;
+  font-family: var(--font-ui); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.10em;
+  color: var(--tl-text-lt);
+  /* Slightly greyed-down neutral — visually distinct from both context and church areas */
+  background: #d4d0cc;
+  border-top:    2px solid rgba(212,162,83,0.45);
+  border-bottom: 1px solid rgba(212,162,83,0.15);
+  padding: 4px 12px;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; position: relative;
   transition: opacity 180ms ease, max-height 180ms ease;
 }
-[data-theme="light"] .panel-label { color: var(--tl-text-lt); }
+/* Drag-handle affordance — centered two-line grip, only in combined mode */
+body.mode-combined .panel-label {
+  cursor: ns-resize;
+  padding: 6px 12px;    /* taller bar = easier to grab with mouse or finger */
+  user-select: none;
+}
+body.mode-combined .panel-label::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  width: 36px; height: 8px;
+  /* Two parallel horizontal lines — universal resize handle indicator */
+  background:
+    linear-gradient(var(--tl-text-lt), var(--tl-text-lt)) 0 1.5px / 100% 1.5px no-repeat,
+    linear-gradient(var(--tl-text-lt), var(--tl-text-lt)) 0 5.5px / 100% 1.5px no-repeat;
+  opacity: 0.55;
+  border-radius: 1px;
+}
+/* Bigger tap target on mobile */
+@media (max-width: 768px) {
+  body.mode-combined .panel-label { padding: 10px 12px; }
+}
+[data-theme="light"] .panel-label {
+  border-top-color:    rgba(42,122,138,0.35);
+  border-bottom-color: rgba(42,122,138,0.12);
+}
+[data-theme="light"] body.mode-combined .panel-label::after {
+  opacity: 0.4;
+}
 
 /* ── Panel show / hide ──────────────────────────────────────── */
 
-/* Combined: context rows appear above churches with smooth reveal */
+/* Combined: context rows appear above churches.
+   --ctx-h is an element-scoped variable set by JS drag on #contextPanel itself.
+   Default: height auto = fits content exactly, no empty space below last row.
+   After drag: height = user-set px value stored in --ctx-h. */
 body.mode-combined #contextPanel {
-  flex: none;                              /* explicit height controls, not flex */
-  height: clamp(120px, 38vh, 360px);      /* 38% viewport, min 120px, max 360px */
+  flex: none;
+  height: var(--ctx-h, auto);
   overflow-y: auto;
   opacity: 1;
-  transition: height 280ms cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 250ms ease;
+  transition: opacity 250ms ease;  /* height is managed by JS; no CSS transition needed */
+  /* Dark overflow zone: only visible in the empty space below the last row
+     (each .tl-ctx-row carries its own parchment background) */
+  background: var(--bg-elevated);
 }
+[data-theme="light"] body.mode-combined #contextPanel { background: #b0aca6; }
 body.mode-combined #churchPanel { flex: 1 1 0; min-height: 80px; }
 
 /* Churches: context panel collapses */
@@ -2603,6 +2710,13 @@ body.mode-churches #contextPanel {
               opacity 200ms ease;
 }
 
+/* ── Split-drag active state ─────────────────────────────────── */
+/* Disable height transition while dragging so resize feels instant */
+body.split-dragging #contextPanel { transition: none !important; }
+/* Lock cursor and prevent text selection globally during drag */
+body.split-dragging,
+body.split-dragging * { cursor: ns-resize !important; user-select: none !important; }
+
 /* Context-only mode (legacy fallback — maps to combined behaviour) */
 body.mode-context #contextPanel {
   flex: none; height: clamp(120px, 38vh, 360px); overflow-y: auto; opacity: 1;
@@ -2611,6 +2725,36 @@ body.mode-context #churchPanel,
 body.mode-context #churchesLabel {
   max-height: 0; opacity: 0; overflow: hidden;
   pointer-events: none; padding: 0; border: none;
+}
+
+/* ── Track toggles — embedded above the context panel ──────────────────────
+   Replaces the old dark chrome position.  Uses warm parchment background so
+   it blends with the context rows below it.
+   Hidden in churches-only mode because the context panel itself is hidden. */
+#trackToggles {
+  flex-shrink: 0;
+  background: var(--parchment-dk);
+  border-bottom: 1px solid rgba(212,162,83,0.25);
+  /* Override the semi-transparent dark chrome tint from .filter-bar */
+  background: var(--parchment-dk) !important;
+}
+body.mode-churches  #trackToggles { display: none; }
+body.mode-combined  #trackToggles { display: flex;  }
+
+/* ── Church controls — selector, filters, sort pinned below CHURCHES handle ─
+   Always visible regardless of view mode.  Uses the lighter tl-bg to sit
+   visually above the church lanes rather than blending with them. */
+#churchControls {
+  flex-shrink: 0;
+}
+#churchControls .filter-bar {
+  background: var(--tl-bg) !important;
+  border-color: var(--tl-border);
+}
+/* Sort-bar label inherits fine; ctrl-btn colours need a nudge on light parchment */
+#churchControls .sort-bar-label,
+#trackToggles .filter-section-label {
+  color: var(--tl-text-lt);
 }
 
 /* Onboarding tip */

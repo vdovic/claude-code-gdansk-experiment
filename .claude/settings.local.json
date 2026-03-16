@@ -57,7 +57,17 @@
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue\")",
       "Bash(python3 -c \":*)",
       "WebFetch(domain:localhost)",
-      "Bash(timeout /t 3 /nobreak)"
+      "Bash(timeout /t 3 /nobreak)",
+      "WebFetch(domain:www.europeana.eu)",
+      "WebFetch(domain:museen-nord.de)",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "WebFetch(domain:www.loc.gov)",
+      "WebFetch(domain:www.akg-images.de)",
+      "WebFetch(domain:kolekcje.nmm.pl)",
+      "WebFetch(domain:picryl.com)",
+      "WebFetch(domain:artinfo.pl)",
+      "WebFetch(domain:www.themaphouse.com)",
+      "WebFetch(domain:www.geographicus.com)"
     ]
   }
 }

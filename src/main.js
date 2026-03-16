@@ -189,7 +189,7 @@ function _initDragToPan() {
   const INTERACTIVE = 'button, input, select, a, .evt-dot, .war-bar, .ruler-bar, '
     + '.political-marker, .calamity-marker, .econ-era-block, .filter-chip, '
     + '.church-selector, .sort-btn, .ctrl-btn, .track-toggle, .ch-label, '
-    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle, .axis-track';
+    + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle, .axis-track, .panel-label';
 
   let pointerId    = null;   // active pointer id (null = not tracking)
   let startX       = 0;      // clientX at pointerdown
@@ -273,9 +273,10 @@ function _initChromeCollapse() {
 }
 
 // ── View Mode segmented control ────────────────────────────────
+// Handles both the header pill (desktop) and the bar pill (mobile).
 function _initViewMode() {
-  const toggle = document.getElementById('viewModeToggle');
-  if (!toggle) return;
+  const toggles = document.querySelectorAll('.pill-toggle');
+  if (!toggles.length) return;
 
   // Mobile (≤768) defaults to 'churches', desktop to 'combined'
   const defaultMode = window.innerWidth <= 768 ? 'churches' : 'combined';
@@ -284,33 +285,137 @@ function _initViewMode() {
   _applyViewMode(saved);
 
   // ── First-visit discovery pulse ──
-  // Runs 3 gentle glows on first visit only; never repeats after seen.
+  // Pulse runs on whichever toggle is currently visible.
   const PULSE_KEY = 'switcherPulseSeen';
   if (!localStorage.getItem(PULSE_KEY)) {
-    // Delay until the page-load fade-in has settled (~1 s)
     setTimeout(() => {
-      toggle.classList.add('pill-discover');
-      // Mark seen once all 3 pulses complete (animationend fires once at end)
-      toggle.addEventListener('animationend', () => {
-        toggle.classList.remove('pill-discover');
+      const visible = Array.from(toggles).find(t => t.offsetParent !== null) || toggles[0];
+      visible.classList.add('pill-discover');
+      visible.addEventListener('animationend', () => {
+        visible.classList.remove('pill-discover');
         localStorage.setItem(PULSE_KEY, '1');
       }, { once: true });
     }, 1000);
   }
 
-  toggle.addEventListener('click', e => {
-    const btn = e.target.closest('.pill-btn');
-    if (!btn) return;
-    const mode = btn.dataset.mode;
-    // If user clicks before pulse finishes, cancel it and mark as seen
-    if (!localStorage.getItem(PULSE_KEY)) {
-      toggle.classList.remove('pill-discover');
-      localStorage.setItem(PULSE_KEY, '1');
-    }
-    _applyViewMode(mode);
-    localStorage.setItem('viewMode', mode);
-    _dismissOnboarding();
+  toggles.forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      const btn = e.target.closest('.pill-btn');
+      if (!btn) return;
+      const mode = btn.dataset.mode;
+      // Cancel pulse on any interaction
+      if (!localStorage.getItem(PULSE_KEY)) {
+        toggles.forEach(t => t.classList.remove('pill-discover'));
+        localStorage.setItem(PULSE_KEY, '1');
+      }
+      _applyViewMode(mode);
+      localStorage.setItem('viewMode', mode);
+      _dismissOnboarding();
+    });
   });
+}
+
+// ── Draggable split handle between context and church panels ────
+// --ctx-h is set as an element-scoped CSS variable directly on #contextPanel.
+// This means:
+//   • body.mode-combined uses it:  height: var(--ctx-h, auto)
+//   • body.mode-churches ignores it: height: 0  (that rule doesn't use var())
+//   → No cascade conflict; no need to clear on mode-switch.
+const SPLIT_KEY = 'gdansk-splitH';
+
+// ── Context panel height initialiser ──────────────────────────────────────────
+// Ensures #contextPanel always gets an explicit px height in combined mode so:
+//  (a) there is no empty gap below the last context row, and
+//  (b) the CHURCHES drag-handle is always visible.
+// Priority: (1) user-dragged value persisted in localStorage,
+//           (2) measured sum of .tl-ctx-row heights (natural content height),
+//               capped so at least 60 px of the church section remains visible.
+function _setCtxHeight() {
+  const ctxPanel = document.getElementById('contextPanel');
+  const handle   = document.getElementById('churchesLabel');
+  const tlOuter  = document.getElementById('tlOuter');
+  if (!ctxPanel || !handle || !tlOuter) return;
+  if (!document.body.classList.contains('mode-combined')) return;
+
+  const saved = localStorage.getItem(SPLIT_KEY);
+  if (saved) {
+    ctxPanel.style.setProperty('--ctx-h', saved + 'px');
+    return;
+  }
+
+  // Measure after layout so rows have their final heights.
+  requestAnimationFrame(() => {
+    const rows       = ctxPanel.querySelectorAll('.tl-ctx-row');
+    const contentH   = [...rows].reduce((s, r) => s + (r.getBoundingClientRect().height || 0), 0);
+    const outerH     = tlOuter.getBoundingClientRect().height;
+    const labelH     = handle.getBoundingClientRect().height || 20;
+    // Reserve at least 30% of the outer height (min 150px) for the church section
+    const minChurchH = Math.max(150, Math.round(outerH * 0.30));
+    const maxH       = Math.max(100, outerH - labelH - minChurchH);
+    const h          = Math.max(60, Math.min(contentH || 220, maxH));
+    ctxPanel.style.setProperty('--ctx-h', h + 'px');
+  });
+}
+
+function _initSplitHandle() {
+  const handle   = document.getElementById('churchesLabel');
+  const ctxPanel = document.getElementById('contextPanel');
+  const tlOuter  = document.getElementById('tlOuter');
+  if (!handle || !ctxPanel || !tlOuter) return;
+
+  // Set initial height (restores saved drag value or measures natural content height).
+  _setCtxHeight();
+
+  let dragging = false, startY = 0, startH = 0, _maxDragH = 9999;
+
+  function _startDrag(e) {
+    if (!document.body.classList.contains('mode-combined')) return;
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    startH = ctxPanel.scrollHeight > ctxPanel.clientHeight
+           ? ctxPanel.getBoundingClientRect().height
+           : ctxPanel.scrollHeight;
+
+    // Hard cap: content height + 1.5× the grain-export row height.
+    // This limits the dark empty-space zone to a shallow visual cue only.
+    const visRows  = [...ctxPanel.querySelectorAll('.tl-ctx-row')]
+                       .filter(r => r.offsetParent !== null);
+    const contentH = visRows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
+    const grainRow = document.getElementById('grainRow');
+    const grainH   = grainRow ? grainRow.getBoundingClientRect().height : 48;
+    const outerH   = tlOuter.getBoundingClientRect().height;
+    const labelH   = handle.getBoundingClientRect().height || 20;
+    const minChurchH = Math.max(150, Math.round(outerH * 0.30));
+    _maxDragH = Math.min(
+      contentH + Math.round(grainH * 0.5),       // content + half grain-row dark-zone allowance
+      Math.max(100, outerH - labelH - minChurchH) // must leave room for churches
+    );
+
+    document.body.classList.add('split-dragging');
+    e.preventDefault();
+  }
+
+  function _onDrag(e) {
+    if (!dragging) return;
+    const y    = e.touches ? e.touches[0].clientY : e.clientY;
+    const newH = Math.max(60, Math.min(startH + (y - startY), _maxDragH));
+    ctxPanel.style.setProperty('--ctx-h', newH + 'px');
+    e.preventDefault();
+  }
+
+  function _endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('split-dragging');
+    localStorage.setItem(SPLIT_KEY, Math.round(ctxPanel.getBoundingClientRect().height));
+  }
+
+  handle.addEventListener('mousedown',  _startDrag);
+  handle.addEventListener('touchstart', _startDrag, { passive: false });
+  document.addEventListener('mousemove', _onDrag,   { passive: false });
+  document.addEventListener('touchmove', _onDrag,   { passive: false });
+  document.addEventListener('mouseup',   _endDrag);
+  document.addEventListener('touchend',  _endDrag);
 }
 
 function _applyViewMode(mode) {
@@ -332,6 +437,8 @@ function _applyViewMode(mode) {
     const anyOn = Object.values(trackVisibility).some(v => v);
     if (!anyOn) { allTracksOn(); buildTrackToggles(); }
     renderContextTracks();
+    // Re-apply panel height so handle stays visible after every mode switch.
+    if (mode === 'combined') _setCtxHeight();
   }
 
   // Auto-scroll to top of church rows when switching to churches mode
@@ -676,14 +783,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire all buttons/controls
   _wireButtons();
 
-  // Controls chrome — default collapsed
-  _initChromeCollapse();
-
   // Integrated range handles (on the unified axis)
   initRangeHandles();
 
   // View Mode segmented control (Combined / Churches / Context)
   _initViewMode();
+
+  // Draggable split between context and church panels
+  _initSplitHandle();
 
   // One-time onboarding tip
   _initOnboarding();
