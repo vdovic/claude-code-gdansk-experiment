@@ -549,8 +549,9 @@ function renderLanes() {
 
   const tw = getTotalWidth() - labelOffset;
   const visibleCount = sortedIndices.filter(ci => visibleChurches.has(churches[ci].id)).length;
+  const laneH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lane-h')) || 43;
   lanesEl.style.width  = tw + 'px';
-  lanesEl.style.height = (visibleCount * 54) + 'px';
+  lanesEl.style.height = (visibleCount * laneH) + 'px';
 
   const metaFn = {
     cornerstone:   c => c.cornerstoneYear || '\u2014',
@@ -600,7 +601,7 @@ function renderLanes() {
 
     // Label column — name only (sort value removed to reduce clutter)
     labHtml += `<div class="ch-label" data-ci="${ci}">
-      <div class="ch-lbl-left">${clDotHtml}${symHtml}<div class="ch-lbl-text">${ch.shortName}</div></div>
+      <div class="ch-lbl-left">${symHtml}<div class="ch-lbl-text">${ch.shortName}</div></div>
     </div>`;
 
     // Lane content

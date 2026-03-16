@@ -129,6 +129,9 @@ export function initLegendPanel() {
 
   function toggleLegend() { panel.classList.toggle('collapsed'); }
 
+  // Start collapsed on mobile; open by default on desktop
+  if (window.innerWidth <= 768) panel.classList.add('collapsed');
+
   btn.addEventListener('click', toggleLegend);
   // Keyboard: Enter/Space on legend toggle
   btn.addEventListener('keydown', e => {

@@ -1095,7 +1095,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 /* Frozen label column items */
 .ch-label {
   height: var(--lane-h); display: flex; align-items: center;
-  padding: 0 var(--sp-2); gap: 6px;
+  padding: 0 var(--sp-2) 0 10px; gap: 6px;
   border-bottom: 1px solid var(--tl-row-border);
   cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: background 0.2s ease, opacity 0.25s ease;
