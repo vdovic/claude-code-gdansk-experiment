@@ -278,8 +278,8 @@ function _initViewMode() {
   const toggles = document.querySelectorAll('.pill-toggle');
   if (!toggles.length) return;
 
-  // Mobile (≤768) defaults to 'churches', desktop to 'combined'
-  const defaultMode = window.innerWidth <= 768 ? 'churches' : 'combined';
+  // Default to 'churches' on all screen sizes
+  const defaultMode = 'churches';
   const saved = localStorage.getItem('viewMode') || defaultMode;
 
   _applyViewMode(saved);
