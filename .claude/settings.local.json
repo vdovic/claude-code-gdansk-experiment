@@ -56,7 +56,8 @@
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue | Select-Object OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_OwningProcess -Force -ErrorAction SilentlyContinue }\")",
       "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8091 -ErrorAction SilentlyContinue\")",
       "Bash(python3 -c \":*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(timeout /t 3 /nobreak)"
     ]
   }
 }

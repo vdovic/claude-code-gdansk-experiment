@@ -37,6 +37,7 @@
   </div>
   <button class="legend-toggle-btn" id="legendToggleBtn" title="Toggle legend panel">Legend</button>
   <button class="theme-toggle" id="themeToggle" title="Switch theme">🌙</button>
+  <button class="theme-toggle" id="btnAbout" title="About this project" style="font-style:normal;font-size:15px;">ℹ</button>
 </header>
 
 <!-- ══════════════════════════════════════════════
@@ -294,11 +295,6 @@
     <div class="list-search">
       <input type="text" id="listSearchInput" placeholder="Search churches…" autocomplete="off">
     </div>
-    <!-- Founders & Guilds button + panel -->
-    <div class="list-patronage-row">
-      <button class="ctrl-btn list-patronage-btn" id="patronageToggleBtn" title="Show founders and guild associations per church">🏛 Founders &amp; Guilds</button>
-    </div>
-    <div class="filter-bar patronage-bar" id="patronageBar" style="display:none"></div>
     <div class="list-filters" id="listFilters"></div>
     <div class="list-scroll" id="listScroll"></div>
   </div>
@@ -377,6 +373,25 @@
 <div class="tooltip" id="tooltip"></div>
 
 <!-- ══════════════════════════════════════════════
+     ABOUT OVERLAY
+     ══════════════════════════════════════════════ -->
+<div class="kb-overlay" id="aboutOverlay">
+  <div class="kb-panel about-panel">
+    <button class="kb-close" id="aboutClose">✕</button>
+    <h3>Gdańsk Churches</h3>
+    <div class="about-subtitle">8 centuries · 16 churches · 5 denominations</div>
+    <div class="about-section">
+      <div class="about-role">Research &amp; concept</div>
+      <div class="about-name">Pavlo Vdovych</div>
+    </div>
+    <div class="about-section">
+      <div class="about-role">Built with</div>
+      <div class="about-name">Claude Code <span class="about-dim">· Anthropic</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
      KEYBOARD SHORTCUT OVERLAY
      ══════════════════════════════════════════════ -->
 <div class="kb-overlay" id="kbOverlay">
@@ -397,34 +412,68 @@
      CHURCH LIST POPULATION (runs after DOM ready)
      ══════════════════════════════════════════════ -->
 <script type="module">
-  import { churches } from './src/data/churches.js';
-  import { denomColors, denomNames } from './src/state.js';
-  import { clusterDefs } from './src/data/clusters.js';
-  import { openCD } from './src/detail.js';
-  import { switchTab } from './src/ui.js';
+  import { churches }              from './src/data/churches.js';
+  import { denomColors }           from './src/state.js';
+  import { clusterDefs }           from './src/data/clusters.js';
+  import { churchPatrons }         from './src/data/patronage.js';
+  import { district1450ByChurchId } from './src/data/districts1450.js';
+  import { openCD }                from './src/detail.js';
+  import { switchTab }             from './src/ui.js';
 
-  // ── Local filter/sort state for the list screen ──
+  // ── Local filter/sort state ──
   const lf = {
-    status:  new Set(),   // 'cathedral','basilique','church'
-    origin:  new Set(),   // 'parish','monastic','hospital'
-    organ:   new Set(),   // 'has','none'
-    cluster: new Set(),   // 'A','B','C'
-    sort:    'cornerstone', // default sort key
+    status:  new Set(),
+    origin:  new Set(),
+    organ:   new Set(),
+    cluster: new Set(),
+    sort:    'cornerstone',
+    dir:     1,           // 1 = asc, -1 = desc
   };
 
   function _toggle(set, val) { set.has(val) ? set.delete(val) : set.add(val); }
+  function getCluster(id)    { return clusterDefs.find(cl => cl.members.includes(id)) || null; }
 
-  function getCluster(id) { return clusterDefs.find(cl => cl.members.includes(id)) || null; }
+  // ── Helper: derive a short Type/Order label ──
+  function typeLabel(ch) {
+    const p = churchPatrons[ch.id];
+    if (p?.order) return p.order.replace(/\s*\([^)]*\)/, '');   // strip "(OP)" etc.
+    if (ch.origin === 'hospital') return 'Hospital';
+    if (ch.origin === 'monastic') return 'Monastic';
+    return 'Parish';
+  }
 
-  // ── Sort comparators ──
+  // ── Sort comparators (operate on ch objects) ──
   const sorters = {
-    cornerstone: (a, b) => a.cornerstoneYear - b.cornerstoneYear,
-    name:        (a, b) => a.name.localeCompare(b.name),
-    height:      (a, b) => b.height - a.height,
-    capacity:    (a, b) => (b.capacity || 0) - (a.capacity || 0),
+    cornerstone: (a, b) => (a.cornerstoneYear - b.cornerstoneYear) * lf.dir,
+    name:        (a, b) => a.name.localeCompare(b.name) * lf.dir,
+    district:    (a, b) => {
+      const da = district1450ByChurchId[a.id] || 'zzz';
+      const db = district1450ByChurchId[b.id] || 'zzz';
+      return da.localeCompare(db) * lf.dir;
+    },
+    founder:     (a, b) => {
+      const fa = churchPatrons[a.id]?.founder || 'zzz';
+      const fb = churchPatrons[b.id]?.founder || 'zzz';
+      return fa.localeCompare(fb) * lf.dir;
+    },
+    height:      (a, b) => ((b.height || 0) - (a.height || 0)) * lf.dir,
+    capacity:    (a, b) => ((b.capacity || 0) - (a.capacity || 0)) * lf.dir,
   };
 
-  // ── Build filter bar ──
+  // ── Column definitions ──
+  // sortKey null → not sortable
+  const COLS = [
+    { key: 'name',        label: 'Church',       sortKey: 'name'        },
+    { key: 'year',        label: 'Cornerstone',  sortKey: 'cornerstone' },
+    { key: 'district',    label: 'District',     sortKey: 'district'    },
+    { key: 'type',        label: 'Type / Order', sortKey: null          },
+    { key: 'founder',     label: 'Founder',      sortKey: 'founder'     },
+    { key: 'height',      label: 'Height',       sortKey: 'height'      },
+    { key: 'capacity',    label: 'Capacity',     sortKey: 'capacity'    },
+    { key: 'guilds',      label: 'Guilds',       sortKey: null          },
+  ];
+
+  // ── Build filter bar (no Sort section — table headers handle sorting) ──
   function buildListFilters() {
     const el = document.getElementById('listFilters');
     if (!el) return;
@@ -432,57 +481,32 @@
     function chip(label, on, action) {
       return `<span class="lf-chip ${on ? 'on' : ''}" data-action="${action}">${label}</span>`;
     }
-    function sortChip(label, on, key) {
-      return `<span class="lf-sort ${on ? 'on' : ''}" data-sort="${key}">${label}</span>`;
-    }
 
     let html = '';
 
-    // Sort
-    html += `<span class="lf-label">Sort:</span>`;
-    html += `<span class="lf-group">`;
-    html += sortChip('Year', lf.sort === 'cornerstone', 'cornerstone');
-    html += sortChip('Name', lf.sort === 'name', 'name');
-    html += sortChip('Height', lf.sort === 'height', 'height');
-    html += sortChip('Capacity', lf.sort === 'capacity', 'capacity');
-    html += `</span>`;
-    html += `<span class="lf-sep"></span>`;
-
-    // Status
-    html += `<span class="lf-label">Status:</span>`;
-    html += `<span class="lf-group">`;
+    html += `<span class="lf-label">Status:</span><span class="lf-group">`;
     html += chip('Cathedral', lf.status.has('cathedral'), 'status:cathedral');
-    html += chip('Basilica', lf.status.has('basilique'), 'status:basilique');
-    html += chip('Church', lf.status.has('church'), 'status:church');
-    html += `</span>`;
-    html += `<span class="lf-sep"></span>`;
+    html += chip('Basilica',  lf.status.has('basilique'), 'status:basilique');
+    html += chip('Church',    lf.status.has('church'),    'status:church');
+    html += `</span><span class="lf-sep"></span>`;
 
-    // Type
-    html += `<span class="lf-label">Type:</span>`;
-    html += `<span class="lf-group">`;
-    html += chip('Parish', lf.origin.has('parish'), 'origin:parish');
+    html += `<span class="lf-label">Type:</span><span class="lf-group">`;
+    html += chip('Parish',   lf.origin.has('parish'),   'origin:parish');
     html += chip('Monastic', lf.origin.has('monastic'), 'origin:monastic');
     html += chip('Hospital', lf.origin.has('hospital'), 'origin:hospital');
-    html += `</span>`;
-    html += `<span class="lf-sep"></span>`;
+    html += `</span><span class="lf-sep"></span>`;
 
-    // Size
-    html += `<span class="lf-label">Size:</span>`;
-    html += `<span class="lf-group">`;
-    html += chip('Large', lf.cluster.has('A'), 'cluster:A');
+    html += `<span class="lf-label">Size:</span><span class="lf-group">`;
+    html += chip('Large',  lf.cluster.has('A'), 'cluster:A');
     html += chip('Medium', lf.cluster.has('B'), 'cluster:B');
-    html += chip('Small', lf.cluster.has('C'), 'cluster:C');
-    html += `</span>`;
-    html += `<span class="lf-sep"></span>`;
+    html += chip('Small',  lf.cluster.has('C'), 'cluster:C');
+    html += `</span><span class="lf-sep"></span>`;
 
-    // Organ
-    html += `<span class="lf-label">Organ:</span>`;
-    html += `<span class="lf-group">`;
-    html += chip('Has', lf.organ.has('has'), 'organ:has');
-    html += chip('No', lf.organ.has('none'), 'organ:none');
+    html += `<span class="lf-label">Organ:</span><span class="lf-group">`;
+    html += chip('Has', lf.organ.has('has'),  'organ:has');
+    html += chip('No',  lf.organ.has('none'), 'organ:none');
     html += `</span>`;
 
-    // Clear button
     const hasAny = lf.status.size || lf.origin.size || lf.organ.size || lf.cluster.size;
     if (hasAny) {
       html += `<span class="lf-sep"></span>`;
@@ -490,8 +514,6 @@
     }
 
     el.innerHTML = html;
-
-    // Attach click handlers
     el.querySelectorAll('.lf-chip').forEach(c => {
       c.addEventListener('click', () => {
         const act = c.dataset.action || '';
@@ -506,13 +528,10 @@
         rebuild();
       });
     });
-    el.querySelectorAll('.lf-sort').forEach(s => {
-      s.addEventListener('click', () => { lf.sort = s.dataset.sort; rebuild(); });
-    });
   }
 
-  // ── Build church cards ──
-  function buildChurchList() {
+  // ── Build comparison table ──
+  function buildChurchTable() {
     const el = document.getElementById('listScroll');
     if (!el) return;
     const q = (document.getElementById('listSearchInput')?.value || '').toLowerCase().trim();
@@ -522,8 +541,8 @@
       .map((ch, ci) => ({ ch, ci }))
       .filter(({ ch }) => {
         if (q && !ch.name.toLowerCase().includes(q) && !ch.shortName.toLowerCase().includes(q)) return false;
-        if (lf.status.size  && !lf.status.has(ch.status))   return false;
-        if (lf.origin.size  && !lf.origin.has(ch.origin))   return false;
+        if (lf.status.size && !lf.status.has(ch.status))  return false;
+        if (lf.origin.size && !lf.origin.has(ch.origin))  return false;
         if (lf.organ.size) {
           const has = ch.organ && ch.organ.has;
           if (!((lf.organ.has('has') && has) || (lf.organ.has('none') && !has))) return false;
@@ -539,41 +558,89 @@
     const sortFn = sorters[lf.sort] || sorters.cornerstone;
     filtered.sort((a, b) => sortFn(a.ch, b.ch));
 
-    let html = '';
     if (filtered.length === 0) {
-      html = `<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-family:var(--font-ui);font-size:13px;">No churches match the current filters.</div>`;
+      el.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-family:var(--font-ui);font-size:13px;">No churches match the current filters.</div>`;
+      return;
     }
-    filtered.forEach(({ ch, ci }) => {
-      const latestDenom = ch.denomBars[ch.denomBars.length - 1];
-      const col = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
-      html += `<div class="church-card" data-ci="${ci}">
-        <div class="card-dot" style="background:${col}"></div>
-        <div class="card-body">
-          <div class="card-name">${ch.name}</div>
-          <div class="card-sub">${ch.height}m · ${ch.cornerstoneYear} · ${ch.origin}${ch.order ? ' · ' + ch.order : ''}</div>
-          <div class="card-denoms">
-            ${ch.denomBars.map(b => `<span class="card-denom-chip" style="background:${denomColors[b.type] || '#888'}">${b.start}–${b.end}</span>`).join('')}
-          </div>
-        </div>
-        <span class="card-arrow">›</span>
-      </div>`;
+
+    // Table headers with sort indicators
+    let thHtml = COLS.map(col => {
+      if (!col.sortKey) return `<th class="ct-th">${col.label}</th>`;
+      const active = lf.sort === col.sortKey;
+      const arrow  = active ? (lf.dir === 1 ? ' ↑' : ' ↓') : '';
+      return `<th class="ct-th ct-sortable${active ? ' ct-sort-active' : ''}" data-sortkey="${col.sortKey}">${col.label}${arrow}</th>`;
+    }).join('');
+
+    // Table rows
+    let rowsHtml = filtered.map(({ ch, ci }) => {
+      const latestDenom  = ch.denomBars[ch.denomBars.length - 1];
+      const col          = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
+      const dot          = `<span class="ct-dot" style="background:${col}"></span>`;
+      const patron       = churchPatrons[ch.id] || {};
+      const founderTxt   = patron.founder
+        ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
+        : '—';
+      const districtTxt  = district1450ByChurchId[ch.id] || '—';
+      const typeTxt      = typeLabel(ch);
+      const heightTxt    = ch.height   ? ch.height + ' m'   : '—';
+      const capacityTxt  = ch.capacity ? ch.capacity.toLocaleString() : '—';
+      const guilds       = ch.guilds && ch.guilds.length ? ch.guilds.join(', ') : '—';
+
+      return `<tr class="ct-row" data-ci="${ci}">
+        <td class="ct-td ct-name"><div class="ct-name-inner">${dot}${ch.name}</div></td>
+        <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
+        <td class="ct-td ct-district">${districtTxt}</td>
+        <td class="ct-td ct-type">${typeTxt}</td>
+        <td class="ct-td ct-founder">${founderTxt}</td>
+        <td class="ct-td ct-num">${heightTxt}</td>
+        <td class="ct-td ct-num">${capacityTxt}</td>
+        <td class="ct-td ct-guilds">${guilds}</td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `<table class="church-table">
+      <thead><tr>${thHtml}</tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+
+    // Sort-header clicks
+    el.querySelectorAll('.ct-sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const sk = th.dataset.sortkey;
+        if (lf.sort === sk) { lf.dir = -lf.dir; }
+        else               { lf.sort = sk; lf.dir = 1; }
+        buildChurchTable();
+      });
     });
-    el.innerHTML = html;
-    el.querySelectorAll('.church-card').forEach(card => {
-      const ci = +card.dataset.ci;
-      card.addEventListener('click', () => {
+
+    // Row click → open detail modal
+    el.querySelectorAll('.ct-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const ci = +row.dataset.ci;
         switchTab('timeline');
         setTimeout(() => openCD(ci, 0), 200);
       });
     });
   }
 
-  function rebuild() { buildListFilters(); buildChurchList(); }
+  function rebuild() { buildListFilters(); buildChurchTable(); }
 
   document.addEventListener('DOMContentLoaded', () => {
     rebuild();
-    document.getElementById('listSearchInput')?.addEventListener('input', () => buildChurchList());
+    document.getElementById('listSearchInput')?.addEventListener('input', () => buildChurchTable());
   });
+</script>
+
+<!-- ══════════════════════════════════════════════
+     ABOUT PANEL TOGGLE
+     ══════════════════════════════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var overlay = document.getElementById('aboutOverlay');
+  document.getElementById('btnAbout').addEventListener('click', function() { overlay.classList.add('open'); });
+  document.getElementById('aboutClose').addEventListener('click', function() { overlay.classList.remove('open'); });
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+});
 </script>
 
 <!-- ══════════════════════════════════════════════

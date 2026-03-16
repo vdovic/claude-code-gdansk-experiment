@@ -16,7 +16,7 @@ import {
 } from './state.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initPatronageToggle, initBottomSheet } from './ui.js?v=10';
+import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=10';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT } from './tooltip.js';
@@ -630,10 +630,8 @@ function _wireButtons() {
 // (scrollable, drift-prone) and the experimental %-positioned layout
 // (fixed, aligned with axis ruler). The current implementation is
 // preserved — the experiment only changes the rendering path for the
-// econEras row. Rollback: set syncedPeriodsExperiment = false in
-// state.js syncedPeriodsExperiment is permanently true; no toggle button exposed.
+// econEras row. Synced-periods is permanently on; no toggle button exposed.
 function _initSyncedPeriodsToggle() {
-  // Synced-periods mode is always on — apply the class and nothing else.
   document.getElementById('econErasRow')?.classList.add('synced-periods');
 }
 
@@ -695,9 +693,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Church compact selector
   initChurchSelector();
-
-  // Patronage mode (guild lens) toggle
-  initPatronageToggle();
 
   // Mobile bottom sheet
   initBottomSheet();
