@@ -546,18 +546,6 @@ body { animation: fadeSlideIn 0.4s ease-out; }
 }
 
 /* View range readout */
-.view-range-label {
-  font-size: var(--fs-sm); font-family: var(--font-ui); color: var(--text-secondary);
-  white-space: nowrap; flex-shrink: 0;
-  padding: 2px 6px; border-radius: 4px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-[data-theme="light"] .view-range-label {
-  background: rgba(0,0,0,0.02);
-  border-color: rgba(0,0,0,0.08);
-  color: #666;
-}
 
 /* Sort bar — own row below filters */
 .sort-bar { gap: 5px; }
@@ -581,6 +569,21 @@ body { animation: fadeSlideIn 0.4s ease-out; }
   font-size: var(--fs-sm); font-family: var(--font-ui); outline: none; width: 100px;
 }
 .search-box input::placeholder { color: var(--text-muted); }
+
+/* Compact church-name search inside the Churches filter bar */
+.church-name-search-box {
+  display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle); border-radius: 6px; padding: 3px 8px;
+  transition: border-color var(--ease-default), box-shadow var(--ease-default);
+}
+.church-name-search-box:focus-within { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+.church-name-search-box input {
+  background: none; border: none; color: var(--text-primary); outline: none;
+  font-size: 11px; font-family: var(--font-ui); width: 130px;
+}
+.church-name-search-box input::placeholder { color: var(--text-muted); }
+[data-theme="light"] .church-name-search-box input { color: #2a3040; }
 
 .era-nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .jump-btn {

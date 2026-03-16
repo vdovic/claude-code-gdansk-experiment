@@ -13,6 +13,7 @@ import {
   setSort, applyFilters,
   resetViewRange, setViewStart, setViewEnd,
   allTracksOn, trackVisibility,
+  setChurchNameFilter,
 } from './state.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
@@ -81,11 +82,19 @@ export function searchEvents(q) {
       el.style.opacity = (w.label.toLowerCase().includes(q) || w.detail.toLowerCase().includes(q)) ? '0.85' : '0.08';
     });
   });
-  document.querySelectorAll('.political-marker').forEach((el, i) => {
+  document.querySelectorAll('.political-marker:not(.urban-marker)').forEach((el, i) => {
     if (!q) { el.style.opacity = '1'; return; }
     import('./data/context.js').then(({ politicalEvents }) => {
       if (i >= politicalEvents.length) return;
       const e = politicalEvents[i];
+      el.style.opacity = (e.label.toLowerCase().includes(q) || e.detail.toLowerCase().includes(q)) ? '1' : '0.08';
+    });
+  });
+  document.querySelectorAll('.urban-marker').forEach((el, i) => {
+    if (!q) { el.style.opacity = '1'; return; }
+    import('./data/context.js').then(({ urbanPowerEvents }) => {
+      if (i >= urbanPowerEvents.length) return;
+      const e = urbanPowerEvents[i];
       el.style.opacity = (e.label.toLowerCase().includes(q) || e.detail.toLowerCase().includes(q)) ? '1' : '0.08';
     });
   });
@@ -376,19 +385,16 @@ function _initSplitHandle() {
            ? ctxPanel.getBoundingClientRect().height
            : ctxPanel.scrollHeight;
 
-    // Hard cap: content height + 1.5× the grain-export row height.
-    // This limits the dark empty-space zone to a shallow visual cue only.
+    // Hard cap: exactly the content height — no empty space below the last row.
     const visRows  = [...ctxPanel.querySelectorAll('.tl-ctx-row')]
                        .filter(r => r.offsetParent !== null);
     const contentH = visRows.reduce((s, r) => s + r.getBoundingClientRect().height, 0);
-    const grainRow = document.getElementById('grainRow');
-    const grainH   = grainRow ? grainRow.getBoundingClientRect().height : 48;
     const outerH   = tlOuter.getBoundingClientRect().height;
     const labelH   = handle.getBoundingClientRect().height || 20;
     const minChurchH = Math.max(150, Math.round(outerH * 0.30));
     _maxDragH = Math.min(
-      contentH + Math.round(grainH * 0.5),       // content + half grain-row dark-zone allowance
-      Math.max(100, outerH - labelH - minChurchH) // must leave room for churches
+      contentH,                                    // never exceed actual content height
+      Math.max(100, outerH - labelH - minChurchH)  // must leave room for churches
     );
 
     document.body.classList.add('split-dragging');
@@ -667,8 +673,14 @@ function _wireButtons() {
   // Map year slider (fullscreen map tab)
   document.getElementById('mapYearSliderFs')?.addEventListener('input', e => setMapYear(+e.target.value));
 
-  // Search
+  // Event search
   document.getElementById('searchInput')?.addEventListener('input', e => searchEvents(e.target.value));
+
+  // Church name search — filters lanes as you type, re-renders
+  document.getElementById('churchNameSearch')?.addEventListener('input', e => {
+    setChurchNameFilter(e.target.value);
+    render();
+  });
 
   // Chrome toggle
   document.getElementById('mChromeToggle')?.addEventListener('click', toggleMobileChrome);

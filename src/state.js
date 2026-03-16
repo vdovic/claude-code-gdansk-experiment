@@ -40,6 +40,10 @@ export const organFilters    = new Set();  // 'has' | 'none'
 export const clusterFilters  = new Set();  // 'A'|'B'|'C'
 export const district1450Filters = new Set();  // District (1450) spatial classification
 
+// Church name text filter — empty string = no filter
+export let churchNameFilter = '';
+export function setChurchNameFilter(q) { churchNameFilter = q.toLowerCase().trim(); applyFilters(); }
+
 // Keep legacy aliases so existing imports don't crash (used by ui.js updateFilterSummary)
 export let originFilter  = null;
 export let statusFilter  = null;
@@ -218,7 +222,10 @@ export function applyFilters() {
     const clMatch = clusterFilters.size === 0 || (cl && clusterFilters.has(cl.id));
     const d1450 = district1450ByChurchId[c.id] || 'Unknown';
     const d1450Match = district1450Filters.size === 0 || district1450Filters.has(d1450);
-    if (sMatch && oMatch && orgMatch && clMatch && d1450Match) visibleChurches.add(c.id);
+    const nameMatch = !churchNameFilter
+      || c.name.toLowerCase().includes(churchNameFilter)
+      || c.shortName.toLowerCase().includes(churchNameFilter);
+    if (sMatch && oMatch && orgMatch && clMatch && d1450Match && nameMatch) visibleChurches.add(c.id);
   });
 }
 

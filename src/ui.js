@@ -501,12 +501,6 @@ export function buildTrackToggles() {
 }
 
 export function updateViewRangeLabel() {
-  const label = document.getElementById('viewRangeLabel');
-  if (!label) return;
-  const start = Math.round(viewStart);
-  const end = Math.round(viewEnd);
-  label.textContent = `View: ${start}–${end}`;
-
   // Show/hide ⟲ Full reset button whenever view range differs from global
   const resetBtn = document.getElementById('btnResetRange');
   if (resetBtn) {
