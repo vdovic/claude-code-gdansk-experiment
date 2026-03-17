@@ -805,8 +805,9 @@ function _wireButtons() {
     showPinnedGenericTT(e, ttHtml);
     e.stopPropagation(); // prevent global click handler from immediately unpinning
 
-    // Touch devices never zoom — tooltip-only, even if viewport state is stale.
-    if (_isMobileViewport() || navigator.maxTouchPoints > 0) return;
+    // Mobile layout: tooltip only, no zoom (viewport flag is reliable since
+    // _initViewportToggle now uses the same threshold as _isMobileViewport).
+    if (_isMobileViewport()) return;
 
     // Desktop: snap to the period's start/end and fit zoom.
     // Order matters: expand end first so setViewStart isn't clamped by a

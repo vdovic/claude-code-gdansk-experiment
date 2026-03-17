@@ -456,8 +456,20 @@
     return 'Parish';
   }
 
+  // ── Helper: founded year (first 'founded' event, else —) ──
+  function foundedYear(ch) {
+    const ev = ch.events.find(e => e.type === 'founded');
+    return ev ? ev.year : null;
+  }
+
   // ── Sort comparators (operate on ch objects) ──
   const sorters = {
+    founded:     (a, b) => {
+      // Fall back to cornerstoneYear so churches without a 'founded' event sort sensibly
+      const fa = foundedYear(a) ?? a.cornerstoneYear;
+      const fb = foundedYear(b) ?? b.cornerstoneYear;
+      return (fa - fb) * lf.dir;
+    },
     cornerstone: (a, b) => (a.cornerstoneYear - b.cornerstoneYear) * lf.dir,
     name:        (a, b) => a.name.localeCompare(b.name) * lf.dir,
     district:    (a, b) => {
@@ -477,14 +489,15 @@
   // ── Column definitions ──
   // sortKey null → not sortable
   const COLS = [
-    { key: 'name',        label: 'Church',       sortKey: 'name'        },
-    { key: 'year',        label: 'Cornerstone',  sortKey: 'cornerstone' },
-    { key: 'district',    label: 'District',     sortKey: 'district'    },
-    { key: 'type',        label: 'Type / Order', sortKey: null          },
-    { key: 'founder',     label: 'Founder',      sortKey: 'founder'     },
-    { key: 'height',      label: 'Height',       sortKey: 'height'      },
-    { key: 'capacity',    label: 'Capacity',     sortKey: 'capacity'    },
-    { key: 'guilds',      label: 'Guilds',       sortKey: null          },
+    { key: 'name',        label: 'Church',          sortKey: 'name'        },
+    { key: 'founded',     label: 'Founded',          sortKey: 'founded'     },
+    { key: 'year',        label: '1st Brick',        sortKey: 'cornerstone' },
+    { key: 'district',    label: 'District',         sortKey: 'district'    },
+    { key: 'type',        label: 'Origin & Order',   sortKey: null          },
+    { key: 'founder',     label: 'Founded By',       sortKey: 'founder'     },
+    { key: 'height',      label: 'Height',           sortKey: 'height'      },
+    { key: 'capacity',    label: 'Capacity',         sortKey: 'capacity'    },
+    { key: 'guilds',      label: 'Guild Patrons',    sortKey: null          },
   ];
 
   // ── Build filter bar (no Sort section — table headers handle sorting) ──
@@ -594,6 +607,8 @@
       const founderTxt   = patron.founder
         ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
         : '—';
+      const fy           = foundedYear(ch);
+      const foundedTxt   = fy ? fy : '—';
       const districtTxt  = district1450ByChurchId[ch.id] || '—';
       const typeTxt      = typeLabel(ch);
       const heightTxt    = ch.height   ? ch.height + ' m'   : '—';
@@ -602,6 +617,7 @@
 
       return `<tr class="ct-row" data-ci="${ci}">
         <td class="ct-td ct-name"><div class="ct-name-inner">${dot}${ch.name}</div></td>
+        <td class="ct-td ct-year">${foundedTxt}</td>
         <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
         <td class="ct-td ct-district">${districtTxt}</td>
         <td class="ct-td ct-type">${typeTxt}</td>
