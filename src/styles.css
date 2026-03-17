@@ -2653,6 +2653,10 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tl-ctx-row .ctx-inner .religious-marker,
 .tl-ctx-row .ctx-inner .urban-marker,
 .tl-ctx-row .ctx-inner .econ-era-block { pointer-events: auto; }
+/* Mobile period strip needs pointer-events on the container itself
+   for touch scrolling to work (overflow-x: auto requires it). */
+.tl-ctx-row .ctx-inner.econ-era-mobile,
+.tl-ctx-row .ctx-inner .econ-era-m-card { pointer-events: auto; }
 
 /* ══════════════════════════════════════════════════════════════
    VIEW MODE ROW — pill toggle [Churches Only / + Global Context]
