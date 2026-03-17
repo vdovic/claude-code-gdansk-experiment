@@ -150,19 +150,20 @@
         <button class="onboarding-close" id="onboardingClose" aria-label="Dismiss">&times;</button>
       </div>
 
-      <!-- Track toggles — embedded in Global Context area, hidden in Churches-Only mode -->
-      <div class="filter-bar" id="trackToggles"></div>
-
-      <!-- Context panel (collapsible) -->
-      <div id="contextPanel">
-
-      <!-- Historical periods context row -->
+      <!-- Historical periods row — sits above track toggles so it's always the first thing
+           visible when global context is enabled. Hidden in churches-only mode via CSS. -->
       <div class="tl-ctx-row" id="econErasRow" style="height:44px;overflow:hidden;">
         <div class="tl-ctx-stub" data-track="econEras">Periods</div>
         <div class="tl-ctx-scroll">
           <div class="ctx-inner" id="econErasInner" style="height:44px;"></div>
         </div>
       </div>
+
+      <!-- Track toggles — embedded in Global Context area, hidden in Churches-Only mode -->
+      <div class="filter-bar" id="trackToggles"></div>
+
+      <!-- Context panel (collapsible) -->
+      <div id="contextPanel">
 
       <!-- Rulers context row -->
       <div class="tl-ctx-row" id="rulersRow" style="height:24px;overflow:hidden;">

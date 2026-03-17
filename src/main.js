@@ -797,9 +797,12 @@ function _wireButtons() {
 
     if (_isMobileViewport()) return; // on mobile: tooltip only, no zoom
 
-    // Desktop: snap to the period's start/end and fit zoom
-    setViewEnd(Math.min(END_YEAR,   era.end));
-    setViewStart(Math.max(START_YEAR, era.start));
+    // Desktop: snap to the period's start/end and fit zoom.
+    // Order matters: expand end first so setViewStart isn't clamped by a
+    // stale high viewEnd, then set start, then pin end to the real value.
+    setViewEnd(END_YEAR);                              // 1. widen to max → removes upper clamp
+    setViewStart(Math.max(START_YEAR, era.start));     // 2. set start freely (viewEnd is huge)
+    setViewEnd(Math.min(END_YEAR,   era.end));         // 3. now pin end freely (viewStart is correct)
     zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _updateRangeHandles
     if (window._showPeriodMarkers) window._showPeriodMarkers(era.start, era.end);
     const lanesScroll = document.getElementById('lanesScroll');

@@ -2835,6 +2835,28 @@ body.mode-churches #contextPanel {
   transition: height 250ms cubic-bezier(0.4, 0, 0.2, 1),
               opacity 200ms ease;
 }
+/* Periods row lives outside #contextPanel — hide it too in churches-only mode */
+body.mode-churches #econErasRow { display: none !important; }
+
+/* ── Mobile layout simplification ─────────────────────────────
+   On small screens / forced-mobile viewport:
+   • Hide the year-axis row (range handles remain functional via JS
+     but the visual track is not useful without desktop zoom controls)
+   • Hide the top controls bar (+/− Fit, Search) — frees vertical space
+   • Hide the Churches selector/search bar — reduces clutter
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #controlsBar    { display: none !important; }
+  #axisRow        { display: none !important; }
+  #churchSelectorBar { display: none !important; }
+}
+body[data-viewport="mobile"] #controlsBar    { display: none !important; }
+body[data-viewport="mobile"] #axisRow        { display: none !important; }
+body[data-viewport="mobile"] #churchSelectorBar { display: none !important; }
+/* Forced desktop on mobile — restore hidden elements */
+body[data-viewport="desktop"] #controlsBar    { display: flex !important; }
+body[data-viewport="desktop"] #axisRow        { display: flex !important; }
+body[data-viewport="desktop"] #churchSelectorBar { display: flex !important; }
 
 /* ── Split-drag active state ─────────────────────────────────── */
 /* Disable height transition while dragging so resize feels instant */
