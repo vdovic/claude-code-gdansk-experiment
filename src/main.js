@@ -20,7 +20,7 @@ import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=10';
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
-import { setupTooltipClickHandling, hideTT } from './tooltip.js';
+import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 
 // ── Expose scrollToYear globally so detail.js/ui.js can call it ─
 window._scrollToYear = scrollToYear;
@@ -164,18 +164,56 @@ function _initScrollSync() {
     if (tlLabels)    tlLabels.scrollTop      = sy;
 
     // Context track scroll rows
-    document.querySelectorAll('.tl-ctx-scroll').forEach(el => { el.scrollLeft = sx; });
+    document.querySelectorAll('.tl-ctx-scroll').forEach(el => {
+      if (el.dataset.noSync) return;   // mobile periods strip scrolls independently
+      el.scrollLeft = sx;
+    });
 
   }, { passive: true });
 }
 
 // ── Resize handler (debounced) ────────────────────────────────
 let _resizeTimer = null;
+// ── Viewport (mobile ↔ desktop) toggle ───────────────────────
+function _isMobileViewport() {
+  const vp = document.body?.dataset?.viewport;
+  if (vp === 'mobile') return true;
+  if (vp === 'desktop') return false;
+  // No manual override — use width OR touch capability (covers landscape phones)
+  return window.innerWidth <= 900 || navigator.maxTouchPoints > 0;
+}
+
+function _applyViewport(vp, save = true) {
+  document.body.dataset.viewport = vp;
+  if (save) localStorage.setItem('viewport-forced', vp);
+  const btn = document.getElementById('viewportToggleBtn');
+  if (btn) {
+    btn.textContent = vp === 'mobile' ? '🖥' : '📱';
+    btn.title = vp === 'mobile' ? 'Switch to desktop layout' : 'Switch to mobile layout';
+  }
+  setLabelOffset(vp === 'mobile' ? 110 : 180);
+  render();
+}
+
+function _initViewportToggle() {
+  const btn = document.getElementById('viewportToggleBtn');
+  const saved = localStorage.getItem('viewport-forced');
+  const defVp = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+  _applyViewport(saved || defVp, false);
+  btn?.addEventListener('click', () => {
+    const cur = document.body.dataset.viewport || defVp;
+    _applyViewport(cur === 'mobile' ? 'desktop' : 'mobile', true);
+  });
+}
+
 function _initResize() {
   window.addEventListener('resize', () => {
     clearTimeout(_resizeTimer);
     _resizeTimer = setTimeout(() => {
-      setLabelOffset(window.innerWidth <= 768 ? 110 : 180);
+      // Only auto-update labelOffset when not manually overridden
+      if (!localStorage.getItem('viewport-forced')) {
+        setLabelOffset(window.innerWidth <= 768 ? 110 : 180);
+      }
       setRenderSortKey(currentSort);
       render();
       updateViewRangeLabel();
@@ -196,7 +234,7 @@ function _initDragToPan() {
 
   // Elements where drag should NOT start (interactive controls)
   const INTERACTIVE = 'button, input, select, a, .evt-dot, .war-bar, .ruler-bar, '
-    + '.political-marker, .calamity-marker, .econ-era-block, .filter-chip, '
+    + '.political-marker, .calamity-marker, .econ-era-block, .econ-era-m-card, .econ-era-mobile, .filter-chip, '
     + '.church-selector, .sort-btn, .ctrl-btn, .track-toggle, .ch-label, '
     + '.tl-ctx-stub, .tl-axis-stub, .tl-labels, .range-handle, .axis-track, .panel-label';
 
@@ -543,6 +581,7 @@ function initRangeHandles() {
       ev.stopPropagation();
       handle.setPointerCapture(ev.pointerId);
       handle.classList.add('dragging');
+      handle.style.touchAction = 'none'; // capture horizontal on mobile during drag
       _hidePeriodMarkers();
 
       function onMove(e) {
@@ -561,6 +600,7 @@ function initRangeHandles() {
       function onUp(e) {
         handle.releasePointerCapture(e.pointerId);
         handle.classList.remove('dragging');
+        handle.style.touchAction = ''; // restore CSS value (pan-y on mobile)
         handle.removeEventListener('pointermove',   onMove);
         handle.removeEventListener('pointerup',     onUp);
         handle.removeEventListener('pointercancel', onUp);
@@ -685,9 +725,41 @@ function _wireButtons() {
   // Chrome toggle
   document.getElementById('mChromeToggle')?.addEventListener('click', toggleMobileChrome);
 
-  // Close drawer overlay click
+  // Close drawer overlay click / button / swipe
   document.getElementById('drawerOverlay')?.addEventListener('click', closePanel);
   document.getElementById('drawerClose')?.addEventListener('click', closePanel);
+  document.getElementById('drawerX')?.addEventListener('click', closePanel);
+
+  // Swipe-down on drawer handle to dismiss
+  (() => {
+    const handle = document.getElementById('drawerHandle');
+    const drawer = document.getElementById('drawer');
+    if (!handle || !drawer) return;
+    let startY = 0, curY = 0, dragging = false;
+    handle.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+      curY = startY;
+      dragging = true;
+      drawer.style.transition = 'none';
+    }, { passive: true });
+    handle.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      curY = e.touches[0].clientY;
+      const dy = Math.max(0, curY - startY); // only allow downward
+      drawer.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    handle.addEventListener('touchend', () => {
+      if (!dragging) return;
+      dragging = false;
+      drawer.style.transition = '';
+      const dy = curY - startY;
+      if (dy > 60) {
+        closePanel(); // dismiss if swiped down > 60px
+      } else {
+        drawer.style.transform = ''; // snap back
+      }
+    });
+  })();
 
   // KB overlay close
   document.getElementById('kbClose')?.addEventListener('click', _hideKb);
@@ -704,27 +776,32 @@ function _wireButtons() {
     });
   });
 
-  // Economic era blocks — click to focus the period with context padding so
-  // adjacent periods remain partially visible and clickable for easy navigation.
+  // Economic era blocks — behaviour differs by viewport:
+  //   Desktop: zoom/fit to the period + scroll to start
+  //   Mobile:  show a pinned tooltip only (no zoom — lets user swipe between periods)
   document.getElementById('econErasInner')?.addEventListener('click', e => {
-    const block = e.target.closest('.econ-era-block');
+    const block = e.target.closest('.econ-era-block') || e.target.closest('.econ-era-m-card');
     if (!block) return;
     const idx = +block.dataset.idx;
     const era = economicEras[idx];
     if (!era) return;
 
-    // Snap exactly to the period's start and end — no padding.
-    // Set END first so setViewStart's 50-yr clamp uses the new viewEnd.
+    // Always show a pinned tooltip with full era details
+    const ttHtml =
+      `<div class="tt-year">${era.start}–${era.end}</div>` +
+      `<div class="tt-type" style="background:${era.bg};color:rgba(232,228,220,0.9)">📅 Period</div>` +
+      `<div class="tt-title">${era.label}</div>` +
+      `<div class="tt-body">${era.tooltip || era.desc || ''}</div>`;
+    showPinnedGenericTT(e, ttHtml);
+    e.stopPropagation(); // prevent global click handler from immediately unpinning
+
+    if (_isMobileViewport()) return; // on mobile: tooltip only, no zoom
+
+    // Desktop: snap to the period's start/end and fit zoom
     setViewEnd(Math.min(END_YEAR,   era.end));
     setViewStart(Math.max(START_YEAR, era.start));
-
-    // Auto-fit zoom and sync handles + labels in one call
     zoomFit();   // → _afterZoom → render + updateViewRangeLabel + _updateRangeHandles
-
-    // Show exact period boundary markers at the un-padded start/end
     if (window._showPeriodMarkers) window._showPeriodMarkers(era.start, era.end);
-
-    // Scroll content to the beginning of the period
     const lanesScroll = document.getElementById('lanesScroll');
     if (lanesScroll) lanesScroll.scrollTo({ left: 0, behavior: 'smooth' });
   });
@@ -756,8 +833,9 @@ function _initSyncedPeriodsToggle() {
 
 // ── Init sequence ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Determine label column width
-  setLabelOffset(window.innerWidth <= 768 ? 110 : 180);
+  // Viewport toggle (mobile ↔ desktop) — must run before setLabelOffset
+  _initViewportToggle();
+  // labelOffset already set by _initViewportToggle via _applyViewport
 
   // Apply default focus view (medieval / early-modern) before first render
   setViewStart(DEFAULT_VIEW_START);   // 1200

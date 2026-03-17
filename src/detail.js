@@ -35,7 +35,11 @@ let _shieldCleanup = null;
 
 export function closePanel() {
   _overlay()?.classList.remove('open');
-  _drawer()?.classList.remove('open');
+  const d = _drawer();
+  if (d) {
+    d.classList.remove('open');
+    d.style.transform = '';    // clear any inline transform from swipe gesture
+  }
   setSelectedCI(-1);
   document.querySelectorAll('.map-church-item.selected').forEach(el =>
     el.classList.remove('selected'));

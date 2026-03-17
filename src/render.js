@@ -20,7 +20,7 @@ import {
   typeColors, getCluster,
   syncedPeriodsExperiment,          // [EXPERIMENT] synced periods flag
 } from './state.js';
-import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor } from './tooltip.js';
+import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor, showPinnedTT, showPinnedGenericTT } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
 import { getConfessionalPhases } from './data/confessional.js';
 import { eventMarkerSVG } from './theme.js';
@@ -35,6 +35,18 @@ function _haversineDist(ch) {
 }
 function _cathYears(ch) {
   return ch.denomBars.filter(b => b.type === 'catholic').reduce((s, b) => s + (b.end - b.start), 0);
+}
+
+// ── Viewport helper ───────────────────────────────────────────
+// Returns true when the app should use mobile-optimised rendering,
+// honouring the manual toggle (data-viewport) over the screen width.
+// Matches _isMobileViewport() in main.js — includes touch detection
+// so landscape phones also get the mobile strip renderer.
+function _isMobile() {
+  const vp = document.body?.dataset?.viewport;
+  if (vp === 'mobile') return true;
+  if (vp === 'desktop') return false;
+  return window.innerWidth <= 900 || navigator.maxTouchPoints > 0;
 }
 
 // ── Axis tick renderer (full-range overview with percentage positioning) ──
@@ -100,6 +112,7 @@ function renderRulers() {
     const i = +el.dataset.ruler;
     el.addEventListener('mouseenter', ev => showTT(ev, 'ruler', i));
     el.addEventListener('mouseleave', hideTT);
+    el.addEventListener('click', ev => { ev.stopPropagation(); showPinnedTT(ev, 'ruler', i); });
   });
 }
 
@@ -240,6 +253,10 @@ function renderPopulation() {
 function renderEconEras() {
   const inner = document.getElementById('econErasInner');
   if (!inner) return;
+  // Clear mobile-mode flags if switching back to desktop renderer
+  const scrollParent = inner.closest('.tl-ctx-scroll');
+  if (scrollParent) delete scrollParent.dataset.noSync;
+  inner.classList.remove('econ-era-mobile');
   inner.style.width = (getTotalWidth() - labelOffset) + 'px';
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   let html = '';
@@ -260,6 +277,46 @@ function renderEconEras() {
   inner.innerHTML = html;
 }
 
+// ── Mobile economic eras — compact equal-width strip ─────────
+// Each period gets a fixed-width card in a horizontal flex strip
+// that scrolls independently of the main timeline. The currently
+// active period (overlapping viewStart–viewEnd) is highlighted.
+function renderEconErasMobile() {
+  const inner = document.getElementById('econErasInner');
+  if (!inner) return;
+
+  // Break out of timeline scroll-sync so the strip scrolls independently.
+  // Keep parent overflow as 'hidden' — that constrains .ctx-inner width
+  // and lets overflow-x:auto on .econ-era-mobile create the scrollbar.
+  const scrollParent = inner.closest('.tl-ctx-scroll');
+  if (scrollParent) scrollParent.dataset.noSync = '1';
+
+  // Preserve scroll position across re-renders (render() rebuilds HTML)
+  const savedScroll = inner.scrollLeft || 0;
+
+  inner.style.width = '';
+  inner.classList.add('econ-era-mobile');
+
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  let html = '';
+
+  economicEras.forEach((era, idx) => {
+    const bg = isLight ? era.bgLight : era.bg;
+    // Highlight the period that overlaps the current view range
+    const active = era.start < viewEnd && era.end > viewStart;
+    const cls = active ? 'econ-era-m-card active' : 'econ-era-m-card';
+    html += `<div class="${cls}" data-idx="${idx}" style="background:${bg};">
+      <div class="econ-era-m-name">${era.label}</div>
+      <div class="econ-era-m-years">${era.start}–${era.end}</div>
+    </div>`;
+  });
+
+  inner.innerHTML = html;
+
+  // Restore scroll position after DOM rebuild
+  if (savedScroll) inner.scrollLeft = savedScroll;
+}
+
 // ── [EXPERIMENT] Synced economic eras — percentage positioning ──
 // This renderer positions period blocks using the SAME percentage
 // coordinate system as the axis ruler (_yearPct), so they align
@@ -269,6 +326,11 @@ function renderEconEras() {
 function renderEconErasSynced() {
   const inner = document.getElementById('econErasInner');
   if (!inner) return;
+
+  // Clear mobile-mode flags if switching back from mobile renderer
+  const scrollParent = inner.closest('.tl-ctx-scroll');
+  if (scrollParent) delete scrollParent.dataset.noSync;
+  inner.classList.remove('econ-era-mobile');
 
   // [EXPERIMENT] Clear any pixel width from the original renderer;
   // let the container fill its flex parent (same width as axis-track).
@@ -488,15 +550,14 @@ function renderReligious() {
   inner.querySelectorAll('.religious-marker').forEach(el => {
     const i  = +el.dataset.rel;
     const ev = religiousEvents[i];
-    el.addEventListener('mouseenter', me => {
-      const body =
+    const _body = () =>
         `<div class="tt-year">${Math.floor(ev.year)}</div>` +
         `<div class="tt-type" style="background:rgba(90,58,110,0.15);color:#5a3a6e">✝ Religious</div>` +
         `<div class="tt-title">${ev.label}</div>` +
         `<div class="tt-body">${ev.detail}</div>`;
-      showGenericTT(me, body);
-    });
+    el.addEventListener('mouseenter', me => showGenericTT(me, _body()));
     el.addEventListener('mouseleave', () => hideTT());
+    el.addEventListener('click', me => { me.stopPropagation(); showPinnedGenericTT(me, _body()); });
   });
 }
 
@@ -523,15 +584,14 @@ function renderUrbanPower() {
   inner.querySelectorAll('.urban-marker').forEach(el => {
     const i  = +el.dataset.urb;
     const ev = urbanPowerEvents[i];
-    el.addEventListener('mouseenter', me => {
-      const body =
-        `<div class="tt-year">${ev.year}</div>` +
-        `<div class="tt-type" style="background:rgba(138,122,48,0.15);color:#6a5a20">🏛 Urban Power</div>` +
-        `<div class="tt-title">${ev.label}</div>` +
-        `<div class="tt-body">${ev.detail}</div>`;
-      showGenericTT(me, body);
-    });
+    const _body = () =>
+      `<div class="tt-year">${ev.year}</div>` +
+      `<div class="tt-type" style="background:rgba(138,122,48,0.15);color:#6a5a20">🏛 Urban Power</div>` +
+      `<div class="tt-title">${ev.label}</div>` +
+      `<div class="tt-body">${ev.detail}</div>`;
+    el.addEventListener('mouseenter', me => showGenericTT(me, _body()));
     el.addEventListener('mouseleave', () => hideTT());
+    el.addEventListener('click', me => { me.stopPropagation(); showPinnedGenericTT(me, _body()); });
   });
 }
 
@@ -723,19 +783,25 @@ export function renderContextTracks() {
   if (trackVisibility.religious)  renderReligious();
   if (trackVisibility.plagues)    renderPlagues();
   if (trackVisibility.population) renderPopulation();
-  // [EXPERIMENT] Choose between original pixel-positioned renderer
-  // and synced percentage-positioned renderer based on experiment flag.
+  // Choose renderer: mobile → compact strip; desktop → synced or pixel.
   if (trackVisibility.econEras) {
-    syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+    if (_isMobile()) {
+      renderEconErasMobile();
+    } else {
+      syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+    }
   }
   if (trackVisibility.urbanPower) renderUrbanPower();
   if (trackVisibility.grain)      renderGrain();
 }
 
 // Global hook so the non-module theme-switcher script can trigger re-render
-// [EXPERIMENT] Delegates to synced renderer when experiment is active.
 window._reRenderEconEras = () => {
   if (trackVisibility.econEras) {
-    syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+    if (_isMobile()) {
+      renderEconErasMobile();
+    } else {
+      syncedPeriodsExperiment ? renderEconErasSynced() : renderEconEras();
+    }
   }
 };

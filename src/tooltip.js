@@ -253,6 +253,28 @@ export function showGenericTT(ev, html) {
   _scheduleShow(html, ev);
 }
 
+/** Show AND immediately pin a tooltip — for mobile tap interactions where
+ *  there is no hover phase. Unpins any existing pinned tooltip first. */
+export function showPinnedGenericTT(ev, html) {
+  if (ttPinned) unpinTT();
+  _show(html, ev);          // renders and positions immediately
+  ttPinned = true;
+  const tt = _el();
+  tt.classList.add('pinned');
+  tt.classList.remove('tt-pin-hint');
+}
+
+/** Same as showPinnedGenericTT but uses the structured showTT content builder.
+ *  Use for ruler-bar, war-bar etc. on tap (no hover phase on mobile). */
+export function showPinnedTT(ev, kind, idx, sub) {
+  if (ttPinned) unpinTT();
+  showTT(ev, kind, idx, sub, { immediate: true });
+  ttPinned = true;
+  const tt = _el();
+  tt.classList.add('pinned');
+  tt.classList.remove('tt-pin-hint');
+}
+
 export function hideTT() {
   if (ttPinned) return;
   clearTimeout(_openTimer);   // cancel any pending show
@@ -285,6 +307,10 @@ export function unpinTT() {
   ttPinnedCI = -1;
   ttPinnedEI = -1;
   _warm = false;
+  // Cancel any pending show/hide timers — prevents the tooltip from
+  // re-appearing after a detail drawer opens (mobile race condition).
+  clearTimeout(_openTimer);
+  clearTimeout(_closeTimer);
   const tt = _el();
   tt.classList.remove('pinned', 'visible', 'church-info-tt');
 }
@@ -334,6 +360,8 @@ export function setupTooltipClickHandling() {
   document.addEventListener('click', ev => {
     const tt = _el();
     if (tt.contains(ev.target)) return;
+    // econ-era blocks handle their own pin via showPinnedGenericTT — don't unpin here
+    if (ev.target.closest('.econ-era-block') || ev.target.closest('.econ-era-m-card')) return;
     const trigger = ev.target.closest('.political-marker, .calamity-marker, .war-bar, .ruler-bar');
     if (trigger && tt.classList.contains('visible')) {
       pinTT(ev);
