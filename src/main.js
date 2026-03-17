@@ -192,13 +192,23 @@ function _applyViewport(vp, save = true) {
     btn.title = vp === 'mobile' ? 'Switch to desktop layout' : 'Switch to mobile layout';
   }
   setLabelOffset(vp === 'mobile' ? 110 : 180);
-  render();
+  // Always reset to the default view window when switching viewport so the
+  // user never lands on a zoomed period (e.g. Teutonic Rule) after toggling.
+  setViewStart(DEFAULT_VIEW_START);
+  setViewEnd(DEFAULT_VIEW_END);
+  // Land on the natural home tab for each layout:
+  //   mobile  → Churches list (card browsing is the primary mobile flow)
+  //   desktop → Timeline (the full interactive timeline is the primary desktop view)
+  switchTab(vp === 'mobile' ? 'list' : 'timeline');
+  zoomFit(); // recalculates pixelsPerYear for the new layout width, then renders
 }
 
 function _initViewportToggle() {
   const btn = document.getElementById('viewportToggleBtn');
   const saved = localStorage.getItem('viewport-forced');
-  const defVp = window.innerWidth <= 768 ? 'mobile' : 'desktop';
+  // Use the same threshold as _isMobileViewport() so the two functions agree.
+  // maxTouchPoints catches landscape phones whose innerWidth > 900.
+  const defVp = (window.innerWidth <= 900 || navigator.maxTouchPoints > 0) ? 'mobile' : 'desktop';
   _applyViewport(saved || defVp, false);
   btn?.addEventListener('click', () => {
     const cur = document.body.dataset.viewport || defVp;
@@ -325,11 +335,11 @@ function _initViewMode() {
   const toggles = document.querySelectorAll('.pill-toggle');
   if (!toggles.length) return;
 
-  // Default to 'churches' on all screen sizes
+  // Always open in 'churches' mode — never restore a previously saved mode.
+  // This keeps the first impression clean; user can switch to combined manually.
   const defaultMode = 'churches';
-  const saved = localStorage.getItem('viewMode') || defaultMode;
 
-  _applyViewMode(saved);
+  _applyViewMode(defaultMode);
 
   // ── First-visit discovery pulse ──
   // Pulse runs on whichever toggle is currently visible.
@@ -795,7 +805,8 @@ function _wireButtons() {
     showPinnedGenericTT(e, ttHtml);
     e.stopPropagation(); // prevent global click handler from immediately unpinning
 
-    if (_isMobileViewport()) return; // on mobile: tooltip only, no zoom
+    // Touch devices never zoom — tooltip-only, even if viewport state is stale.
+    if (_isMobileViewport() || navigator.maxTouchPoints > 0) return;
 
     // Desktop: snap to the period's start/end and fit zoom.
     // Order matters: expand end first so setViewStart isn't clamped by a

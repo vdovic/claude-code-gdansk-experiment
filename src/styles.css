@@ -2211,6 +2211,27 @@ body[data-viewport="desktop"] .econ-era-desc {
   .filter-chip { flex-shrink: 0; padding: 5px 12px; font-size: var(--fs-sm); }
   .filter-section { flex-shrink: 0; }
 
+  /* ── Tier-1 mobile UX ── */
+  /* 1. CTRL hint is meaningless on touch — hide it */
+  .ctrl-hint { display: none; }
+
+  /* 2. Filter chips: one horizontal scroll strip, never wrap */
+  .filter-bar.filter-wrap {
+    flex-wrap: nowrap; overflow-x: auto; row-gap: 0; padding-bottom: 5px;
+    touch-action: pan-x;
+  }
+  .filter-bar.filter-wrap::-webkit-scrollbar { display: none; }
+
+  /* 3. Sort bar already scroll-locked (lines above), ensure scrollbar hidden */
+  .sort-bar { scrollbar-width: none; }
+
+  /* 5. Church label: allow 2-line wrap so names aren't truncated mid-word */
+  .ch-lbl-text {
+    white-space: normal; font-size: 11px; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: unset;
+  }
+
   .map-toggle-bar { padding: 4px 10px; }
   .map-inner { flex-direction: column; padding: 6px 10px 10px; height: auto; gap: 8px; }
   .map-leaflet-wrap { height: 240px; }
@@ -2853,6 +2874,23 @@ body.mode-churches #econErasRow { display: none !important; }
 body[data-viewport="mobile"] #controlsBar    { display: none !important; }
 body[data-viewport="mobile"] #axisRow        { display: none !important; }
 body[data-viewport="mobile"] #churchSelectorBar { display: none !important; }
+
+/* Tier-1 mobile UX — mirror of @media rules; covers forced-mobile on wide screens */
+body[data-viewport="mobile"] .ctrl-hint { display: none !important; }
+body[data-viewport="mobile"] .filter-bar.filter-wrap {
+  flex-wrap: nowrap !important; overflow-x: auto !important;
+  row-gap: 0 !important; touch-action: pan-x;
+}
+body[data-viewport="mobile"] .filter-bar.filter-wrap::-webkit-scrollbar { display: none; }
+body[data-viewport="mobile"] .sort-bar {
+  flex-wrap: nowrap !important; overflow-x: auto !important; scrollbar-width: none;
+}
+body[data-viewport="mobile"] .sort-bar::-webkit-scrollbar { display: none; }
+body[data-viewport="mobile"] .ch-lbl-text {
+  white-space: normal !important; font-size: 11px; line-height: 1.2;
+  display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden !important; text-overflow: unset !important;
+}
 /* Forced desktop on mobile — restore hidden elements */
 body[data-viewport="desktop"] #controlsBar    { display: flex !important; }
 body[data-viewport="desktop"] #axisRow        { display: flex !important; }

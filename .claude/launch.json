@@ -3,8 +3,9 @@
   "configurations": [
     {
       "name": "static-server",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "C:\\Users\\Gateway\\AppData\\Local\\Python\\bin\\python.exe",
       "runtimeArgs": ["serve.py", "8092"],
+      "cwd": "D:\\Claude_Code_Gdansk_experiment",
       "port": 8092
     }
   ]

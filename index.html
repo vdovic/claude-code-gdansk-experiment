@@ -627,12 +627,21 @@
       });
     });
 
-    // Row click → open detail modal
+    // Row click → open detail drawer.
+    // On mobile we stay on the Churches tab — the drawer slides up on top.
+    // On desktop we switch to the Timeline first so the church bar is visible.
     el.querySelectorAll('.ct-row').forEach(row => {
       row.addEventListener('click', () => {
         const ci = +row.dataset.ci;
-        switchTab('timeline');
-        setTimeout(() => openCD(ci, 0), 200);
+        const isMobile = document.body.dataset.viewport === 'mobile'
+                      || window.innerWidth <= 900
+                      || navigator.maxTouchPoints > 0;
+        if (isMobile) {
+          openCD(ci, 0);          // drawer on top of Churches tab — no tab switch
+        } else {
+          switchTab('timeline');  // desktop: reveal church bar first
+          setTimeout(() => openCD(ci, 0), 200);
+        }
       });
     });
   }

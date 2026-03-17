@@ -67,7 +67,10 @@
       "WebFetch(domain:picryl.com)",
       "WebFetch(domain:artinfo.pl)",
       "WebFetch(domain:www.themaphouse.com)",
-      "WebFetch(domain:www.geographicus.com)"
+      "WebFetch(domain:www.geographicus.com)",
+      "Bash(where python)",
+      "Bash(where python3)",
+      "Bash(python serve.py 8092)"
     ]
   }
 }
