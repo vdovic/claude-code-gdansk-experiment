@@ -1906,14 +1906,13 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   justify-content: center;
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0.08);
-  transition: border-color 0.15s, opacity 0.2s;
-  opacity: 0.6;
+  transition: border-color 0.15s;
+  opacity: 1;
   min-height: 36px;
 }
 .econ-era-m-card.active {
-  opacity: 1;
-  border-color: rgba(212,162,83,0.5);
-  box-shadow: 0 0 6px rgba(212,162,83,0.25);
+  border-color: rgba(212,162,83,0.75);
+  box-shadow: 0 0 8px rgba(212,162,83,0.4);
 }
 .econ-era-m-name {
   font-family: var(--font-display);
@@ -1937,8 +1936,8 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   border-color: rgba(0,0,0,0.1);
 }
 [data-theme="light"] .econ-era-m-card.active {
-  border-color: rgba(42,122,138,0.5);
-  box-shadow: 0 0 6px rgba(42,122,138,0.2);
+  border-color: rgba(42,122,138,0.75);
+  box-shadow: 0 0 8px rgba(42,122,138,0.35);
 }
 [data-theme="light"] .econ-era-m-name {
   color: rgba(20,24,32,0.9);
@@ -2858,6 +2857,30 @@ body.mode-churches #contextPanel {
 }
 /* Periods row lives outside #contextPanel — hide it too in churches-only mode */
 body.mode-churches #econErasRow { display: none !important; }
+/* On mobile the period strip is the primary navigation tool — always show it
+   regardless of view mode; lift the scroll to the row itself for reliable
+   native touch-scroll behaviour. The "Periods" stub label is hidden to give
+   all available width to the cards. Intermediate overflow clamps are removed
+   so the inner flex content expands to max-content width naturally. */
+@media (max-width: 900px) {
+  body.mode-churches #econErasRow { display: flex !important; }
+  #econErasRow {
+    overflow-x: auto !important; touch-action: pan-x;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  #econErasRow::-webkit-scrollbar { display: none; }
+  #econErasRow .tl-ctx-stub  { display: none !important; }
+  #econErasRow .tl-ctx-scroll { overflow: visible !important; }
+  #econErasRow .ctx-inner    { overflow: visible !important; width: max-content; }
+}
+body[data-viewport="mobile"] #econErasRow {
+  display: flex !important; overflow-x: auto !important;
+  touch-action: pan-x; scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+body[data-viewport="mobile"] #econErasRow::-webkit-scrollbar { display: none; }
+body[data-viewport="mobile"] #econErasRow .tl-ctx-stub  { display: none !important; }
+body[data-viewport="mobile"] #econErasRow .tl-ctx-scroll { overflow: visible !important; }
+body[data-viewport="mobile"] #econErasRow .ctx-inner    { overflow: visible !important; width: max-content; }
 
 /* ── Mobile layout simplification ─────────────────────────────
    On small screens / forced-mobile viewport:
@@ -2870,10 +2893,28 @@ body.mode-churches #econErasRow { display: none !important; }
   #controlsBar    { display: none !important; }
   #axisRow        { display: none !important; }
   #churchSelectorBar { display: none !important; }
+  /* Context rows: natively scrollable so any swipe drives the timeline via
+     reverse-sync. Higher-specificity rule for #econErasRow .tl-ctx-scroll
+     keeps that row at overflow:visible (unaffected). */
+  .tl-ctx-scroll {
+    overflow-x: auto !important; touch-action: pan-x;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .tl-ctx-scroll::-webkit-scrollbar { display: none; }
+  /* Church lanes: drag-to-pan is disabled on mobile; native momentum scroll. */
+  .tl-lanes-scroll { touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
 }
 body[data-viewport="mobile"] #controlsBar    { display: none !important; }
 body[data-viewport="mobile"] #axisRow        { display: none !important; }
 body[data-viewport="mobile"] #churchSelectorBar { display: none !important; }
+body[data-viewport="mobile"] .tl-ctx-scroll {
+  overflow-x: auto !important; touch-action: pan-x;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+body[data-viewport="mobile"] .tl-ctx-scroll::-webkit-scrollbar { display: none; }
+body[data-viewport="mobile"] .tl-lanes-scroll {
+  touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
+}
 
 /* Tier-1 mobile UX — mirror of @media rules; covers forced-mobile on wide screens */
 body[data-viewport="mobile"] .ctrl-hint { display: none !important; }

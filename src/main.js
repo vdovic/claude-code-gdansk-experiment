@@ -151,25 +151,42 @@ function _hideKb() {
 
 // ── Scroll sync (v6 pattern) ──────────────────────────────────
 // lanesScroll drives: all ctx-scroll elements, tlLabels (Y only)
+// On mobile, ctx-scroll rows are also natively scrollable — they
+// reverse-sync back to lanesScroll via the shared _syncScrollTo helper.
 // Note: axis is now static (full-range overview), so no horizontal sync needed.
 function _initScrollSync() {
   const lanesScroll = document.getElementById('lanesScroll');
   const tlLabels    = document.getElementById('tlLabels');
   if (!lanesScroll) return;
 
-  lanesScroll.addEventListener('scroll', () => {
-    const sx = lanesScroll.scrollLeft;
-    const sy = lanesScroll.scrollTop;
-
-    if (tlLabels)    tlLabels.scrollTop      = sy;
-
-    // Context track scroll rows
+  // Shared helper — routes a new scrollLeft to all scroll containers
+  // except the one that originated the event, preventing feedback loops.
+  let _syncing = false;
+  function _syncScrollTo(sx, source) {
+    if (_syncing) return;
+    _syncing = true;
+    if (source !== lanesScroll) lanesScroll.scrollLeft = sx;
     document.querySelectorAll('.tl-ctx-scroll').forEach(el => {
-      if (el.dataset.noSync) return;   // mobile periods strip scrolls independently
+      if (el.dataset.noSync || el === source) return;
       el.scrollLeft = sx;
     });
+    _syncing = false;
+  }
 
+  lanesScroll.addEventListener('scroll', () => {
+    _syncScrollTo(lanesScroll.scrollLeft, lanesScroll);
+    if (tlLabels) tlLabels.scrollTop = lanesScroll.scrollTop;
   }, { passive: true });
+
+  // Mobile: context rows are natively scrollable (overflow-x:auto via CSS).
+  // When the user swipes on one, reverse-sync the position back to lanesScroll
+  // and all sibling ctx-scroll rows so the whole timeline stays aligned.
+  document.querySelectorAll('.tl-ctx-scroll').forEach(el => {
+    el.addEventListener('scroll', () => {
+      if (!_isMobileViewport()) return;
+      _syncScrollTo(el.scrollLeft, el);
+    }, { passive: true });
+  });
 }
 
 // ── Resize handler (debounced) ────────────────────────────────
@@ -255,6 +272,8 @@ function _initDragToPan() {
   let didDrag      = false;  // sticky flag cleared after click suppression
 
   tlOuter.addEventListener('pointerdown', e => {
+    // On mobile, native touch handles scrolling with momentum — no JS drag-to-pan.
+    if (_isMobileViewport()) return;
     // Only primary (left) button
     if (e.button !== 0) return;
     // Skip interactive elements
