@@ -2976,10 +2976,11 @@ body[data-viewport="desktop"] #controlsBar    { display: flex !important; }
 body[data-viewport="desktop"] #axisRow        { display: flex !important; }
 /* #churchSelectorBar intentionally NOT restored — hidden on all viewports */
 
-/* ── Hide church selector / filter / sort bars from main timeline ─ */
+/* ── Hide church selector / filter / sort / track bars from main timeline ─ */
 #churchSelectorBar,
 #filterBar,
 #sortBar,
+#trackToggles,
 body[data-viewport="desktop"] #churchSelectorBar,
 body[data-viewport="mobile"]  #churchSelectorBar { display: none !important; }
 
