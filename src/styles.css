@@ -3429,9 +3429,9 @@ body.mode-combined  #trackToggles { display: flex;  }
 body.onb-open { overflow: hidden; }
 
 /* ══════════════════════════════════════════════════════════════════
-   MOBILE FOCUS WINDOW — "time lens" horizontal panning
-   Feels like an iOS picker wheel turned horizontal: a fixed viewing
-   window (150 years) through which the full 800-year timeline scrolls.
+   MOBILE FOCUS WINDOW — "film strip" horizontal panning
+   A fixed 150-year viewing window through which the full 800-year
+   timeline scrolls, styled like a classic camera film strip.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── Vertical scroll: churchPanel becomes the scrollable container ── */
@@ -3456,6 +3456,17 @@ body.mobile-focus-active .tl-ctx-scroll {
   touch-action: pan-y !important;
 }
 
+/* BUT keep the Periods row independently scrollable */
+body.mobile-focus-active #econErasRow .tl-ctx-scroll {
+  overflow-x: auto !important;
+  touch-action: pan-x !important;
+}
+
+/* Hide the empty contextPanel shell (rows moved into churchPanel) */
+body.mobile-focus-active #contextPanel {
+  display: none !important;
+}
+
 /* Prevent rubber-band while dragging horizontally */
 body.mobile-focus-dragging {
   overflow: hidden !important;
@@ -3469,7 +3480,7 @@ body.mobile-focus-dragging * {
 /* ── Mobile year ruler ───────────────────────────────────────── */
 .mobile-ruler {
   position: sticky; top: 0;
-  height: 26px;
+  height: 28px;
   background: var(--parchment-dk);
   border-bottom: 1px solid var(--tl-border);
   overflow: hidden;
@@ -3515,51 +3526,88 @@ body.mobile-focus-active .mobile-ruler { display: block; }
   opacity: 1;
 }
 
-/* ── Edge fades — wider vignette for "time lens" feel ────────── */
+/* ── Film strip sprocket holes ───────────────────────────────── */
+.film-sprocket {
+  display: none;
+  position: fixed;
+  left: 0; right: 0;
+  height: 10px;
+  pointer-events: none;
+  z-index: 14;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 10px,
+      rgba(180, 160, 120, 0.25) 10px,
+      rgba(180, 160, 120, 0.25) 12px,
+      transparent 12px,
+      transparent 20px
+    );
+  /* Each "sprocket" is a 2px-wide bar every 20px */
+}
+body.mobile-focus-active .film-sprocket { display: block; }
+
+.film-sprocket-top {
+  top: 0;
+  border-bottom: 1px solid rgba(140, 120, 90, 0.15);
+}
+.film-sprocket-bottom {
+  bottom: 0;
+  border-top: 1px solid rgba(140, 120, 90, 0.15);
+}
+
+/* Sprocket hole punch-outs (rounded rectangles via pseudo-element) */
+.film-sprocket::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 1px; bottom: 1px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 4px,
+      rgba(0, 0, 0, 0.08) 4px,
+      rgba(0, 0, 0, 0.08) 8px,
+      transparent 8px,
+      transparent 20px
+    );
+}
+
+/* ── Edge fades — vignette for film frame feel ───────────────── */
 .mobile-focus-fade {
   display: none;
   position: fixed;
   top: 0; bottom: 0;
-  width: 36px;
+  width: 28px;
   pointer-events: none;
   z-index: 12;
 }
 body.mobile-focus-active .mobile-focus-fade { display: block; }
 
 .mobile-focus-fade-l {
-  left: 0;
+  left: var(--label-w);
   background: linear-gradient(to right,
-    var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(0,0,0,0) 100%);
-  border-right: 1px solid rgba(140, 120, 90, 0.1);
+    rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.06) 50%, transparent 100%);
+  border-right: 1px solid rgba(140, 120, 90, 0.08);
 }
 .mobile-focus-fade-r {
   right: 0;
   background: linear-gradient(to left,
-    var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(0,0,0,0) 100%);
-  border-left: 1px solid rgba(140, 120, 90, 0.1);
+    rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.06) 50%, transparent 100%);
+  border-left: 1px solid rgba(140, 120, 90, 0.08);
 }
 
-/* Inset shadow — creates "looking through a window" depth */
+/* Film frame border — cinematic window edge */
 body.mobile-focus-active .tl-outer {
-  box-shadow: inset 6px 0 14px -6px rgba(0,0,0,0.3),
-              inset -6px 0 14px -6px rgba(0,0,0,0.3);
+  box-shadow: inset 5px 0 12px -5px rgba(0,0,0,0.25),
+              inset -5px 0 12px -5px rgba(0,0,0,0.25);
+  border-left: 2px solid rgba(140, 120, 90, 0.12);
+  border-right: 2px solid rgba(140, 120, 90, 0.12);
 }
 
-/* ── Center line (subtle focal guide) ────────────────────────── */
-.mobile-focus-center-line {
-  display: none;
-  position: fixed;
-  top: 0; bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--accent);
-  opacity: 0.12;
-  pointer-events: none;
-  z-index: 11;
-}
-body.mobile-focus-active .mobile-focus-center-line { display: block; }
-
-/* ── "Viewing: YYYY – YYYY" floating pill ────────────────────── */
+/* ── "YYYY – YYYY" floating pill ─────────────────────────────── */
 .mobile-focus-label {
   display: none;
   position: fixed;
@@ -3584,23 +3632,35 @@ body.mobile-focus-active .mobile-focus-center-line { display: block; }
 body.mobile-focus-active .mobile-focus-label { display: block; }
 .mobile-focus-label.visible { opacity: 1; }
 
-/* Light theme adjustments */
+/* ── Light theme adjustments ─────────────────────────────────── */
 [data-theme="light"] .mobile-focus-fade-l {
-  background: linear-gradient(to right, var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to right, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
 }
 [data-theme="light"] .mobile-focus-fade-r {
-  background: linear-gradient(to left, var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to left, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
 }
 [data-theme="light"] .mobile-focus-label {
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 [data-theme="light"] body.mobile-focus-active .tl-outer {
-  box-shadow: inset 6px 0 12px -6px rgba(0,0,0,0.12),
-              inset -6px 0 12px -6px rgba(0,0,0,0.12);
+  box-shadow: inset 5px 0 10px -5px rgba(0,0,0,0.10),
+              inset -5px 0 10px -5px rgba(0,0,0,0.10);
+}
+[data-theme="light"] .film-sprocket {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 10px,
+      rgba(140, 120, 90, 0.15) 10px,
+      rgba(140, 120, 90, 0.15) 12px,
+      transparent 12px,
+      transparent 20px
+    );
 }
 
-/* GPU-accelerate the transform targets */
+/* ── GPU-accelerate transform targets ────────────────────────── */
 body.mobile-focus-active .lanes-inner,
 body.mobile-focus-active .ctx-inner,
 body.mobile-focus-active .mobile-ruler-inner {

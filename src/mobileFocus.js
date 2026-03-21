@@ -1,8 +1,7 @@
 // ═══════════ MOBILE FOCUS WINDOW ═══════════
 // Transform-based horizontal panning for the mobile timeline.
-// Instead of native overflow-scroll, JS controls translateX on all
-// timeline content, creating a "focus window" feel where the user
-// drags through centuries with a fixed-width viewport.
+// Creates a "film strip" experience: the user looks through a fixed
+// window (~150 years) while the full 800-year timeline scrolls beneath.
 
 import {
   viewStart, viewEnd, pixelsPerYear, labelOffset,
@@ -18,16 +17,16 @@ export const MOBILE_FOCUS_SPAN = 150;
 /** Drag threshold in px — movement below this is treated as a tap. */
 const DRAG_THRESHOLD = 10;
 
-/** Momentum friction: 0.94 = smooth deceleration */
+/** Momentum friction */
 const FRICTION = 0.94;
 
 /** Minimum velocity to continue momentum animation */
 const MIN_VELOCITY = 0.3;
 
 // ── Module state ────────────────────────────────────────────────
-let _active    = false;   // is the focus window mode active?
+let _active    = false;
 let _offset    = 0;       // current translateX offset (px, positive = scrolled right)
-let _maxOffset = 0;       // clamp upper bound
+let _maxOffset = 0;
 let _vpWidth   = 0;       // width of the visible viewport area (px)
 
 // Drag state
@@ -37,7 +36,7 @@ let _startY     = 0;
 let _startOff   = 0;
 let _dragging   = false;
 let _didDrag    = false;
-let _gestureDecided = false;  // once true, gesture direction is locked
+let _gestureDecided = false;
 
 // Momentum state
 let _velocity   = 0;
@@ -56,9 +55,10 @@ let _rulerInner  = null;
 let _viewLabel   = null;
 let _fadeL       = null;
 let _fadeR       = null;
-let _centerLine  = null;
+let _sprocketTop = null;
+let _sprocketBot = null;
 
-// Context rows moved into churchPanel for vertical scroll co-location
+// Context rows moved into churchPanel for co-scroll
 let _movedCtxRows = [];
 
 // ── Public API ──────────────────────────────────────────────────
@@ -71,7 +71,7 @@ export function initMobileFocus() {
   _tlOuter     = document.getElementById('tlOuter');
   if (!_lanesScroll || !_lanesInner || !_tlOuter) return;
 
-  // Collect context track elements, EXCLUDING the Periods row (econEras)
+  // Collect context track elements, EXCLUDING the Periods row
   _ctxScrolls = [...document.querySelectorAll('.tl-ctx-scroll')]
     .filter(el => !el.closest('#econErasRow'));
   _ctxInners  = [...document.querySelectorAll('.ctx-inner')]
@@ -88,13 +88,13 @@ export function initMobileFocus() {
   // ── Move context track rows INTO churchPanel for vertical co-scroll ──
   _moveContextRowsIn();
 
-  // Create visual cue elements (on #tlOuter so they cover everything)
-  _createOverlayElements();
-
-  // Create the mobile year ruler
+  // ── Create ruler at top of churchPanel (under periods, above ctx tracks) ──
   _createRuler();
 
-  // Disable native horizontal scroll, allow vertical
+  // Create visual cue elements
+  _createOverlayElements();
+
+  // Disable native horizontal scroll on lanes, allow vertical
   _lanesScroll.style.overflowX = 'hidden';
   _lanesScroll.style.overflowY = 'visible';
   _lanesScroll.style.touchAction = 'pan-y';
@@ -103,35 +103,45 @@ export function initMobileFocus() {
     el.style.touchAction = 'pan-y';
   });
 
-  // Compute layout after reflow so clientWidth is correct
+  // Ensure periods row stays independently scrollable
+  const econScroll = document.querySelector('#econErasRow .tl-ctx-scroll');
+  if (econScroll) {
+    econScroll.style.overflowX = 'auto';
+    econScroll.style.touchAction = 'pan-x';
+  }
+
+  // Hide the now-empty contextPanel container
+  const ctxPanel = document.getElementById('contextPanel');
+  if (ctxPanel) ctxPanel.style.display = 'none';
+
+  // Compute layout after reflow
   requestAnimationFrame(() => {
     _recalcLayout();
 
-    // Center on an interesting starting point (~1250, early Gdańsk)
+    // Start at ~1250 (early Gdańsk)
     const startYear = Math.max(viewStart, 1250);
     _offset = Math.max(0, Math.min((startYear - viewStart) * pixelsPerYear, _maxOffset));
     _applyTransform();
     _updateViewLabel();
     _renderRulerTicks();
 
-    // Show label briefly on load so user sees the year range
+    // Flash the viewing label briefly
     if (_viewLabel) {
       _viewLabel.classList.add('visible');
       setTimeout(() => { if (_viewLabel) _viewLabel.classList.remove('visible'); }, 2500);
     }
   });
 
-  // Attach pointer events for drag
+  // Attach pointer events
   if (_tlOuter) {
     _tlOuter.addEventListener('pointerdown', _onPointerDown, { passive: false });
     _tlOuter.addEventListener('pointermove', _onPointerMove, { passive: false });
     _tlOuter.addEventListener('pointerup',   _onPointerUp);
     _tlOuter.addEventListener('pointercancel', _onPointerUp);
-    // Suppress clicks after drag
     _tlOuter.addEventListener('click', _suppressClick, true);
   }
 
-  // Show visual cues with a brief fade-in
+  // Activate CSS
   requestAnimationFrame(() => {
     document.body.classList.add('mobile-focus-active');
   });
@@ -157,15 +167,19 @@ export function destroyMobileFocus() {
   _setTranslate(_lanesInner, 0);
   _ctxInners.forEach(el => _setTranslate(el, 0));
 
-  // Restore context rows to their original parent
+  // Restore context rows
   _moveContextRowsOut();
+
+  // Restore contextPanel visibility
+  const ctxPanel = document.getElementById('contextPanel');
+  if (ctxPanel) ctxPanel.style.display = '';
 
   // Remove overlay elements
   _removeOverlayElements();
 
   // Remove ruler
   if (_ruler && _ruler.parentNode) _ruler.parentNode.removeChild(_ruler);
-  _ruler = null;
+  _ruler = null; _rulerInner = null;
 
   document.body.classList.remove('mobile-focus-active');
 
@@ -181,10 +195,9 @@ export function destroyMobileFocus() {
 /** Called after render() or tab switch to re-sync geometry. */
 export function syncMobileFocus() {
   if (!_active) return;
-  // Defer to next frame to ensure tab is visible and clientWidth is valid
   requestAnimationFrame(() => {
     const vpW = _lanesScroll?.clientWidth || 0;
-    if (vpW === 0) return; // tab still hidden, skip
+    if (vpW === 0) return;
 
     // Re-set pixelsPerYear to enforce exactly MOBILE_FOCUS_SPAN visible
     const targetPPY = Math.max(vpW / MOBILE_FOCUS_SPAN, 2);
@@ -202,8 +215,6 @@ export function syncMobileFocus() {
 }
 
 // ── Context row DOM rearrangement ───────────────────────────────
-// Move context track rows (wars, political, etc.) into #churchPanel
-// so they scroll vertically with church lanes. Periods row stays fixed.
 
 function _moveContextRowsIn() {
   _movedCtxRows = [];
@@ -212,18 +223,16 @@ function _moveContextRowsIn() {
   if (!ctxPanel || !churchPanel) return;
 
   const rows = [...ctxPanel.querySelectorAll('.tl-ctx-row')];
-  // Insert in reverse order at top of churchPanel so they maintain their order
   rows.forEach(row => {
     _movedCtxRows.push({ el: row, parent: ctxPanel, next: row.nextSibling });
   });
-  // Insert all at the top of churchPanel (before the labels/lanes)
+  // Insert at top of churchPanel — context rows come after ruler (ruler added later via _createRuler)
   const frag = document.createDocumentFragment();
   rows.forEach(row => frag.appendChild(row));
   churchPanel.insertBefore(frag, churchPanel.firstChild);
 }
 
 function _moveContextRowsOut() {
-  // Restore rows to original positions in reverse order
   [..._movedCtxRows].reverse().forEach(({ el, parent, next }) => {
     if (next && next.parentNode === parent) {
       parent.insertBefore(el, next);
@@ -258,7 +267,6 @@ function _applyTransform() {
 // ── Year ruler ──────────────────────────────────────────────────
 
 function _createRuler() {
-  // Insert ruler inside #churchPanel, at the top (after any moved ctx rows)
   const churchPanel = document.getElementById('churchPanel');
   if (!churchPanel) return;
 
@@ -271,13 +279,8 @@ function _createRuler() {
   _rulerInner.id = 'mobileRulerInner';
   _ruler.appendChild(_rulerInner);
 
-  // Place ruler after context rows but before the tl-labels/tl-lanes-scroll
-  const labels = document.getElementById('tlLabels');
-  if (labels) {
-    churchPanel.insertBefore(_ruler, labels);
-  } else {
-    churchPanel.appendChild(_ruler);
-  }
+  // Insert ruler as FIRST child of churchPanel (above context rows)
+  churchPanel.insertBefore(_ruler, churchPanel.firstChild);
 }
 
 function _renderRulerTicks() {
@@ -287,7 +290,6 @@ function _renderRulerTicks() {
   const totalW = (viewEnd - viewStart) * pixelsPerYear + 60;
   _rulerInner.style.width = totalW + 'px';
 
-  // Tick cadence: 25-year intervals with labels on all ticks
   const majorInterval = 100;
   const minorInterval = 25;
 
@@ -313,11 +315,20 @@ function _renderRulerTicks() {
 // ── Visual cue elements ─────────────────────────────────────────
 
 function _createOverlayElements() {
-  // Attach to #tlOuter so fades/center-line cover both context and church rows
   const wrap = _tlOuter;
   if (!wrap) return;
 
-  // Left edge fade
+  // Film strip sprocket holes — top
+  _sprocketTop = document.createElement('div');
+  _sprocketTop.className = 'film-sprocket film-sprocket-top';
+  wrap.appendChild(_sprocketTop);
+
+  // Film strip sprocket holes — bottom
+  _sprocketBot = document.createElement('div');
+  _sprocketBot.className = 'film-sprocket film-sprocket-bottom';
+  wrap.appendChild(_sprocketBot);
+
+  // Left edge fade (starts at label-w)
   _fadeL = document.createElement('div');
   _fadeL.className = 'mobile-focus-fade mobile-focus-fade-l';
   wrap.appendChild(_fadeL);
@@ -327,11 +338,6 @@ function _createOverlayElements() {
   _fadeR.className = 'mobile-focus-fade mobile-focus-fade-r';
   wrap.appendChild(_fadeR);
 
-  // Center line
-  _centerLine = document.createElement('div');
-  _centerLine.className = 'mobile-focus-center-line';
-  wrap.appendChild(_centerLine);
-
   // "Viewing" label
   _viewLabel = document.createElement('div');
   _viewLabel.className = 'mobile-focus-label';
@@ -340,10 +346,10 @@ function _createOverlayElements() {
 }
 
 function _removeOverlayElements() {
-  [_fadeL, _fadeR, _centerLine, _viewLabel].forEach(el => {
+  [_fadeL, _fadeR, _viewLabel, _sprocketTop, _sprocketBot].forEach(el => {
     if (el && el.parentNode) el.parentNode.removeChild(el);
   });
-  _fadeL = _fadeR = _centerLine = _viewLabel = null;
+  _fadeL = _fadeR = _viewLabel = _sprocketTop = _sprocketBot = null;
 }
 
 function _updateViewLabel() {
@@ -358,7 +364,6 @@ function _updateViewLabel() {
 
 function _onPointerDown(e) {
   if (!_active) return;
-  // Only handle touches (desktop uses its own drag handler)
   if (e.pointerType === 'mouse') return;
   if (e.target.closest('button, input, select, a, .filter-chip, .sort-btn, .ctrl-btn, .bottom-sheet-tab, .pill-btn, .pill-toggle, .legend-panel, .drawer, .bottom-sheet, .econ-era-block, .econ-era-m-card')) return;
 
@@ -375,8 +380,6 @@ function _onPointerDown(e) {
   _velocity  = 0;
   _lastX     = e.clientX;
   _lastTime  = performance.now();
-
-  // Don't capture yet — wait until gesture direction is decided
 }
 
 function _onPointerMove(e) {
@@ -386,19 +389,18 @@ function _onPointerMove(e) {
   const dy = e.clientY - _startY;
 
   if (!_gestureDecided) {
-    // Need enough movement to decide direction
     const totalMove = Math.abs(dx) + Math.abs(dy);
     if (totalMove < DRAG_THRESHOLD) return;
 
     _gestureDecided = true;
 
-    // If vertical gesture dominates, yield to browser for native vertical scroll
+    // Vertical gesture → yield to browser
     if (Math.abs(dy) > Math.abs(dx)) {
-      _pointerId = null; // release — let browser handle vertical
+      _pointerId = null;
       return;
     }
 
-    // Horizontal gesture — we handle it
+    // Horizontal → we handle it
     _dragging = true;
     _didDrag  = true;
     document.body.classList.add('mobile-focus-dragging');
@@ -408,11 +410,10 @@ function _onPointerMove(e) {
 
   if (_dragging) {
     e.preventDefault();
-    // Calculate velocity for momentum
     const now = performance.now();
     const dt  = now - _lastTime;
     if (dt > 0) {
-      _velocity = (e.clientX - _lastX) / dt * 16; // px per frame (~16ms)
+      _velocity = (e.clientX - _lastX) / dt * 16;
     }
     _lastX    = e.clientX;
     _lastTime = now;
@@ -422,7 +423,6 @@ function _onPointerMove(e) {
     _applyTransform();
     _updateViewLabel();
 
-    // Show label during drag
     if (_viewLabel) _viewLabel.classList.add('visible');
   }
 }
@@ -434,7 +434,6 @@ function _onPointerUp(e) {
     document.body.classList.remove('mobile-focus-dragging');
     _dragging = false;
 
-    // Start momentum animation
     if (Math.abs(_velocity) > MIN_VELOCITY) {
       _startMomentum();
     } else {
