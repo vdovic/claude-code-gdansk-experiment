@@ -734,9 +734,10 @@ function renderLanes() {
     el.addEventListener('pointerdown', e => { _lastPtrType = e.pointerType; });
     el.addEventListener('click', e => {
       if (_lastPtrType === 'touch') {
-        // Touch: first tap pins the event tooltip; second tap on the same marker opens detail
+        // Touch: first tap pins the event tooltip; second tap dismisses it.
+        // Detail drawer is opened only via the church name label, not markers.
         if (isTTPinnedFor(ci, ei)) {
-          openCD(ci, ei);
+          unpinTT();                        // dismiss on second tap
         } else {
           const r = el.getBoundingClientRect();
           const fakeEv = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
@@ -746,14 +747,14 @@ function renderLanes() {
         }
         e.stopPropagation();              // prevent global pin-handler from fighting us
       } else {
-        // Desktop: first click pins tooltip (same UX as touch first tap);
-        // second click on the SAME already-pinned marker opens the detail drawer.
+        // Desktop: first click pins tooltip; second click dismisses it.
+        // Detail drawer opened only via church name label.
         if (isTTPinnedFor(ci, ei)) {
-          openCD(ci, ei);
+          unpinTT();                        // dismiss on second click
         } else {
           if (isTTPinned()) unpinTT();    // release any existing pin first
-          showTT(e, 'c', ci, ei, { immediate: true });  // show tooltip without open-delay
-          pinTT(e, ci, ei);               // sticky-pin it
+          showTT(e, 'c', ci, ei, { immediate: true });
+          pinTT(e, ci, ei);
         }
         e.stopPropagation();              // prevent global handler from unpinning on same click
       }

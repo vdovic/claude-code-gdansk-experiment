@@ -110,11 +110,20 @@ export function initMobileFocus() {
     el.style.touchAction = 'pan-y';
   });
 
-  // Ensure Periods row stays independently horizontally scrollable
+  // Ensure Periods row is FULLY DETACHED — independent horizontal scroll.
+  // #econErasRow has inline overflow:hidden which clips the child scroll area;
+  // we override it directly so .tl-ctx-scroll can actually scroll natively.
+  const econErasRow = document.getElementById('econErasRow');
+  if (econErasRow) {
+    econErasRow.style.overflow  = '';        // clear shorthand first
+    econErasRow.style.overflowX = 'auto';    // allow native pan-x scroll
+    econErasRow.style.overflowY = 'hidden';  // keep height-clipping
+  }
   const econScroll = document.querySelector('#econErasRow .tl-ctx-scroll');
   if (econScroll) {
     econScroll.style.overflowX = 'auto';
     econScroll.style.touchAction = 'pan-x';
+    econScroll.style.webkitOverflowScrolling = 'touch';
   }
 
   // Compute layout after reflow
@@ -163,6 +172,20 @@ export function destroyMobileFocus() {
     el.style.overflowX = '';
     el.style.touchAction = '';
   });
+
+  // Restore Periods row overflow to original (overflow:hidden inline)
+  const econErasRow = document.getElementById('econErasRow');
+  if (econErasRow) {
+    econErasRow.style.overflow  = 'hidden';
+    econErasRow.style.overflowX = '';
+    econErasRow.style.overflowY = '';
+  }
+  const econScroll = document.querySelector('#econErasRow .tl-ctx-scroll');
+  if (econScroll) {
+    econScroll.style.overflowX = '';
+    econScroll.style.touchAction = '';
+    econScroll.style.webkitOverflowScrolling = '';
+  }
 
   // Remove transforms
   _setTranslate(_lanesInner, 0);

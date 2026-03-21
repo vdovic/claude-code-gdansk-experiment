@@ -1472,6 +1472,12 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   border-radius: 50%; flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
+/* Symbol emoji icon — same visual as the timeline label column */
+.ct-sym {
+  display: inline-block; flex-shrink: 0;
+  font-size: 14px; line-height: 1;
+  width: 18px; text-align: center;
+}
 .ct-year     { white-space: nowrap; font-weight: 600; min-width: 76px; }
 .ct-district { white-space: nowrap; min-width: 100px; }
 .ct-type     { white-space: nowrap; min-width: 100px; color: var(--text-muted); }

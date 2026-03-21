@@ -671,7 +671,10 @@
     let rowsHtml = filtered.map(({ ch, ci }) => {
       const latestDenom  = ch.denomBars[ch.denomBars.length - 1];
       const col          = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
-      const dot          = `<span class="ct-dot" style="background:${col}"></span>`;
+      // Use the same symbol emoji as the timeline label column; fall back to colour dot
+      const dot          = ch.symbol
+        ? `<span class="ct-sym" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
+        : `<span class="ct-dot" style="background:${col}"></span>`;
       const patron       = churchPatrons[ch.id] || {};
       const founderTxt   = patron.founder
         ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
