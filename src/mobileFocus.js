@@ -67,6 +67,7 @@ let _fadeL       = null;
 let _fadeR       = null;
 let _sprocketTop = null;
 let _sprocketBot = null;
+let _econPointerBlocker = null; // capture-phase handler that stops Periods row events
 
 // ── Public API ──────────────────────────────────────────────────
 
@@ -144,6 +145,16 @@ export function initMobileFocus() {
     }
   });
 
+  // Block Periods row (#econErasRow) from ever reaching the tlOuter pan handler.
+  // Capture-phase listener fires BEFORE the bubble-phase listeners on _tlOuter,
+  // so stopPropagation() guarantees the main pan handler never sees these events.
+  // This is the only fully reliable cross-browser way to isolate the row.
+  const econErasRow = document.getElementById('econErasRow');
+  if (econErasRow) {
+    _econPointerBlocker = e => e.stopPropagation();
+    econErasRow.addEventListener('pointerdown', _econPointerBlocker, { capture: true });
+  }
+
   // Attach pointer events on tlOuter so they cover the whole timeline area
   if (_tlOuter) {
     _tlOuter.addEventListener('pointerdown', _onPointerDown, { passive: false });
@@ -199,6 +210,13 @@ export function destroyMobileFocus() {
   _removeOverlayElements();
 
   document.body.classList.remove('mobile-focus-active');
+
+  // Remove Periods row pointer blocker
+  if (_econPointerBlocker) {
+    const econErasRow = document.getElementById('econErasRow');
+    econErasRow?.removeEventListener('pointerdown', _econPointerBlocker, { capture: true });
+    _econPointerBlocker = null;
+  }
 
   if (_tlOuter) {
     _tlOuter.removeEventListener('pointerdown', _onPointerDown);
