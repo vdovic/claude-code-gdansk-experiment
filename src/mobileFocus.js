@@ -232,20 +232,33 @@ function _applyTransform() {
 // ── Year ruler ──────────────────────────────────────────────────
 
 function _createRuler() {
-  if (!_lanesScroll) return;
+  // Insert ruler as a flex row BEFORE #churchPanel (sibling, not inside lanesScroll).
+  // Structure: [stub spacer = label-width] [track = bar area, overflow hidden]
+  // This keeps labels and bars vertically aligned — no height offset pushed into lanesScroll.
+  const churchPanel = document.getElementById('churchPanel');
+  if (!churchPanel || !churchPanel.parentNode) return;
 
   _ruler = document.createElement('div');
   _ruler.className = 'mobile-ruler';
   _ruler.id = 'mobileRuler';
 
+  // Left stub — mirrors the .tl-labels column width so ticks align with bars
+  const stub = document.createElement('div');
+  stub.className = 'mobile-ruler-stub';
+  _ruler.appendChild(stub);
+
+  // Right track — clips the inner and shows the panning ticks
+  const track = document.createElement('div');
+  track.className = 'mobile-ruler-track';
+  _ruler.appendChild(track);
+
   _rulerInner = document.createElement('div');
   _rulerInner.className = 'mobile-ruler-inner';
   _rulerInner.id = 'mobileRulerInner';
-  _ruler.appendChild(_rulerInner);
+  track.appendChild(_rulerInner);
 
-  // Insert as first child of lanesScroll — it sits above church bars
-  // position: sticky keeps it visible when scrolling vertically
-  _lanesScroll.insertBefore(_ruler, _lanesScroll.firstChild);
+  // Insert before #churchPanel in the flex column (not inside the scroll area)
+  churchPanel.parentNode.insertBefore(_ruler, churchPanel);
 }
 
 function _renderRulerTicks() {
@@ -329,6 +342,8 @@ function _updateViewLabel() {
 function _onPointerDown(e) {
   if (!_active) return;
   if (e.pointerType === 'mouse') return;
+  // Let Periods row handle its own independent horizontal scroll
+  if (e.target.closest('#econErasRow')) return;
   if (e.target.closest('button, input, select, a, .filter-chip, .sort-btn, .ctrl-btn, .bottom-sheet-tab, .pill-btn, .pill-toggle, .legend-panel, .drawer, .bottom-sheet, .econ-era-block, .econ-era-m-card')) return;
 
   // Cancel any ongoing momentum

@@ -3458,6 +3458,12 @@ body.mobile-focus-active #econErasRow .tl-ctx-scroll {
   touch-action: pan-x !important;
 }
 
+/* Hide dead-space elements that clutter mobile focus layout */
+body.mobile-focus-active #churchesLabel,
+body.mobile-focus-active #churchControls {
+  display: none !important;
+}
+
 /* Prevent rubber-band while dragging horizontally */
 body.mobile-focus-dragging {
   overflow: hidden !important;
@@ -3469,16 +3475,32 @@ body.mobile-focus-dragging * {
 }
 
 /* ── Mobile year ruler ───────────────────────────────────────── */
+/* Flex row: [stub = label-width spacer] [track = bar-area with ticks]
+   Inserted BEFORE #churchPanel so it doesn't push bars/labels out of sync. */
 .mobile-ruler {
-  position: sticky; top: 0;
-  height: 28px;
+  display: none;
+  flex-direction: row;
+  flex-shrink: 0;
+  height: 26px;
   background: var(--parchment-dk);
   border-bottom: 1px solid var(--tl-border);
-  overflow: hidden;
   z-index: 8;
-  display: none;
 }
-body.mobile-focus-active .mobile-ruler { display: block; }
+body.mobile-focus-active .mobile-ruler { display: flex; }
+
+/* Left stub — same width as the church names column */
+.mobile-ruler-stub {
+  width: var(--label-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--tl-border);
+}
+
+/* Right track — clips the panning inner */
+.mobile-ruler-track {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
 
 .mobile-ruler-inner {
   position: absolute; top: 0; left: 0; height: 100%;
