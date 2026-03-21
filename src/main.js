@@ -806,8 +806,10 @@ function _wireButtons() {
   });
 
   // Economic era blocks — behaviour differs by viewport:
-  //   Desktop: zoom/fit to the period + scroll to start
+  //   Desktop: zoom/fit to the period + scroll to start; click again to reset to full view
   //   Mobile:  show a pinned tooltip only (no zoom — lets user swipe between periods)
+  let _activePeriodIdx = null; // tracks which period is currently zoomed in
+
   document.getElementById('econErasInner')?.addEventListener('click', e => {
     const block = e.target.closest('.econ-era-block') || e.target.closest('.econ-era-m-card');
     if (!block) return;
@@ -827,6 +829,26 @@ function _wireButtons() {
     // Mobile layout: tooltip only, no zoom (viewport flag is reliable since
     // _initViewportToggle now uses the same threshold as _isMobileViewport).
     if (_isMobileViewport()) return;
+
+    // Toggle: clicking the already-active period resets to the default view (1150–1750)
+    if (_activePeriodIdx === idx) {
+      _activePeriodIdx = null;
+      document.querySelectorAll('.econ-era-block.period-active')
+        .forEach(b => b.classList.remove('period-active'));
+      setViewEnd(END_YEAR);                    // widen first to remove upper clamp
+      setViewStart(DEFAULT_VIEW_START);
+      setViewEnd(DEFAULT_VIEW_END);
+      zoomFit();
+      const lanesScroll = document.getElementById('lanesScroll');
+      if (lanesScroll) lanesScroll.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // New period selected — mark it active and zoom in
+    _activePeriodIdx = idx;
+    document.querySelectorAll('.econ-era-block.period-active')
+      .forEach(b => b.classList.remove('period-active'));
+    block.classList.add('period-active');
 
     // Desktop: snap to the period's start/end and fit zoom.
     // Order matters: expand end first so setViewStart isn't clamped by a

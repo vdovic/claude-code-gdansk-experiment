@@ -29,6 +29,7 @@ export const eventColors = {
   denomination: 'var(--ev-denomination)',
   destroyed:    'var(--ev-destroyed)',
   notable:      'var(--ev-notable)',
+  tumult:       'var(--ev-tumult)',
 };
 
 // ── Event-type shapes (non-colour encoding for accessibility) ─
@@ -38,9 +39,10 @@ export const eventShapes = {
   founded:      { shape: 'circle',   label: 'Founded',              desc: 'Church first established or consecrated' },
   cornerstone:  { shape: 'diamond',  label: 'Cornerstone laid',     desc: 'Physical cornerstone or construction start' },
   expansion:    { shape: 'square',   label: 'Expansion / addition', desc: 'Major structural addition or enlargement' },
-  denomination: { shape: 'hexagon',  label: 'Denomination change',  desc: 'Change in confessional affiliation' },
-  destroyed:    { shape: 'cross',    label: 'Destruction',          desc: 'Significant structural destruction' },
-  notable:      { shape: 'triangle', label: 'Notable event',        desc: 'Important historical event at the church' },
+  denomination: { shape: 'hexagon',       label: 'Denomination change',  desc: 'Change in confessional affiliation' },
+  destroyed:    { shape: 'cross',         label: 'Destruction',          desc: 'Significant structural destruction' },
+  notable:      { shape: 'triangle',      label: 'Notable event',        desc: 'Important historical event at the church' },
+  tumult:       { shape: 'triangle-down', label: 'Tumult / riot',        desc: 'Religious riot or violent attack on the church' },
 };
 
 // Generate SVG marker for a given event type and colour.
@@ -62,6 +64,9 @@ export function eventMarkerSVG(type, color, size = 13) {
 
     case 'triangle':
       return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${half},1.5 ${s - 1.5},${s - 1.5} 1.5,${s - 1.5}" fill="${color}" stroke="white" stroke-width="1.5"/></svg>`;
+
+    case 'triangle-down':
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${half},${s - 1.5} ${s - 1.5},1.5 1.5,1.5" fill="${color}" stroke="white" stroke-width="1.5"/></svg>`;
 
     case 'cross': {
       const arm = 2;

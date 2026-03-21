@@ -68,6 +68,7 @@
   --ev-denomination:#9b59b6;
   --ev-destroyed:   #d04040;
   --ev-notable:     var(--accent);
+  --ev-tumult:      #d4841a;
   --ev-plague:      #9060b0;
   --ev-siege:       #d04040;
 
@@ -193,6 +194,7 @@
   --ev-denomination:#8b49a6;
   --ev-destroyed:   #c03030;
   --ev-notable:     var(--accent);
+  --ev-tumult:      #c07015;
   --ev-plague:      #7a4a9a;
   --ev-siege:       #c03030;
 
@@ -1853,6 +1855,12 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   filter: brightness(1.35);
   transform: scaleY(0.97);
 }
+/* Active (zoomed-in) period — outline + zoom-out cursor to hint it can be reset */
+.econ-era-block.period-active {
+  border-color: rgba(212,162,83,0.75);
+  box-shadow: inset 0 0 0 1px rgba(212,162,83,0.4);
+  cursor: zoom-out;
+}
 .econ-era-label {
   font-family: var(--font-display); font-size: 10px; font-weight: 700;
   color: rgba(232,228,220,0.85); letter-spacing: 0.3px;
@@ -2605,8 +2613,11 @@ body.mode-churches #legendGlobal { display: none; }
    CONFESSIONAL REALIGNMENT OVERLAY (1525–1557)
    ══════════════════════════════════════════════════════════════ */
 
+/* Confessional overlay hidden — tumult events are now shown as dedicated markers instead */
+.confessional-overlay { display: none !important; }
+
 /* Semi-transparent band on church lane — desaturated indigo, visually strong but not aggressive */
-.confessional-overlay {
+.confessional-overlay-UNUSED {
   position: absolute; top: 2px; bottom: 2px;
   background: rgba(92, 72, 132, 0.22);
   border: 1px solid rgba(92, 72, 132, 0.35);
@@ -2963,7 +2974,14 @@ body[data-viewport="mobile"] .ch-lbl-text {
 /* Forced desktop on mobile — restore hidden elements */
 body[data-viewport="desktop"] #controlsBar    { display: flex !important; }
 body[data-viewport="desktop"] #axisRow        { display: flex !important; }
-body[data-viewport="desktop"] #churchSelectorBar { display: flex !important; }
+/* #churchSelectorBar intentionally NOT restored — hidden on all viewports */
+
+/* ── Hide church selector / filter / sort bars from main timeline ─ */
+#churchSelectorBar,
+#filterBar,
+#sortBar,
+body[data-viewport="desktop"] #churchSelectorBar,
+body[data-viewport="mobile"]  #churchSelectorBar { display: none !important; }
 
 /* ── Split-drag active state ─────────────────────────────────── */
 /* Disable height transition while dragging so resize feels instant */

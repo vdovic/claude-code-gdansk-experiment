@@ -82,6 +82,7 @@ export const typeColors = {
   denomination: 'var(--ev-denomination)',
   destroyed:    'var(--ev-destroyed)',
   notable:      'var(--ev-notable)',
+  tumult:       'var(--ev-tumult)',
 };
 
 export const denomColors = {
