@@ -112,6 +112,7 @@ export const urbanPowerEvents = [
   {year:1460, label:'Urban Consolidation under Main Town', detail:'Young Town destroyed (1455) and competing municipal structures collapsed. After the Second Peace of Toruń (1466), Gdańsk operated under Main Town dominance within the Polish Crown framework.'},
   {year:1526, label:'Post-Tumult patrician restoration',   detail:'Conservative council reasserted control after 1525 uprising suppressed. Church connection: council mediated which buildings changed denomination.'},
   {year:1585, label:'Merchant dynasty zenith',             detail:'Ferber, Bahr, and Speidt families at peak wealth and influence. Church connection: competing endowments of epitaphs, altars, and organ cases.'},
+  {year:1677, label:'Jan III Sobieski\'s royal visit',     detail:'King Jan III Sobieski made a formal royal entry into Gdańsk to negotiate war subsidies against the Ottoman threat. The patrician council staged elaborate ceremonies and granted the king a substantial financial tribute, demonstrating both the city\'s extraordinary wealth and its continued leverage over the Polish Crown. The visit reaffirmed Gdańsk\'s unique status as a virtually autonomous city-state within the Commonwealth. Church connection: civic celebrations included thanksgiving services in St. Mary\'s and the Royal Chapel.'},
   {year:1793, label:'Prussian annexation ends patrician rule', detail:'Three centuries of merchant self-rule dissolved by Prussian bureaucrats. Church connection: wardenships transferred to state administrators.'},
 ];
 
