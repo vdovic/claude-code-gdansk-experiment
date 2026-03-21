@@ -3460,10 +3460,18 @@ body.mobile-focus-active .tl-ctx-scroll {
   touch-action: pan-y !important;
 }
 
-/* Periods row: independent horizontal scroll, not synced */
+/* Periods row: fully independent horizontal scroll.
+   #econErasRow has inline overflow:hidden — CSS !important overrides inline styles
+   that do NOT carry !important, so this is the reliable cross-browser fix. */
+body.mobile-focus-active #econErasRow {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+}
 body.mobile-focus-active #econErasRow .tl-ctx-scroll {
   overflow-x: auto !important;
   touch-action: pan-x !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
 /* Hide dead-space elements that clutter mobile focus layout */
@@ -3597,27 +3605,35 @@ body.mobile-focus-active .film-sprocket { display: block; }
 }
 
 /* ── Edge fades — vignette for film frame feel ───────────────── */
+/* Fades are appended as children of #churchPanel (.tl-lanes-wrap).
+   position:absolute keeps them clipped to the church-bar area — they
+   cannot bleed upward over the Periods row or the year ruler. */
+body.mobile-focus-active .tl-lanes-wrap {
+  position: relative; /* establish containing block for absolute fades */
+}
 .mobile-focus-fade {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 0; bottom: 0;
-  width: 28px;
+  width: 36px;
   pointer-events: none;
   z-index: 12;
 }
 body.mobile-focus-active .mobile-focus-fade { display: block; }
 
 .mobile-focus-fade-l {
-  left: var(--label-w);
+  left: var(--label-w); /* start at right edge of church-name column */
   background: linear-gradient(to right,
-    rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.06) 50%, transparent 100%);
-  border-right: 1px solid rgba(140, 120, 90, 0.08);
+    rgba(0, 0, 0, 0.22) 0%,
+    rgba(0, 0, 0, 0.08) 60%,
+    transparent 100%);
 }
 .mobile-focus-fade-r {
   right: 0;
   background: linear-gradient(to left,
-    rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0.06) 50%, transparent 100%);
-  border-left: 1px solid rgba(140, 120, 90, 0.08);
+    rgba(0, 0, 0, 0.22) 0%,
+    rgba(0, 0, 0, 0.08) 60%,
+    transparent 100%);
 }
 
 /* Film frame border — cinematic window edge */
@@ -3655,10 +3671,10 @@ body.mobile-focus-active .mobile-focus-label { display: block; }
 
 /* ── Light theme adjustments ─────────────────────────────────── */
 [data-theme="light"] .mobile-focus-fade-l {
-  background: linear-gradient(to right, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
+  background: linear-gradient(to right, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.04) 60%, transparent 100%);
 }
 [data-theme="light"] .mobile-focus-fade-r {
-  background: linear-gradient(to left, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.03) 50%, transparent 100%);
+  background: linear-gradient(to left, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.04) 60%, transparent 100%);
 }
 [data-theme="light"] .mobile-focus-label {
   background: rgba(255, 255, 255, 0.9);

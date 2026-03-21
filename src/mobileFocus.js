@@ -315,34 +315,35 @@ function _renderRulerTicks() {
 // ── Visual cue elements ─────────────────────────────────────────
 
 function _createOverlayElements() {
-  const wrap = _tlOuter;
-  if (!wrap) return;
+  if (!_tlOuter) return;
 
-  // Film strip sprocket holes — top
+  // Sprockets stay on tlOuter (span the full film-strip height)
   _sprocketTop = document.createElement('div');
   _sprocketTop.className = 'film-sprocket film-sprocket-top';
-  wrap.appendChild(_sprocketTop);
+  _tlOuter.appendChild(_sprocketTop);
 
-  // Film strip sprocket holes — bottom
   _sprocketBot = document.createElement('div');
   _sprocketBot.className = 'film-sprocket film-sprocket-bottom';
-  wrap.appendChild(_sprocketBot);
+  _tlOuter.appendChild(_sprocketBot);
 
-  // Left edge fade (at label column right edge)
+  // Edge fades go INTO #churchPanel (position:absolute) so they are
+  // naturally clipped to the church-bar area only — they will NOT
+  // bleed up over the Periods row or the year ruler.
+  const churchPanel = document.getElementById('churchPanel') || _tlOuter;
+
   _fadeL = document.createElement('div');
   _fadeL.className = 'mobile-focus-fade mobile-focus-fade-l';
-  wrap.appendChild(_fadeL);
+  churchPanel.appendChild(_fadeL);
 
-  // Right edge fade
   _fadeR = document.createElement('div');
   _fadeR.className = 'mobile-focus-fade mobile-focus-fade-r';
-  wrap.appendChild(_fadeR);
+  churchPanel.appendChild(_fadeR);
 
-  // "Viewing" year-range label
+  // Year-range pill — keep on tlOuter (centred over the whole timeline)
   _viewLabel = document.createElement('div');
   _viewLabel.className = 'mobile-focus-label';
   _viewLabel.textContent = '';
-  wrap.appendChild(_viewLabel);
+  _tlOuter.appendChild(_viewLabel);
 }
 
 function _removeOverlayElements() {
