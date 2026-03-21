@@ -3429,21 +3429,34 @@ body.mode-combined  #trackToggles { display: flex;  }
 body.onb-open { overflow: hidden; }
 
 /* ══════════════════════════════════════════════════════════════════
-   MOBILE FOCUS WINDOW — transform-based horizontal panning
+   MOBILE FOCUS WINDOW — "time lens" horizontal panning
+   Feels like an iOS picker wheel turned horizontal: a fixed viewing
+   window (150 years) through which the full 800-year timeline scrolls.
    ══════════════════════════════════════════════════════════════════ */
 
-/* When mobile focus mode is active, disable native scroll and use transforms */
-body.mobile-focus-active .tl-lanes-scroll {
-  overflow: hidden !important;
-  touch-action: pan-y !important;
-  -webkit-overflow-scrolling: auto !important;
+/* ── Vertical scroll: churchPanel becomes the scrollable container ── */
+body.mobile-focus-active #churchPanel {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  display: block !important;
+  position: relative;
 }
+body.mobile-focus-active .tl-lanes-scroll {
+  overflow: visible !important;
+  min-height: max-content;
+}
+body.mobile-focus-active .tl-labels {
+  display: none !important;
+}
+
+/* Disable native horizontal scroll — transforms handle everything */
 body.mobile-focus-active .tl-ctx-scroll {
   overflow: hidden !important;
   touch-action: pan-y !important;
 }
 
-/* Prevent rubber-band / pull-to-refresh while dragging horizontally */
+/* Prevent rubber-band while dragging horizontally */
 body.mobile-focus-dragging {
   overflow: hidden !important;
   touch-action: none !important;
@@ -3455,13 +3468,13 @@ body.mobile-focus-dragging * {
 
 /* ── Mobile year ruler ───────────────────────────────────────── */
 .mobile-ruler {
-  position: relative;
-  height: 28px;
+  position: sticky; top: 0;
+  height: 26px;
   background: var(--parchment-dk);
   border-bottom: 1px solid var(--tl-border);
   overflow: hidden;
-  flex-shrink: 0;
-  display: none; /* shown only when mobile focus is active */
+  z-index: 8;
+  display: none;
 }
 body.mobile-focus-active .mobile-ruler { display: block; }
 
@@ -3473,102 +3486,118 @@ body.mobile-focus-active .mobile-ruler { display: block; }
 .mobile-ruler-tick {
   position: absolute; top: 0; bottom: 0;
   width: 1px;
-  background: rgba(140, 120, 90, 0.2);
+  background: rgba(140, 120, 90, 0.15);
 }
 .mobile-ruler-tick.mid {
-  background: rgba(140, 120, 90, 0.35);
+  background: rgba(140, 120, 90, 0.3);
 }
 .mobile-ruler-tick.major {
   background: rgba(140, 120, 90, 0.5);
 }
 .mobile-ruler-yr {
   position: absolute;
-  top: 2px; left: 4px;
-  font-size: 10px;
+  top: 3px; left: 4px;
+  font-size: 8px;
   font-family: var(--font-ui);
   color: var(--text-muted);
+  opacity: 0.6;
   white-space: nowrap;
   pointer-events: none;
 }
+.mobile-ruler-tick.mid .mobile-ruler-yr {
+  font-size: 9px;
+  opacity: 0.8;
+}
 .mobile-ruler-tick.major .mobile-ruler-yr {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 11px;
   color: var(--text-body);
+  opacity: 1;
 }
 
-/* ── Edge fades (vignette effect) ────────────────────────────── */
+/* ── Edge fades — wider vignette for "time lens" feel ────────── */
 .mobile-focus-fade {
   display: none;
-  position: absolute; top: 0; bottom: 0;
-  width: 20px;
+  position: fixed;
+  top: 0; bottom: 0;
+  width: 36px;
   pointer-events: none;
   z-index: 12;
 }
 body.mobile-focus-active .mobile-focus-fade { display: block; }
 
 .mobile-focus-fade-l {
-  left: var(--label-w);
+  left: 0;
   background: linear-gradient(to right,
-    var(--tl-bg) 0%,
-    rgba(0,0,0,0) 100%
-  );
+    var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(0,0,0,0) 100%);
+  border-right: 1px solid rgba(140, 120, 90, 0.1);
 }
 .mobile-focus-fade-r {
   right: 0;
   background: linear-gradient(to left,
-    var(--tl-bg) 0%,
-    rgba(0,0,0,0) 100%
-  );
+    var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(0,0,0,0) 100%);
+  border-left: 1px solid rgba(140, 120, 90, 0.1);
 }
 
-/* ── Center line ─────────────────────────────────────────────── */
+/* Inset shadow — creates "looking through a window" depth */
+body.mobile-focus-active .tl-outer {
+  box-shadow: inset 6px 0 14px -6px rgba(0,0,0,0.3),
+              inset -6px 0 14px -6px rgba(0,0,0,0.3);
+}
+
+/* ── Center line (subtle focal guide) ────────────────────────── */
 .mobile-focus-center-line {
   display: none;
-  position: absolute;
+  position: fixed;
   top: 0; bottom: 0;
-  left: calc(var(--label-w) + (100% - var(--label-w)) / 2);
+  left: 50%;
   width: 1px;
   background: var(--accent);
-  opacity: 0.15;
+  opacity: 0.12;
   pointer-events: none;
   z-index: 11;
 }
 body.mobile-focus-active .mobile-focus-center-line { display: block; }
 
-/* ── "Viewing: YYYY – YYYY" label ────────────────────────────── */
+/* ── "Viewing: YYYY – YYYY" floating pill ────────────────────── */
 .mobile-focus-label {
   display: none;
-  position: absolute;
-  top: 6px;
+  position: fixed;
+  top: 74px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 15, 20, 0.75);
+  background: rgba(15, 15, 20, 0.82);
   color: var(--accent);
   font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  padding: 3px 12px;
-  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 16px;
+  border-radius: 14px;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 20;
+  z-index: 200;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 body.mobile-focus-active .mobile-focus-label { display: block; }
 .mobile-focus-label.visible { opacity: 1; }
 
 /* Light theme adjustments */
 [data-theme="light"] .mobile-focus-fade-l {
-  background: linear-gradient(to right, var(--tl-bg) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to right, var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(255,255,255,0) 100%);
 }
 [data-theme="light"] .mobile-focus-fade-r {
-  background: linear-gradient(to left, var(--tl-bg) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to left, var(--tl-bg) 0%, var(--tl-bg) 30%, rgba(255,255,255,0) 100%);
 }
 [data-theme="light"] .mobile-focus-label {
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--accent);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+[data-theme="light"] body.mobile-focus-active .tl-outer {
+  box-shadow: inset 6px 0 12px -6px rgba(0,0,0,0.12),
+              inset -6px 0 12px -6px rgba(0,0,0,0.12);
 }
 
 /* GPU-accelerate the transform targets */

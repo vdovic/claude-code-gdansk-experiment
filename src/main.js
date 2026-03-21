@@ -216,10 +216,15 @@ function _applyViewport(vp, save = true) {
     btn.title = vp === 'mobile' ? 'Switch to desktop layout' : 'Switch to mobile layout';
   }
   setLabelOffset(vp === 'mobile' ? 110 : 180);
-  // Always reset to the default view window when switching viewport so the
-  // user never lands on a zoomed period (e.g. Teutonic Rule) after toggling.
-  setViewStart(DEFAULT_VIEW_START);
-  setViewEnd(DEFAULT_VIEW_END);
+  // Mobile gets the full range (1150–2005) so users can pan all the way;
+  // desktop keeps the focused medieval view (1150–1750) with zoom controls.
+  if (vp === 'mobile') {
+    setViewEnd(END_YEAR);        // widen first to avoid clamp
+    setViewStart(START_YEAR);
+  } else {
+    setViewStart(DEFAULT_VIEW_START);
+    setViewEnd(DEFAULT_VIEW_END);
+  }
   // Land on the natural home tab for each layout:
   //   mobile  → Churches list (card browsing is the primary mobile flow)
   //   desktop → Timeline (the full interactive timeline is the primary desktop view)
