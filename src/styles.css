@@ -3434,37 +3434,28 @@ body.onb-open { overflow: hidden; }
    timeline scrolls, styled like a classic camera film strip.
    ══════════════════════════════════════════════════════════════════ */
 
-/* ── Vertical scroll: churchPanel becomes the scrollable container ── */
-body.mobile-focus-active #churchPanel {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  -webkit-overflow-scrolling: touch;
-  display: block !important;
-  position: relative;
-}
+/* ── Church lane scroll: disable native X-pan, keep vertical scroll ── */
+/* .tl-lanes-wrap (#churchPanel) stays as flex row — labels | scroll area */
 body.mobile-focus-active .tl-lanes-scroll {
-  overflow: visible !important;
-  min-height: max-content;
-}
-body.mobile-focus-active .tl-labels {
-  display: none !important;
+  overflow-x: hidden !important;   /* transforms handle horizontal panning */
+  overflow-y: auto !important;     /* native vertical scroll for all church rows */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Disable native horizontal scroll — transforms handle everything */
+/* Church name labels: always visible (fixed left column, not transformed) */
+/* No display:none rule — .tl-labels stays in the flex row as-is */
+
+/* Context track rows: disable native horizontal scroll (transforms sync them) */
 body.mobile-focus-active .tl-ctx-scroll {
-  overflow: hidden !important;
+  overflow-x: hidden !important;
   touch-action: pan-y !important;
 }
 
-/* BUT keep the Periods row independently scrollable */
+/* Periods row: independent horizontal scroll, not synced */
 body.mobile-focus-active #econErasRow .tl-ctx-scroll {
   overflow-x: auto !important;
   touch-action: pan-x !important;
-}
-
-/* Hide the empty contextPanel shell (rows moved into churchPanel) */
-body.mobile-focus-active #contextPanel {
-  display: none !important;
 }
 
 /* Prevent rubber-band while dragging horizontally */

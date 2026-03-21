@@ -2,6 +2,16 @@
 // Transform-based horizontal panning for the mobile timeline.
 // Creates a "film strip" experience: the user looks through a fixed
 // window (~150 years) while the full 800-year timeline scrolls beneath.
+//
+// Architecture:
+//   • NO DOM rearrangement — existing HTML structure is preserved.
+//   • #lanesScroll: overflow-x hidden (transforms handle panning),
+//     overflow-y auto (native vertical scroll for church rows).
+//   • #lanesInner: translateX(-offset) → church bars pan.
+//   • .ctx-inner (excl. econEras): translateX(-offset) → context tracks sync.
+//   • #econErasRow .tl-ctx-scroll: independent horizontal scroll (Periods).
+//   • .tl-labels: always visible — church names stay fixed on left.
+//   • Mobile ruler: inserted inside #lanesScroll (sticky top), pans in sync.
 
 import {
   viewStart, viewEnd, pixelsPerYear, labelOffset,
@@ -58,9 +68,6 @@ let _fadeR       = null;
 let _sprocketTop = null;
 let _sprocketBot = null;
 
-// Context rows moved into churchPanel for co-scroll
-let _movedCtxRows = [];
-
 // ── Public API ──────────────────────────────────────────────────
 
 export function initMobileFocus() {
@@ -80,39 +87,35 @@ export function initMobileFocus() {
   _active = true;
 
   // ── Set pixelsPerYear to show exactly MOBILE_FOCUS_SPAN years ──
-  const vpW = _lanesScroll.clientWidth || 265;
+  // _lanesScroll.clientWidth is the bar area (window width minus label column)
+  const vpW = _lanesScroll.clientWidth || (window.innerWidth - 110);
   const targetPPY = Math.max(vpW / MOBILE_FOCUS_SPAN, 2);
   setPixelsPerYear(targetPPY);
   render();
 
-  // ── Move context track rows INTO churchPanel for vertical co-scroll ──
-  _moveContextRowsIn();
-
-  // ── Create ruler at top of churchPanel (under periods, above ctx tracks) ──
+  // ── Create ruler inside lanesScroll (sticky, above church bars) ──
   _createRuler();
 
-  // Create visual cue elements
+  // ── Create visual cue elements ──
   _createOverlayElements();
 
-  // Disable native horizontal scroll on lanes, allow vertical
+  // ── Override native horizontal scroll — transforms handle it ──
+  // IMPORTANT: keep overflowY working so church rows can scroll vertically.
   _lanesScroll.style.overflowX = 'hidden';
-  _lanesScroll.style.overflowY = 'visible';
   _lanesScroll.style.touchAction = 'pan-y';
+
+  // Context track scrolls: disable native horizontal pan (transforms handle it)
   _ctxScrolls.forEach(el => {
-    el.style.overflow = 'hidden';
+    el.style.overflowX = 'hidden';
     el.style.touchAction = 'pan-y';
   });
 
-  // Ensure periods row stays independently scrollable
+  // Ensure Periods row stays independently horizontally scrollable
   const econScroll = document.querySelector('#econErasRow .tl-ctx-scroll');
   if (econScroll) {
     econScroll.style.overflowX = 'auto';
     econScroll.style.touchAction = 'pan-x';
   }
-
-  // Hide the now-empty contextPanel container
-  const ctxPanel = document.getElementById('contextPanel');
-  if (ctxPanel) ctxPanel.style.display = 'none';
 
   // Compute layout after reflow
   requestAnimationFrame(() => {
@@ -132,7 +135,7 @@ export function initMobileFocus() {
     }
   });
 
-  // Attach pointer events
+  // Attach pointer events on tlOuter so they cover the whole timeline area
   if (_tlOuter) {
     _tlOuter.addEventListener('pointerdown', _onPointerDown, { passive: false });
     _tlOuter.addEventListener('pointermove', _onPointerMove, { passive: false });
@@ -141,7 +144,7 @@ export function initMobileFocus() {
     _tlOuter.addEventListener('click', _suppressClick, true);
   }
 
-  // Activate CSS
+  // Activate CSS class last (after layout computed)
   requestAnimationFrame(() => {
     document.body.classList.add('mobile-focus-active');
   });
@@ -151,35 +154,26 @@ export function destroyMobileFocus() {
   if (!_active) return;
   _active = false;
 
-  // Restore native scroll
+  // Restore native scroll behaviour
   if (_lanesScroll) {
-    _lanesScroll.style.overflow = '';
-    _lanesScroll.style.touchAction = '';
     _lanesScroll.style.overflowX = '';
-    _lanesScroll.style.overflowY = '';
+    _lanesScroll.style.touchAction = '';
   }
   _ctxScrolls.forEach(el => {
-    el.style.overflow = '';
+    el.style.overflowX = '';
     el.style.touchAction = '';
   });
 
-  // Remove transform
+  // Remove transforms
   _setTranslate(_lanesInner, 0);
   _ctxInners.forEach(el => _setTranslate(el, 0));
 
-  // Restore context rows
-  _moveContextRowsOut();
-
-  // Restore contextPanel visibility
-  const ctxPanel = document.getElementById('contextPanel');
-  if (ctxPanel) ctxPanel.style.display = '';
+  // Remove ruler (was inserted into lanesScroll)
+  if (_ruler && _ruler.parentNode) _ruler.parentNode.removeChild(_ruler);
+  _ruler = null; _rulerInner = null;
 
   // Remove overlay elements
   _removeOverlayElements();
-
-  // Remove ruler
-  if (_ruler && _ruler.parentNode) _ruler.parentNode.removeChild(_ruler);
-  _ruler = null; _rulerInner = null;
 
   document.body.classList.remove('mobile-focus-active');
 
@@ -214,35 +208,6 @@ export function syncMobileFocus() {
   });
 }
 
-// ── Context row DOM rearrangement ───────────────────────────────
-
-function _moveContextRowsIn() {
-  _movedCtxRows = [];
-  const ctxPanel    = document.getElementById('contextPanel');
-  const churchPanel = document.getElementById('churchPanel');
-  if (!ctxPanel || !churchPanel) return;
-
-  const rows = [...ctxPanel.querySelectorAll('.tl-ctx-row')];
-  rows.forEach(row => {
-    _movedCtxRows.push({ el: row, parent: ctxPanel, next: row.nextSibling });
-  });
-  // Insert at top of churchPanel — context rows come after ruler (ruler added later via _createRuler)
-  const frag = document.createDocumentFragment();
-  rows.forEach(row => frag.appendChild(row));
-  churchPanel.insertBefore(frag, churchPanel.firstChild);
-}
-
-function _moveContextRowsOut() {
-  [..._movedCtxRows].reverse().forEach(({ el, parent, next }) => {
-    if (next && next.parentNode === parent) {
-      parent.insertBefore(el, next);
-    } else {
-      parent.appendChild(el);
-    }
-  });
-  _movedCtxRows = [];
-}
-
 // ── Layout computation ──────────────────────────────────────────
 
 function _recalcLayout() {
@@ -267,8 +232,7 @@ function _applyTransform() {
 // ── Year ruler ──────────────────────────────────────────────────
 
 function _createRuler() {
-  const churchPanel = document.getElementById('churchPanel');
-  if (!churchPanel) return;
+  if (!_lanesScroll) return;
 
   _ruler = document.createElement('div');
   _ruler.className = 'mobile-ruler';
@@ -279,8 +243,9 @@ function _createRuler() {
   _rulerInner.id = 'mobileRulerInner';
   _ruler.appendChild(_rulerInner);
 
-  // Insert ruler as FIRST child of churchPanel (above context rows)
-  churchPanel.insertBefore(_ruler, churchPanel.firstChild);
+  // Insert as first child of lanesScroll — it sits above church bars
+  // position: sticky keeps it visible when scrolling vertically
+  _lanesScroll.insertBefore(_ruler, _lanesScroll.firstChild);
 }
 
 function _renderRulerTicks() {
@@ -302,7 +267,6 @@ function _renderRulerTicks() {
     tick.className = 'mobile-ruler-tick' + (isMajor ? ' major' : isMid ? ' mid' : '');
     tick.style.left = x + 'px';
 
-    // Every tick gets a label
     const lbl = document.createElement('span');
     lbl.className = 'mobile-ruler-yr';
     lbl.textContent = yr;
@@ -328,7 +292,7 @@ function _createOverlayElements() {
   _sprocketBot.className = 'film-sprocket film-sprocket-bottom';
   wrap.appendChild(_sprocketBot);
 
-  // Left edge fade (starts at label-w)
+  // Left edge fade (at label column right edge)
   _fadeL = document.createElement('div');
   _fadeL.className = 'mobile-focus-fade mobile-focus-fade-l';
   wrap.appendChild(_fadeL);
@@ -338,7 +302,7 @@ function _createOverlayElements() {
   _fadeR.className = 'mobile-focus-fade mobile-focus-fade-r';
   wrap.appendChild(_fadeR);
 
-  // "Viewing" label
+  // "Viewing" year-range label
   _viewLabel = document.createElement('div');
   _viewLabel.className = 'mobile-focus-label';
   _viewLabel.textContent = '';
@@ -394,7 +358,7 @@ function _onPointerMove(e) {
 
     _gestureDecided = true;
 
-    // Vertical gesture → yield to browser
+    // Vertical gesture → yield to browser (native vertical scroll)
     if (Math.abs(dy) > Math.abs(dx)) {
       _pointerId = null;
       return;
