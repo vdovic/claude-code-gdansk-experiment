@@ -90,6 +90,44 @@ export function legendShapeSVG(shape, color, size = 10) {
   return eventMarkerSVG({ circle: 'founded', diamond: 'cornerstone', square: 'expansion', triangle: 'notable', cross: 'destroyed', hexagon: 'denomination' }[shape] || 'founded', color, size);
 }
 
+// ── Global context marker shapes (outlined / stroke-only) ───────
+// Visually distinct from church event markers (which are filled).
+export function ctxMarkerSVG(track, color, size = 11) {
+  const s = size;
+  const half = s / 2;
+
+  switch (track) {
+    case 'political': // outlined diamond
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><rect x="${half - 3.5}" y="${half - 3.5}" width="7" height="7" rx="1" fill="none" stroke="${color}" stroke-width="2" transform="rotate(45 ${half} ${half})"/></svg>`;
+
+    case 'religious': { // 5-pointed star outline
+      const r = half - 1;
+      const ri = r * 0.38;
+      const pts = Array.from({ length: 10 }, (_, i) => {
+        const rad = (i % 2 === 0 ? r : ri);
+        const angle = (Math.PI / 5) * i - Math.PI / 2;
+        return `${half + rad * Math.cos(angle)},${half + rad * Math.sin(angle)}`;
+      }).join(' ');
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    }
+
+    case 'plagues': // outlined inverted triangle
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${half},${s - 1} 1,1 ${s - 1},1" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+
+    case 'urbanPower': { // outlined hexagon
+      const r = half - 1;
+      const pts = Array.from({ length: 6 }, (_, i) => {
+        const angle = (Math.PI / 3) * i - Math.PI / 6;
+        return `${half + r * Math.cos(angle)},${half + r * Math.sin(angle)}`;
+      }).join(' ');
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    }
+
+    default:
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><circle cx="${half}" cy="${half}" r="${half - 1}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+  }
+}
+
 // ── UI neutral palette (for reference, actual values live in CSS) ──
 export const uiNeutrals = {
   bgBase:       'var(--bg-base)',

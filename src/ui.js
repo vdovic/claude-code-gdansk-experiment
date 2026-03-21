@@ -42,11 +42,17 @@ function _ctxShapeHtml(shape, color) {
     case 'bar-war':
       return `<div style="${base}width:22px;height:5px;border-radius:2px;background:${color};opacity:0.85;"></div>`;
     case 'diamond':
-      return `<div style="${base}width:9px;height:9px;transform:rotate(45deg);border-radius:1px;background:${color};opacity:0.9;"></div>`;
+      return `<div style="${base}width:9px;height:9px;transform:rotate(45deg);border:2px solid ${color};border-radius:1px;background:transparent;"></div>`;
+    case 'star':
+      return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,0.5 7.5,4 11.5,4.5 8.5,7 9.5,11 6,9 2.5,11 3.5,7 0.5,4.5 4.5,4" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    case 'triangle':
+      return `<div style="${base}width:10px;height:10px;clip-path:polygon(0% 0%,100% 0%,50% 100%);border:2px solid ${color};background:transparent;"></div>`;
+    case 'triangle-outline':
+      return `<svg width="11" height="11" viewBox="0 0 11 11" style="flex-shrink:0"><polygon points="5.5,0.5 10.5,10.5 0.5,10.5" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    case 'hexagon-outline':
+      return `<svg width="11" height="11" viewBox="0 0 11 11" style="flex-shrink:0"><polygon points="5.5,0.5 10.2,2.75 10.2,8.25 5.5,10.5 0.8,8.25 0.8,2.75" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
     case 'circle':
       return `<div style="${base}width:10px;height:10px;border-radius:50%;background:${color};opacity:0.9;"></div>`;
-    case 'triangle':
-      return `<div style="${base}width:10px;height:10px;clip-path:polygon(0% 0%,100% 0%,50% 100%);background:${color};opacity:0.9;"></div>`;
     case 'square':
       return `<div style="${base}width:9px;height:9px;border-radius:2px;background:${color};opacity:0.9;"></div>`;
     default: return '';
@@ -62,27 +68,48 @@ export function renderLegend() {
 
   // ── Global Events section ────────────────────────────────────
   if (globalEl) {
+    // Flat items (single shape + color per track — no sub-categories)
     const globalItems = [
       { shape: 'bar-ruler', color: 'rgba(212,162,83,0.45)', label: 'Kings & Rulers',
         desc: 'Named ruler periods shown as horizontal bands above the timeline' },
-      { shape: 'bar-war',   color: 'rgba(160,55,45,0.55)',  label: 'Wars & Conflicts',
-        desc: 'Armed conflicts and sieges affecting Gdańsk shown as span bars' },
-      { shape: 'diamond',   color: 'var(--amber)',           label: 'Political Events',
-        desc: 'Key political milestones: treaties, seizures, incorporations, rebellions' },
-      { shape: 'circle',    color: '#8a5ab8',                label: 'Religious Events',
-        desc: 'Ecclesiastical milestones: reformations, synods, missions, schisms' },
-      { shape: 'triangle',  color: 'var(--ev-plague)',       label: 'Plagues & Epidemics',
+      { shape: 'bar-war',   color: 'rgba(160,64,64,0.75)',  label: 'Wars & Conflicts',
+        desc: 'Armed conflicts and sieges affecting Gdańsk — all shown in the same red' },
+      { shape: 'diamond',   color: 'var(--ctx-political-marker)', label: 'Political Events',
+        desc: 'Key political milestones: treaties, incorporations, annexations, rebellions' },
+      { shape: 'triangle-outline', color: 'var(--ctx-plague-marker)', label: 'Plagues & Epidemics',
         desc: 'Disease outbreaks and epidemics with major demographic impact' },
-      { shape: 'square',    color: '#a08030',                label: 'Urban Power',
+      { shape: 'hexagon-outline',  color: 'var(--ctx-urban-marker)', label: 'Urban Power',
         desc: 'Municipal governance changes: law grants, privileges, council shifts' },
     ];
-    globalEl.innerHTML = globalItems.map(g =>
-      `<div class="legend-item" tabindex="0" aria-label="${g.label}: ${g.desc}">
-        <div class="legend-item-shape" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;">${_ctxShapeHtml(g.shape, g.color)}</div>
-        <span>${g.label}</span>
-        <div class="legend-item-desc">${g.desc}</div>
-      </div>`
-    ).join('');
+
+    // Religious Events: star outline, colour = denomination of the event
+    const relItems = [
+      { color: 'var(--ctx-religious-marker)', label: 'Religious — General',
+        desc: 'Ecumenical councils, broad ecclesiastical shifts' },
+      { color: 'var(--catholic)',  label: 'Religious — Catholic',
+        desc: 'Events tied to the Catholic Church or Counter-Reformation' },
+      { color: 'var(--lutheran)',  label: 'Religious — Lutheran',
+        desc: 'Events tied to the Lutheran Reformation or Protestant governance' },
+      { color: 'var(--calvinist)', label: 'Religious — Calvinist',
+        desc: 'Events tied to the Reformed (Calvinist) congregation in Gdańsk' },
+    ];
+
+    globalEl.innerHTML =
+      globalItems.map(g =>
+        `<div class="legend-item" tabindex="0" aria-label="${g.label}: ${g.desc}">
+          <div class="legend-item-shape" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;">${_ctxShapeHtml(g.shape, g.color)}</div>
+          <span>${g.label}</span>
+          <div class="legend-item-desc">${g.desc}</div>
+        </div>`
+      ).join('') +
+      `<div class="legend-item-micro-title">Religious Events (star = denomination colour)</div>` +
+      relItems.map(r =>
+        `<div class="legend-item" tabindex="0" aria-label="${r.label}: ${r.desc}">
+          <div class="legend-item-shape" style="display:flex;align-items:center;justify-content:center;width:20px;height:20px;">${_ctxShapeHtml('star', r.color)}</div>
+          <span>${r.label}</span>
+          <div class="legend-item-desc">${r.desc}</div>
+        </div>`
+      ).join('');
   }
 
   // ── Church-related event markers ────────────────────────────
@@ -130,7 +157,8 @@ export function initLegendPanel() {
   function toggleLegend() { panel.classList.toggle('collapsed'); }
 
   // Start collapsed on mobile; open by default on desktop
-  if (window.innerWidth <= 768) panel.classList.add('collapsed');
+  // Use 900px to match the app's desktop/mobile breakpoint
+  if (window.innerWidth <= 900) panel.classList.add('collapsed');
 
   btn.addEventListener('click', toggleLegend);
   // Keyboard: Enter/Space on legend toggle
@@ -140,11 +168,15 @@ export function initLegendPanel() {
 
   close?.addEventListener('click', () => panel.classList.add('collapsed'));
 
-  // Close when clicking outside
+  // Close when clicking outside — but NOT when interacting with the view-mode
+  // toggle or any other timeline controls (those should never close the legend)
   document.addEventListener('click', e => {
-    if (!panel.classList.contains('collapsed') && !panel.contains(e.target) && e.target !== btn) {
-      panel.classList.add('collapsed');
-    }
+    if (panel.classList.contains('collapsed')) return;
+    if (panel.contains(e.target)) return;
+    if (e.target === btn) return;
+    // Keep legend open when user clicks the view-mode pill, timeline controls, or overlays
+    if (e.target.closest('#viewModeRow, #viewModeToggle, .pill-btn, .pill-toggle, #controlsBar, #trackToggles, .filter-bar, #churchControls, .onb-overlay, .kb-overlay')) return;
+    panel.classList.add('collapsed');
   });
 
   // Keyboard: Escape closes legend

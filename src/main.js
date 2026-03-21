@@ -865,6 +865,37 @@ function _initSyncedPeriodsToggle() {
   document.getElementById('econErasRow')?.classList.add('synced-periods');
 }
 
+// ── Scroll-down hint (fades out when user scrolls churches) ──
+function _initScrollHint() {
+  const hint = document.getElementById('scrollHint');
+  const lanesScroll = document.getElementById('lanesScroll');
+  if (!hint || !lanesScroll) return;
+
+  // Only show on desktop
+  if (window.innerWidth <= 900 || navigator.maxTouchPoints > 0) {
+    hint.classList.add('hidden');
+    return;
+  }
+
+  let dismissed = false;
+  lanesScroll.addEventListener('scroll', () => {
+    if (dismissed) return;
+    // Dismiss after any vertical scroll (scrollTop > 20px)
+    if (lanesScroll.scrollTop > 20) {
+      hint.classList.add('hidden');
+      dismissed = true;
+    }
+  }, { passive: true });
+
+  // Also dismiss after 8 seconds regardless
+  setTimeout(() => {
+    if (!dismissed) {
+      hint.classList.add('hidden');
+      dismissed = true;
+    }
+  }, 8000);
+}
+
 // ── Init sequence ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   // Viewport toggle (mobile ↔ desktop) — must run before setLabelOffset
@@ -918,6 +949,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // One-time onboarding tip
   _initOnboarding();
+
+  // Scroll-hint: dismiss on first vertical scroll of church lanes
+  _initScrollHint();
 
   // Legend panel
   initLegendPanel();

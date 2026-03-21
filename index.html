@@ -49,9 +49,9 @@
     <button class="legend-panel-close" id="legendPanelClose">✕</button>
   </div>
   <div class="legend-panel-body">
-    <div class="legend-section-title">Global Events</div>
+    <div class="legend-section-title" id="legendGlobalTitle">Global Events (outlined markers)</div>
     <div class="legend-section" id="legendGlobal"></div>
-    <div class="legend-section-title">Church-related Events</div>
+    <div class="legend-section-title">Church Events (solid markers)</div>
     <div class="legend-section" id="legendEvents"></div>
     <div class="legend-section-title">Denomination Colours</div>
     <div class="legend-section" id="legendDenoms"></div>
@@ -84,6 +84,15 @@
 
     </div>
 
+    <!-- ── View mode switch — top-level toggle above timeline ── -->
+    <div class="view-mode-row" id="viewModeRow">
+      <span class="vm-label">View:</span>
+      <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
+        <div class="pill-indicator" aria-hidden="true"></div>
+        <button class="pill-btn" data-mode="churches" role="radio">Churches Only</button>
+        <button class="pill-btn" data-mode="combined" role="radio">+ Global Context</button>
+      </div>
+    </div>
 
     <!-- Map panel (collapsible) -->
     <div class="map-container collapsed" id="mapContainer">
@@ -237,16 +246,6 @@
       <!-- Church controls: selector, filters, sort — pinned between handle and lanes -->
       <div id="churchControls">
 
-        <!-- ── View mode switch — first thing users see in the church section ── -->
-        <div class="view-mode-row">
-          <span class="vm-label">View:</span>
-          <div class="pill-toggle" id="viewModeToggle" role="radiogroup" aria-label="Timeline view">
-            <div class="pill-indicator" aria-hidden="true"></div>
-            <button class="pill-btn" data-mode="churches" role="radio">Churches Only</button>
-            <button class="pill-btn" data-mode="combined" role="radio">+ Global Context</button>
-          </div>
-        </div>
-
         <!-- Churches compact selector -->
         <div class="filter-bar" id="churchSelectorBar">
           <span class="filter-section-label" style="flex-shrink:0;">Churches:</span>
@@ -288,6 +287,14 @@
         <div class="tl-labels" id="tlLabels"></div>
         <div class="tl-lanes-scroll" id="lanesScroll">
           <div class="lanes-inner" id="lanesInner"></div>
+        </div>
+      </div>
+
+      <!-- Scroll hint for desktop users -->
+      <div class="scroll-hint" id="scrollHint">
+        <div class="scroll-hint-text">Scroll down to explore churches</div>
+        <div class="scroll-hint-chevron">
+          <svg width="24" height="14" viewBox="0 0 24 14"><polyline points="2,2 12,11 22,2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
 
@@ -385,6 +392,59 @@
      TOOLTIP
      ══════════════════════════════════════════════ -->
 <div class="tooltip" id="tooltip"></div>
+
+<!-- ══════════════════════════════════════════════
+     ONBOARDING OVERLAY (first-visit + reopenable via ℹ button)
+     ══════════════════════════════════════════════ -->
+<div class="onb-overlay" id="onboardingOverlay" role="dialog" aria-modal="true" aria-labelledby="onbTitle">
+  <div class="onb-panel">
+    <button class="onb-close" id="onbClose" aria-label="Close">✕</button>
+
+    <div class="onb-header">
+      <div class="onb-eyebrow">Gdańsk · 800 years</div>
+      <h2 class="onb-title" id="onbTitle">How to explore Gdańsk<br>through its churches</h2>
+      <p class="onb-purpose">See how Gdańsk evolved across 800 years — through its churches, rulers, wars and major events.</p>
+    </div>
+
+    <div class="onb-columns">
+      <div class="onb-col">
+        <div class="onb-col-header">
+          <span class="onb-col-icon">🖥</span>
+          <span class="onb-col-label">On desktop</span>
+        </div>
+        <ul class="onb-list">
+          <li>Scan the timeline <strong>horizontally</strong> to move through centuries</li>
+          <li>Each row is one church — follow its history across time</li>
+          <li>Enable <strong>+ Global Context</strong> to overlay wars, rulers &amp; events</li>
+          <li>Click any marker or bar to see details</li>
+        </ul>
+      </div>
+      <div class="onb-col">
+        <div class="onb-col-header">
+          <span class="onb-col-icon">📱</span>
+          <span class="onb-col-label">On mobile</span>
+        </div>
+        <ul class="onb-list">
+          <li>Start with the <strong>list of churches</strong></li>
+          <li>Tap a church to explore its timeline and events</li>
+          <li>Use search and filters to find specific churches</li>
+          <li>Enable <strong>+ Global Context</strong> to add historical events</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="onb-tip">
+      <span class="onb-tip-icon">💡</span>
+      <span>Turn on <strong>Global Context</strong> to see how churches connect to wars, politics and epidemics</span>
+    </div>
+
+    <button class="onb-cta" id="onbCta">Got it — let's explore</button>
+
+    <div class="onb-credits-link">
+      <button class="onb-credits-btn" id="onbCreditsBtn">About this project</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════
      ABOUT OVERLAY
@@ -677,14 +737,50 @@
 </script>
 
 <!-- ══════════════════════════════════════════════
-     ABOUT PANEL TOGGLE
+     ABOUT PANEL TOGGLE + ONBOARDING OVERLAY
      ══════════════════════════════════════════════ -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var overlay = document.getElementById('aboutOverlay');
-  document.getElementById('btnAbout').addEventListener('click', function() { overlay.classList.add('open'); });
-  document.getElementById('aboutClose').addEventListener('click', function() { overlay.classList.remove('open'); });
-  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+  // ── About / credits overlay (kept accessible via link inside onboarding) ──
+  var aboutOverlay = document.getElementById('aboutOverlay');
+  document.getElementById('aboutClose').addEventListener('click', function() { aboutOverlay.classList.remove('open'); });
+  aboutOverlay.addEventListener('click', function(e) { if (e.target === aboutOverlay) aboutOverlay.classList.remove('open'); });
+
+  // ── Onboarding overlay ──
+  var onbOverlay  = document.getElementById('onboardingOverlay');
+  var SEEN_KEY    = 'onboardingOverlaySeen';
+
+  function openOnb() {
+    onbOverlay.classList.add('open');
+    document.body.classList.add('onb-open');
+  }
+  function closeOnb() {
+    onbOverlay.classList.remove('open');
+    document.body.classList.remove('onb-open');
+    localStorage.setItem(SEEN_KEY, '1');
+  }
+
+  // Show on first visit
+  if (!localStorage.getItem(SEEN_KEY)) {
+    setTimeout(openOnb, 400);
+  }
+
+  // ℹ button now opens onboarding (not credits directly)
+  document.getElementById('btnAbout').addEventListener('click', openOnb);
+
+  // Close: button, backdrop, ESC
+  document.getElementById('onbClose').addEventListener('click', closeOnb);
+  document.getElementById('onbCta').addEventListener('click', closeOnb);
+  onbOverlay.addEventListener('click', function(e) { if (e.target === onbOverlay) closeOnb(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && onbOverlay.classList.contains('open')) closeOnb();
+  });
+
+  // "About this project" link inside onboarding opens credits overlay
+  document.getElementById('onbCreditsBtn').addEventListener('click', function() {
+    closeOnb();
+    setTimeout(function() { aboutOverlay.classList.add('open'); }, 200);
+  });
 });
 </script>
 

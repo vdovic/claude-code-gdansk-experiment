@@ -23,7 +23,7 @@ import {
 import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor, showPinnedTT, showPinnedGenericTT } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
 import { getConfessionalPhases } from './data/confessional.js';
-import { eventMarkerSVG } from './theme.js';
+import { eventMarkerSVG, ctxMarkerSVG } from './theme.js';
 
 // ── Sort-value helpers (lightweight duplicates, render-only) ──
 const _SM_LAT = 54.3498, _SM_LON = 18.6531;
@@ -127,7 +127,7 @@ function renderWars() {
     const x2  = yearToX(Math.min(w.end, viewEnd))     - labelOffset;
     const barW = Math.max(x2 - x1, 6);
     html += `<div class="war-bar" data-war="${i}"
-      style="left:${x1}px;width:${barW}px;background:${w.color || '#a04040'}">
+      style="left:${x1}px;width:${barW}px;background:rgba(160,64,64,0.75)">
       <span class="war-bar-label">${barW > 45 ? w.label : ''}</span></div>`;
   });
   inner.innerHTML = html;
@@ -147,10 +147,10 @@ function renderPolitical() {
   politicalEvents.forEach((ev, i) => {
     if (ev.year < viewStart || ev.year > viewEnd) return;
     const x   = yearToX(ev.year) - labelOffset;
-    const col = ev.color || 'var(--amber)';
+    const col = 'var(--ctx-political-marker)';
     html += `<div class="political-marker" data-pol="${i}" style="left:${x}px">
       <div class="marker-label" style="color:${col}">${Math.floor(ev.year)} · ${ev.label.substring(0, 42)}${ev.label.length > 42 ? '…' : ''}</div>
-      <div class="ctx-diamond" style="background:${col}"></div>
+      <div class="ctx-marker-svg">${ctxMarkerSVG('political', col, 11)}</div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -172,7 +172,7 @@ function renderPlagues() {
     const x = yearToX(c.year) - labelOffset;
     html += `<div class="calamity-marker" data-cal="${i}" style="left:${x}px">
       <div class="marker-label" style="color:var(--ev-plague)">${c.year} · ${c.label}</div>
-      <div class="ctx-triangle" style="background:var(--ev-plague)"></div>
+      <div class="ctx-marker-svg">${ctxMarkerSVG('plagues', 'var(--ctx-plague-marker)', 11)}</div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -531,7 +531,18 @@ export function initGrainTooltip() {
   inner.addEventListener('mouseleave', () => hideTT());
 }
 
-// ── Religious events track (diamond markers, same pattern as political) ──
+// Maps a raw religious event color to a denomination CSS variable (or general marker color).
+// The data uses hardcoded hex values that correspond to denomination colors:
+//   #c0463a → Catholic,  #3a7a9e → Lutheran,  #4a6a3a → Calvinist,  anything else → General
+function _relDenomColor(rawColor) {
+  if (!rawColor || rawColor === 'var(--ctx-religious-marker)') return 'var(--ctx-religious-marker)';
+  if (rawColor === '#c0463a' || rawColor === 'var(--catholic)')  return 'var(--catholic)';
+  if (rawColor === '#3a7a9e' || rawColor === 'var(--lutheran)')  return 'var(--lutheran)';
+  if (rawColor === '#4a6a3a' || rawColor === 'var(--calvinist)') return 'var(--calvinist)';
+  return 'var(--ctx-religious-marker)'; // ecumenical / general
+}
+
+// ── Religious events track ──
 function renderReligious() {
   const inner = document.getElementById('religiousInner');
   if (!inner) return;
@@ -540,10 +551,10 @@ function renderReligious() {
   religiousEvents.forEach((ev, i) => {
     if (ev.year < viewStart || ev.year > viewEnd) return;
     const x   = yearToX(ev.year) - labelOffset;
-    const col = ev.color || '#5a3a6e';
+    const col = _relDenomColor(ev.color);
     html += `<div class="political-marker religious-marker" data-rel="${i}" style="left:${x}px">
       <div class="marker-label" style="color:${col}">${Math.floor(ev.year)} · ${ev.label.substring(0, 42)}${ev.label.length > 42 ? '…' : ''}</div>
-      <div class="ctx-circle" style="background:${col}"></div>
+      <div class="ctx-marker-svg">${ctxMarkerSVG('religious', col, 11)}</div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -552,7 +563,7 @@ function renderReligious() {
     const ev = religiousEvents[i];
     const _body = () =>
         `<div class="tt-year">${Math.floor(ev.year)}</div>` +
-        `<div class="tt-type" style="background:rgba(90,58,110,0.15);color:#5a3a6e">✝ Religious</div>` +
+        `<div class="tt-type" style="background:rgba(192,90,188,0.15);color:var(--ctx-religious-marker)">✝ Religious</div>` +
         `<div class="tt-title">${ev.label}</div>` +
         `<div class="tt-body">${ev.detail}</div>`;
     el.addEventListener('mouseenter', me => showGenericTT(me, _body()));
@@ -576,8 +587,8 @@ function renderUrbanPower() {
     const labelExtra = tight ? 'bottom:calc(100% + 10px);font-size:8px' : '';
     prevX = x;
     html += `<div class="political-marker urban-marker" data-urb="${i}" style="left:${x}px">
-      <div class="marker-label" style="color:#6a5a20${labelExtra ? ';' + labelExtra : ''}">${ev.year} · ${ev.label.substring(0, 38)}${ev.label.length > 38 ? '…' : ''}</div>
-      <div class="ctx-square" style="background:#a08030"></div>
+      <div class="marker-label" style="color:var(--ctx-urban-marker)${labelExtra ? ';' + labelExtra : ''}">${ev.year} · ${ev.label.substring(0, 38)}${ev.label.length > 38 ? '…' : ''}</div>
+      <div class="ctx-marker-svg">${ctxMarkerSVG('urbanPower', 'var(--ctx-urban-marker)', 11)}</div>
     </div>`;
   });
   inner.innerHTML = html;
@@ -586,7 +597,7 @@ function renderUrbanPower() {
     const ev = urbanPowerEvents[i];
     const _body = () =>
       `<div class="tt-year">${ev.year}</div>` +
-      `<div class="tt-type" style="background:rgba(138,122,48,0.15);color:#6a5a20">🏛 Urban Power</div>` +
+      `<div class="tt-type" style="background:rgba(184,115,51,0.15);color:var(--ctx-urban-marker)">🏛 Urban Power</div>` +
       `<div class="tt-title">${ev.label}</div>` +
       `<div class="tt-body">${ev.detail}</div>`;
     el.addEventListener('mouseenter', me => showGenericTT(me, _body()));
