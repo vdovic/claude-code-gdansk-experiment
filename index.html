@@ -349,7 +349,25 @@
     TIMELINE
   </button>
   <button class="tab" data-tab="list">
-    <span class="tab-icon">⛪</span>
+    <span class="tab-icon">
+      <!--
+        Gothic Brick church silhouette — inspired by St. Mary's Basilica, Gdańsk.
+        Stepped Stufengiebel gable (3 steps) + wide nave aisles + lancet window + pointed doorway.
+        Uses currentColor → inherits active/inactive and light/dark theme colours automatically.
+        fill-rule="evenodd" cuts the window and door as holes in the silhouette.
+      -->
+      <svg class="tab-icon-svg" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path fill="currentColor" fill-rule="evenodd" d="
+          M12 1
+          L10 3.5 H8.5 V5.5 H6 V29 H18 V5.5 H15.5 V3.5 H14
+          Z
+          M3 16 H6 V29 H3 Z
+          M18 16 H21 V29 H18 Z
+          M12 10 L10 12.5 V18.5 H14 V12.5 Z
+          M12 23.5 L10 25 V29 H14 V25 Z
+        "/>
+      </svg>
+    </span>
     CHURCHES
   </button>
   <button class="tab" data-tab="map">

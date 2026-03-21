@@ -527,7 +527,9 @@ body { animation: fadeSlideIn 0.4s ease-out; }
   width: 4px; height: 4px; border-radius: 50%;
   background: var(--accent);
 }
-.tab-icon { font-size: 20px; }
+.tab-icon { font-size: 20px; line-height: 1; }
+/* SVG tab icons inherit currentColor for active/inactive + light/dark theme */
+.tab-icon-svg { display: block; width: 22px; height: 28px; }
 
 /* ══════════════════════════════════════════════════════════════
    MAIN CONTENT AREA
