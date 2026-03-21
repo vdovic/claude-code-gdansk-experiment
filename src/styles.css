@@ -469,6 +469,9 @@ body { animation: fadeSlideIn 0.4s ease-out; }
   font-family: var(--font-ui); letter-spacing: 0.04em;
 }
 
+/* Header buttons wrapper — flex row on desktop, second row on mobile */
+.hdr-btns { display: flex; align-items: center; gap: var(--sp-3); flex-shrink: 0; }
+
 /* Legacy legend row (now moved to Legend panel) */
 .legend-row { display: none; }
 
@@ -2223,8 +2226,22 @@ body[data-viewport="desktop"] .econ-era-desc {
   html { height: 100%; overflow: hidden; }
   body { overscroll-behavior: none; }
 
-  .hdr { padding: 0 var(--sp-3); }
-  .hdr-title { font-size: 14px; }
+  /* Two-row header on mobile: title on top, buttons below */
+  :root { --header-h: 68px; }
+  .hdr {
+    flex-direction: column; align-items: stretch;
+    justify-content: center; padding: 5px var(--sp-3); gap: 3px;
+    height: var(--header-h);
+  }
+  .hdr > div:first-child { flex: unset; min-width: 0; }
+  .hdr-title {
+    font-size: 13px; white-space: normal;
+    overflow: visible; text-overflow: unset;
+    line-height: 1.2;
+  }
+  .hdr-btns {
+    display: flex; gap: 6px; align-items: center; justify-content: flex-end;
+  }
   .hdr-sub { display: none; }
   .legend-row { display: none; }
 
