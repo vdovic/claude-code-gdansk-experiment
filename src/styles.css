@@ -3427,3 +3427,153 @@ body.mode-combined  #trackToggles { display: flex;  }
 
 /* Prevent background scroll when overlay is open */
 body.onb-open { overflow: hidden; }
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE FOCUS WINDOW — transform-based horizontal panning
+   ══════════════════════════════════════════════════════════════════ */
+
+/* When mobile focus mode is active, disable native scroll and use transforms */
+body.mobile-focus-active .tl-lanes-scroll {
+  overflow: hidden !important;
+  touch-action: pan-y !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+body.mobile-focus-active .tl-ctx-scroll {
+  overflow: hidden !important;
+  touch-action: pan-y !important;
+}
+
+/* Prevent rubber-band / pull-to-refresh while dragging horizontally */
+body.mobile-focus-dragging {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+body.mobile-focus-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* ── Mobile year ruler ───────────────────────────────────────── */
+.mobile-ruler {
+  position: relative;
+  height: 28px;
+  background: var(--parchment-dk);
+  border-bottom: 1px solid var(--tl-border);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: none; /* shown only when mobile focus is active */
+}
+body.mobile-focus-active .mobile-ruler { display: block; }
+
+.mobile-ruler-inner {
+  position: absolute; top: 0; left: 0; height: 100%;
+  will-change: transform;
+}
+
+.mobile-ruler-tick {
+  position: absolute; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(140, 120, 90, 0.2);
+}
+.mobile-ruler-tick.mid {
+  background: rgba(140, 120, 90, 0.35);
+}
+.mobile-ruler-tick.major {
+  background: rgba(140, 120, 90, 0.5);
+}
+.mobile-ruler-yr {
+  position: absolute;
+  top: 2px; left: 4px;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.mobile-ruler-tick.major .mobile-ruler-yr {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-body);
+}
+
+/* ── Edge fades (vignette effect) ────────────────────────────── */
+.mobile-focus-fade {
+  display: none;
+  position: absolute; top: 0; bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  z-index: 12;
+}
+body.mobile-focus-active .mobile-focus-fade { display: block; }
+
+.mobile-focus-fade-l {
+  left: var(--label-w);
+  background: linear-gradient(to right,
+    var(--tl-bg) 0%,
+    rgba(0,0,0,0) 100%
+  );
+}
+.mobile-focus-fade-r {
+  right: 0;
+  background: linear-gradient(to left,
+    var(--tl-bg) 0%,
+    rgba(0,0,0,0) 100%
+  );
+}
+
+/* ── Center line ─────────────────────────────────────────────── */
+.mobile-focus-center-line {
+  display: none;
+  position: absolute;
+  top: 0; bottom: 0;
+  left: calc(var(--label-w) + (100% - var(--label-w)) / 2);
+  width: 1px;
+  background: var(--accent);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 11;
+}
+body.mobile-focus-active .mobile-focus-center-line { display: block; }
+
+/* ── "Viewing: YYYY – YYYY" label ────────────────────────────── */
+.mobile-focus-label {
+  display: none;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 20, 0.75);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 3px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+body.mobile-focus-active .mobile-focus-label { display: block; }
+.mobile-focus-label.visible { opacity: 1; }
+
+/* Light theme adjustments */
+[data-theme="light"] .mobile-focus-fade-l {
+  background: linear-gradient(to right, var(--tl-bg) 0%, rgba(255,255,255,0) 100%);
+}
+[data-theme="light"] .mobile-focus-fade-r {
+  background: linear-gradient(to left, var(--tl-bg) 0%, rgba(255,255,255,0) 100%);
+}
+[data-theme="light"] .mobile-focus-label {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--accent);
+}
+
+/* GPU-accelerate the transform targets */
+body.mobile-focus-active .lanes-inner,
+body.mobile-focus-active .ctx-inner,
+body.mobile-focus-active .mobile-ruler-inner {
+  will-change: transform;
+}

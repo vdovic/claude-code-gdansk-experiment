@@ -21,6 +21,7 @@ import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggl
 import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
+import { initMobileFocus, destroyMobileFocus, syncMobileFocus } from './mobileFocus.js';
 
 // ── Expose scrollToYear globally so detail.js/ui.js can call it ─
 window._scrollToYear = scrollToYear;
@@ -46,6 +47,7 @@ function _afterZoom() {
   render();
   updateViewRangeLabel();
   window._updateRangeHandles?.();
+  syncMobileFocus();
 }
 
 // ── Navigation ────────────────────────────────────────────────
@@ -174,6 +176,11 @@ function _initScrollSync() {
   }
 
   lanesScroll.addEventListener('scroll', () => {
+    // When mobile focus mode is active, transforms handle positioning — skip scroll sync
+    if (document.body.classList.contains('mobile-focus-active')) {
+      if (tlLabels) tlLabels.scrollTop = lanesScroll.scrollTop;
+      return;
+    }
     _syncScrollTo(lanesScroll.scrollLeft, lanesScroll);
     if (tlLabels) tlLabels.scrollTop = lanesScroll.scrollTop;
   }, { passive: true });
@@ -218,6 +225,13 @@ function _applyViewport(vp, save = true) {
   //   desktop → Timeline (the full interactive timeline is the primary desktop view)
   switchTab(vp === 'mobile' ? 'list' : 'timeline');
   zoomFit(); // recalculates pixelsPerYear for the new layout width, then renders
+
+  // Toggle mobile focus window
+  if (vp === 'mobile') {
+    setTimeout(() => initMobileFocus(), 200);
+  } else {
+    destroyMobileFocus();
+  }
 }
 
 function _initViewportToggle() {
@@ -864,7 +878,11 @@ function _wireButtons() {
 
   // Tab bar
   document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    tab.addEventListener('click', () => {
+      switchTab(tab.dataset.tab);
+      // Re-sync mobile focus when switching to timeline (clientWidth may have been 0 while hidden)
+      if (tab.dataset.tab === 'timeline') syncMobileFocus();
+    });
   });
 
   // Range slider reset (goes to full 1200–2005)
@@ -986,6 +1004,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Drag-to-pan (desktop)
   _initDragToPan();
+
+  // Mobile focus window (transform-based horizontal panning)
+  if (_isMobileViewport()) {
+    setTimeout(() => initMobileFocus(), 200);
+  }
 
   // [EXPERIMENT] Synced periods toggle (align period bands with ruler)
   _initSyncedPeriodsToggle();
