@@ -354,15 +354,25 @@
      ══════════════════════════════════════════════ -->
 <nav class="tabs">
   <button class="tab active" data-tab="timeline">
-    <span class="tab-icon">📜</span>
+    <svg class="tab-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="5" x2="12" y2="12"/>
+      <line x1="12" y1="12" x2="16.5" y2="14.5"/>
+    </svg>
     TIMELINE
   </button>
   <button class="tab" data-tab="list">
-    <span class="tab-icon">⛪</span>
+    <svg class="tab-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="2" x2="12" y2="22"/>
+      <line x1="6" y1="7.5" x2="18" y2="7.5"/>
+    </svg>
     CHURCHES
   </button>
   <button class="tab" data-tab="map">
-    <span class="tab-icon">🗺</span>
+    <svg class="tab-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10" cy="10" r="6"/>
+      <line x1="14.2" y1="14.2" x2="21" y2="21"/>
+    </svg>
     MAP
   </button>
 </nav>
@@ -678,9 +688,7 @@
 
     // Table rows
     let rowsHtml = filtered.map(({ ch, ci }) => {
-      const latestDenom  = ch.denomBars[ch.denomBars.length - 1];
-      const col          = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
-      const dot          = `<span class="ct-dot" style="background:${col}"></span>`;
+      const sym          = ch.symbol ? `<span class="ct-sym" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>` : '';
       const patron       = churchPatrons[ch.id] || {};
       const founderTxt   = patron.founder
         ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
@@ -694,7 +702,7 @@
       const guilds       = ch.guilds && ch.guilds.length ? ch.guilds.join(', ') : '—';
 
       return `<tr class="ct-row" data-ci="${ci}">
-        <td class="ct-td ct-name"><div class="ct-name-inner">${dot}${ch.name}</div></td>
+        <td class="ct-td ct-name"><div class="ct-name-inner">${sym}${ch.name}</div></td>
         <td class="ct-td ct-year">${foundedTxt}</td>
         <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
         <td class="ct-td ct-district">${districtTxt}</td>

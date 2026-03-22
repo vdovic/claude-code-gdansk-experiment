@@ -1472,6 +1472,11 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   border-radius: 50%; flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
+/* Heraldic symbol in the church list (replaces the coloured dot) */
+.ct-sym {
+  font-size: 15px; flex-shrink: 0; line-height: 1;
+  opacity: 0.85;
+}
 .ct-year     { white-space: nowrap; font-weight: 600; min-width: 76px; }
 .ct-district { white-space: nowrap; min-width: 100px; }
 .ct-type     { white-space: nowrap; min-width: 100px; color: var(--text-muted); }
@@ -2525,7 +2530,7 @@ body.mode-churches #legendGlobal { display: none; }
    SORT VALUE IN LABEL — always visible, right-aligned
    ══════════════════════════════════════════════════════════════ */
 .ch-label { justify-content: space-between; }
-.ch-lbl-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+.ch-lbl-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; padding-left: 4px; }
 .ch-lbl-val {
   font-size: var(--fs-micro); font-family: var(--font-ui);
   color: var(--tl-text-lt); font-style: italic; white-space: nowrap;
@@ -3647,4 +3652,97 @@ body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick {
 body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick.major {
   height: 16px;
   width: 2px;
+}
+
+/* ══ Gothic navigation bar — Backsteingotik palette ════════════════════════
+ *
+ * Inspired by Gdańsk Brick Gothic (Backsteingotik): the deep fired-red brick
+ * of St. Mary's Basilica and the Long Lane tenements.
+ *
+ *  • Deep red-brown fired brick background (#7e3828)
+ *  • Mortar joint top edge: very dark line + faint brick-dust catch-light
+ *  • Vertical mortar joints between tabs
+ *  • Inactive: warm cream/parchment at reduced opacity
+ *  • Active: full parchment + amber accent underline
+ *  • Darker brick variant for explicit dark theme
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Container ── */
+body[data-viewport="mobile"] .tabs {
+  background: #7e3828;                /* deep Gdańsk fired brick */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: none;
+  box-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.55),         /* dark mortar joint at top */
+    inset 0 1px 0 rgba(200, 140, 100, 0.20), /* brick-dust catch-light */
+    0 -5px 16px rgba(0, 0, 0, 0.30);       /* depth shadow */
+}
+
+/* ── Inactive tabs ── */
+body[data-viewport="mobile"] .tab {
+  color: rgba(255, 240, 220, 0.55);   /* muted parchment cream */
+  letter-spacing: 0.10em;
+}
+
+body[data-viewport="mobile"] .tab:hover {
+  color: rgba(255, 240, 220, 0.85);
+}
+
+/* ── Vertical mortar joints between tabs ── */
+body[data-viewport="mobile"] .tab + .tab {
+  border-left: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 1px 0 0 rgba(200, 140, 100, 0.18);
+}
+
+/* ── Active tab ── */
+body[data-viewport="mobile"] .tab.active {
+  color: rgba(255, 240, 220, 1);      /* full warm cream */
+  background: rgba(0, 0, 0, 0.15);   /* sunken recess in the brick */
+}
+
+/* ── Active indicator: amber mortar line at bottom ── */
+body[data-viewport="mobile"] .tab.active::after {
+  bottom: 0;
+  left: 25%;
+  right: 25%;
+  width: auto;
+  height: 2.5px;
+  border-radius: 1px 1px 0 0;
+  background: var(--accent);          /* warm amber — glowing like lit stone */
+}
+
+/* ── SVG icons ── */
+body[data-viewport="mobile"] .tab-icon {
+  font-size: 0;                       /* collapse any residual text sizing */
+  line-height: 0;
+  width: 22px;
+  height: 22px;
+}
+
+/* ── Darker kiln: explicit dark theme gets deeper, sootier brick ── */
+body[data-viewport="mobile"][data-theme="dark"] .tabs {
+  background: #5c2418;                /* kiln-dark, heavily smoked brick */
+  box-shadow:
+    0 -1px 0 rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(180, 110, 80, 0.18),
+    0 -5px 16px rgba(0, 0, 0, 0.40);
+}
+
+body[data-viewport="mobile"][data-theme="dark"] .tab {
+  color: rgba(255, 235, 210, 0.50);
+}
+
+body[data-viewport="mobile"][data-theme="dark"] .tab:hover {
+  color: rgba(255, 235, 210, 0.82);
+}
+
+body[data-viewport="mobile"][data-theme="dark"] .tab + .tab {
+  border-left: 1px solid rgba(0, 0, 0, 0.45);
+  box-shadow: inset 1px 0 0 rgba(180, 110, 80, 0.14);
+}
+
+body[data-viewport="mobile"][data-theme="dark"] .tab.active {
+  color: rgba(255, 235, 210, 1);
+  background: rgba(0, 0, 0, 0.20);
 }

@@ -713,13 +713,9 @@ export function renderLanes() {
     const clDotHtml = cl
       ? `<span class="lane-cluster-dot" style="background:${cl.color}" title="Cluster ${cl.id}: ${cl.label}"></span>`
       : '';
-    const symHtml = ch.symbol
-      ? `<span style="font-size:9px;margin-right:1px;" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
-      : '';
-
     // Label column — name only (sort value removed to reduce clutter)
     labHtml += `<div class="ch-label" data-ci="${ci}">
-      <div class="ch-lbl-left">${symHtml}<div class="ch-lbl-text">${ch.shortName}</div></div>
+      <div class="ch-lbl-left"><div class="ch-lbl-text">${ch.shortName}</div></div>
     </div>`;
 
     // Lane content
