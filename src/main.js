@@ -14,6 +14,8 @@ import {
   resetViewRange, setViewStart, setViewEnd,
   allTracksOn, trackVisibility,
   setChurchNameFilter,
+  // Mobile viewport — keeps desktop state vars above completely untouched
+  resetMobileViewport,
 } from './state.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
@@ -213,6 +215,10 @@ function _applyViewport(vp, save = true) {
   // user never lands on a zoomed period (e.g. Teutonic Rule) after toggling.
   setViewStart(DEFAULT_VIEW_START);
   setViewEnd(DEFAULT_VIEW_END);
+  // Reset the mobile viewport window to its default position.
+  // This is a no-op on desktop — the state variables live in state.js and
+  // are never read by any desktop rendering path.
+  if (vp === 'mobile') resetMobileViewport();
   // Land on the natural home tab for each layout:
   //   mobile  → Churches list (card browsing is the primary mobile flow)
   //   desktop → Timeline (the full interactive timeline is the primary desktop view)

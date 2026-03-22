@@ -30,6 +30,38 @@ export function setPixelsPerYear(v) { pixelsPerYear = v; }
 export let labelOffset = window.innerWidth <= 768 ? 110 : 180;
 export function setLabelOffset(v) { labelOffset = v; }
 
+// ── Mobile timeline viewport ──────────────────────────────────────────────────
+// Defines a fixed-width "window" into the full timeline that will be used for
+// mobile rendering. Desktop code uses viewStart/viewEnd/pixelsPerYear above and
+// is completely unaffected by anything in this section.
+//
+// MOBILE_TIMELINE_WINDOW_YEARS is the single constant to tweak if the visible
+// span needs to change — one place, one number, rest derives automatically.
+
+export const MOBILE_TIMELINE_WINDOW_YEARS = 150;
+
+// Default window start: 1250 puts early Teutonic-Rule church activity front
+// and centre (window covers 1250–1400) without starting at the empty frontier.
+const _MOBILE_DEFAULT_START = 1250;
+
+export let mobileViewStart = _MOBILE_DEFAULT_START;
+export let mobileViewEnd   = _MOBILE_DEFAULT_START + MOBILE_TIMELINE_WINDOW_YEARS;
+
+// Move the mobile window to a new start year.
+// Automatically derives mobileViewEnd and clamps so the window never
+// goes outside START_YEAR..END_YEAR.
+export function setMobileViewStart(year) {
+  const clamped  = Math.max(START_YEAR, Math.min(year, END_YEAR - MOBILE_TIMELINE_WINDOW_YEARS));
+  mobileViewStart = clamped;
+  mobileViewEnd   = clamped + MOBILE_TIMELINE_WINDOW_YEARS;
+}
+
+// Reset mobile window to the default position (called on viewport switch to mobile).
+export function resetMobileViewport() {
+  setMobileViewStart(_MOBILE_DEFAULT_START);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ── Filter / sort state ──
 export let currentSort = '';  // set by setSort() on init — empty prevents accidental flip on first call
 
