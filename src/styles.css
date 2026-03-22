@@ -3484,3 +3484,39 @@ body[data-viewport="mobile"] #mobileRuler {
   pointer-events: none;
   line-height: 1;
 }
+
+/* ── Mobile timeline focus cues (baba-dunya Step 5) ──────────────────────── */
+
+/* Center guide — thin vertical reference at the horizontal midpoint of the
+   bar area. Lives as ::after on the scroll container so it is naturally
+   clipped to the lane viewport and never reaches the label column, the
+   Periods row, or the ruler.                                                */
+body[data-viewport="mobile"] .tl-lanes-scroll {
+  position: relative;   /* establish containing block for ::after */
+}
+body[data-viewport="mobile"] .tl-lanes-scroll::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.09);   /* subtle, works on both themes */
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Range label — small live text in the top-right of the mobile ruler track.
+   Updated by renderMobileRuler() on every drag frame.                       */
+.mobile-range-label {
+  position: absolute;
+  right: 6px;
+  top: 3px;
+  font-size: 9px;
+  font-family: var(--font-ui, sans-serif);
+  color: var(--text-muted);
+  opacity: 0.70;
+  pointer-events: none;
+  white-space: nowrap;
+  line-height: 1;
+}

@@ -843,6 +843,11 @@ function renderMobileRuler() {
     html += `</div>`;
   }
 
+  // Live range label — updates on every drag frame alongside the ticks
+  const startYr = Math.round(mobileViewStart);
+  const endYr   = Math.round(mobileViewEnd);
+  html += `<span class="mobile-range-label">${startYr} – ${endYr}</span>`;
+
   track.innerHTML = html;
 }
 
