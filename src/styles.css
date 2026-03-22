@@ -1529,14 +1529,26 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 /* When visible, allow pointer events so mouse can travel from trigger into
    the tooltip without triggering the delayed hide. */
 .tooltip.visible { opacity: 1; pointer-events: auto; }
-.tooltip.pinned { border-color: var(--accent); box-shadow: var(--shadow-lg), var(--shadow-glow); }
+.tooltip.pinned { border-color: var(--accent); box-shadow: var(--shadow-lg), var(--shadow-glow); padding-top: 32px; }
 .tooltip .tt-close {
   position: absolute; top: 8px; right: 10px;
   background: none; border: none; color: var(--text-muted); font-size: 14px;
   cursor: pointer; padding: 2px 4px; border-radius: 4px; display: none; line-height: 1;
+  z-index: 2;
 }
 .tooltip .tt-close:hover { color: var(--accent); }
 .tooltip.pinned .tt-close { display: block; }
+/* Scrollable body — only active when pinned so hover previews are unchanged */
+.tooltip .tt-scroll-body { display: contents; }
+.tooltip.pinned .tt-scroll-body {
+  display: block;
+  max-height: 65vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 2px;
+}
+.tooltip.pinned .tt-scroll-body::-webkit-scrollbar { width: 4px; }
+.tooltip.pinned .tt-scroll-body::-webkit-scrollbar-thumb { background: var(--border-emphasis); border-radius: 2px; }
 .tooltip .tt-pin-hint { font-family: var(--font-ui); font-size: 9px; color: var(--text-muted); opacity: 0.6; margin-top: 6px; text-align: right; }
 .tooltip.pinned .tt-pin-hint { display: none; }
 .tooltip .tt-year  { font-family: var(--font-ui); font-size: var(--fs-sm); color: var(--accent); margin-bottom: 3px; font-variant-numeric: tabular-nums; }
@@ -2304,6 +2316,7 @@ body[data-viewport="desktop"] .econ-era-desc {
 
   .tooltip { max-width: calc(100vw - 28px); left: 14px !important; border-radius: 14px; padding: 14px var(--sp-4); }
   .tooltip.church-info-tt { max-width: calc(100vw - 28px); max-height: 52vh; }
+  .tooltip.pinned .tt-scroll-body { max-height: 55vh; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2908,6 +2921,19 @@ body.mode-combined #contextPanel {
 }
 [data-theme="light"] body.mode-combined #contextPanel { background: #b0aca6; }
 body.mode-combined #churchPanel { flex: 1 1 0; min-height: 80px; }
+
+/* Mobile: switch from fixed height to max-height so population / grain rows
+   are always reachable by scrolling even when --ctx-h was saved at a small
+   value (e.g. user dragged split before those rows were added).
+   touch-action: pan-y tells the browser this container is a vertical scroller,
+   ensuring swipe-up gestures chain through from the inner .tl-ctx-scroll rows. */
+body[data-viewport="mobile"].mode-combined #contextPanel {
+  height: auto;
+  max-height: var(--ctx-h, 45vh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
 
 /* Churches: context panel collapses */
 body.mode-churches #contextPanel {
