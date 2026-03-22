@@ -73,7 +73,9 @@
       "Bash(python serve.py 8092)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(\"D:\\\\Claude_Code_Gdansk_experiment\\\\src\\\\styles.css\":*)"
+      "Bash(\"D:\\\\Claude_Code_Gdansk_experiment\\\\src\\\\styles.css\":*)",
+      "Bash(gh pr:*)",
+      "Bash(where gh:*)"
     ]
   }
 }

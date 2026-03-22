@@ -3488,24 +3488,7 @@ body[data-viewport="mobile"] #mobileRuler {
 
 /* ── Mobile timeline focus cues (baba-dunya Step 5) ──────────────────────── */
 
-/* Center guide — thin vertical reference at the horizontal midpoint of the
-   bar area. Lives as ::after on the scroll container so it is naturally
-   clipped to the lane viewport and never reaches the label column, the
-   Periods row, or the ruler.                                                */
-body[data-viewport="mobile"] .tl-lanes-scroll {
-  position: relative;   /* establish containing block for ::after */
-}
-body[data-viewport="mobile"] .tl-lanes-scroll::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.09);   /* subtle, works on both themes */
-  pointer-events: none;
-  z-index: 2;
-}
+/* Center guide removed — replaced by the edge-line frame in the frame branch. */
 
 /* ── Periods row — fade during mobile drag ────────────────────────────────
    opacity:0 keeps the row in layout (no shift); transition makes it smooth.
@@ -3577,4 +3560,91 @@ body[data-viewport="mobile"].tl-dragging .mobile-range-label {
 /* ── Post-drag fade (pill fades in place, then DOM state resets) ── */
 body[data-viewport="mobile"].tl-dragging .mobile-range-label.is-fading {
   opacity: 0;
+}
+
+/* ── Focus-mode frame + decade grid — mobile drag only ───────────────────────
+ *
+ * Three signals that together tell the user they are in focus mode:
+ *
+ *   1. Left / right edge lines — straight vertical boundaries bracketing
+ *      the bar area; sharp ~1-2 px leading edge + soft inward shadow,
+ *      equal on both sides.
+ *
+ *   2. Decade grid lines — .grid-vl marks (every 10 yr from renderLanes())
+ *      become visible; 50-yr lines widen to 2 px and gain more opacity.
+ *
+ *   3. Ruler tick heights — minor ticks grow 5→7 px; major 50-yr ticks
+ *      grow 11→16 px and widen to 2 px.
+ *
+ * All three share body.tl-dragging as trigger so they appear and disappear
+ * in sync with the range-label pill.                                        */
+
+/* Positioning context for edge-line pseudo-elements */
+body[data-viewport="mobile"] .tl-outer {
+  position: relative;
+}
+
+/* ── 1. Edge lines — shared base, invisible by default ── */
+body[data-viewport="mobile"] .tl-outer::before,
+body[data-viewport="mobile"] .tl-outer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* Left edge — starts at the right edge of the frozen label column */
+body[data-viewport="mobile"] .tl-outer::before {
+  left: var(--label-w, 110px);
+  background: linear-gradient(
+    to right,
+    rgba(44, 32, 22, 0.50)  0px,
+    rgba(44, 32, 22, 0.18)  5px,
+    rgba(44, 32, 22, 0.06) 10px,
+    transparent            18px
+  );
+}
+
+/* Right edge — identical gradient, mirrored */
+body[data-viewport="mobile"] .tl-outer::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(44, 32, 22, 0.50)  0px,
+    rgba(44, 32, 22, 0.18)  5px,
+    rgba(44, 32, 22, 0.06) 10px,
+    transparent            18px
+  );
+}
+
+/* Activate edge lines */
+body[data-viewport="mobile"].tl-dragging .tl-outer::before,
+body[data-viewport="mobile"].tl-dragging .tl-outer::after {
+  opacity: 1;
+}
+
+/* ── 2. Decade grid lines ── */
+body[data-viewport="mobile"] .grid-vl {
+  transition: background 0.2s ease, width 0.2s ease;
+}
+body[data-viewport="mobile"].tl-dragging .grid-vl.min {
+  background: rgba(0, 0, 0, 0.09);
+}
+body[data-viewport="mobile"].tl-dragging .grid-vl.maj {
+  background: rgba(0, 0, 0, 0.22);
+  width: 2px;
+}
+
+/* ── 3. Ruler tick heights ── */
+body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick {
+  height: 7px;
+}
+body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick.major {
+  height: 16px;
+  width: 2px;
 }
