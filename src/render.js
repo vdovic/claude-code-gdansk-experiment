@@ -476,8 +476,18 @@ function renderGrain() {
     svg += `<circle cx="${x}" cy="${y}" r="1.5" fill="var(--amber)" opacity="0.5"/>`;
   });
 
-  // Peak / trough labels
-  if (visGrain.length > 3) {
+  // Mobile: per-point value labels (mirrors Population behaviour)
+  if (_isMobile()) {
+    visGrain.forEach(d => {
+      const x = _ctxX(d.year);
+      const y = gH - (d.val / maxG) * (gH - pad * 2);
+      const label = d.val >= 1000 ? Math.round(d.val / 1000) + 'k' : d.val;
+      svg += `<text x="${x}" y="${y - 3}" class="econ-label" fill="var(--amber)" text-anchor="middle" opacity="0.85">${label}</text>`;
+    });
+  }
+
+  // Peak / trough labels — desktop only (mobile uses per-point labels above)
+  if (!_isMobile() && visGrain.length > 3) {
     const gPeak   = visGrain.reduce((a, b) => b.val > a.val ? b : a);
     const gTrough = visGrain.reduce((a, b) => b.val < a.val ? b : a);
     const px = _ctxX(gPeak.year);

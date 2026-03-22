@@ -47,7 +47,7 @@ function _positionAt(ev) {
 }
 
 function _buildBase(html) {
-  return `<button class="tt-close" id="ttClose">✕</button>${html}<div class="tt-pin-hint">click to pin</div>`;
+  return `<button class="tt-close" id="ttClose">✕</button><div class="tt-scroll-body">${html}<div class="tt-pin-hint">click to pin</div></div>`;
 }
 
 /** Returns true if the mouse velocity vector is pointing toward the tooltip's bounds. */
