@@ -6,6 +6,28 @@
 // Desktop is never affected — initMobileDrag() is only called from
 // _applyViewport('mobile') in main.js; destroyMobileDrag() is called
 // on every viewport switch so state never leaks across modes.
+//
+// ── "Time navigation mode" UI ────────────────────────────────────────
+// When a drag gesture commits (threshold crossed), we enter "tl-dragging"
+// state by adding the class to document.body. Two CSS changes fire:
+//
+//   1. #econErasRow fades to opacity:0 (but keeps its layout space).
+//   2. #mobileRangeLabel switches to position:fixed, centred over the
+//      Periods row, and rendered as a prominent pill.
+//
+// The label's fixed position is computed once per drag from the ruler
+// track's getBoundingClientRect() and stored as CSS custom properties
+// (--mrl-top / --mrl-left) on :root. CSS uses those vars directly;
+// no per-frame JS positioning is needed.
+//
+// On drag end:
+//   • After LABEL_HOLD_MS the pill fades in place (.is-fading added).
+//   • After LABEL_FADE_MS (opacity transition done) both classes are
+//     removed — label snaps back to the ruler corner while invisible,
+//     Periods row fades back in.
+//
+// destroyMobileDrag() forces immediate cleanup so no dangling state
+// leaks across viewport switches.
 
 import {
   setMobileViewStart, mobileViewStart,
@@ -17,8 +39,12 @@ import { mobilePPY, renderLanes } from './render.js';
 // 6 px is large enough to survive tap jitter, small enough to feel instant.
 const DRAG_THRESHOLD = 6;
 
-// Delay (ms) after drag release before the range label fades out.
-const LABEL_HIDE_DELAY = 1000;
+// How long the pill stays fully visible after the finger lifts (ms).
+const LABEL_HOLD_MS = 900;
+
+// How long to wait after adding .is-fading before resetting state (ms).
+// Should be slightly longer than the CSS opacity transition (0.28s → 280 ms).
+const LABEL_FADE_MS = 320;
 
 // ── Module state ─────────────────────────────────────────────
 let _active    = false;
@@ -29,31 +55,72 @@ let _startY    = 0;
 let _startVS   = 0;      // mobileViewStart at the moment the drag began
 let _dragging  = false;  // true once threshold is crossed and gesture committed
 
-// ── Range label lifecycle ─────────────────────────────────────
-// The label element (#mobileRangeLabel) is a persistent DOM node declared in
-// index.html — it is never created or destroyed here, only shown/hidden via
-// the .is-visible class. CSS opacity + transition does the actual fade.
+let _holdTimer    = null;  // LABEL_HOLD_MS delay after drag end
+let _restoreTimer = null;  // LABEL_FADE_MS delay after .is-fading is added
 
-let _hideTimer = null;   // pending setTimeout id for fade-out
+// ── Navigation mode helpers ───────────────────────────────────
+//
+// All three functions operate only on DOM + CSS — no state beyond the timers.
 
-function _showRangeLabel() {
-  clearTimeout(_hideTimer);
-  const el = document.getElementById('mobileRangeLabel');
-  if (el) el.classList.add('is-visible');
+// Compute the center of the ruler's bar track in viewport coords and store
+// as CSS custom properties so the fixed pill is positioned correctly.
+// Called once per drag when the gesture commits.
+function _measureLabelAnchor() {
+  const track = document.querySelector('#mobileRuler .mobile-ruler-track');
+  const econ  = document.getElementById('econErasRow');
+  if (!track || !econ) return;
+
+  const trackRect = track.getBoundingClientRect();
+  const econRect  = econ.getBoundingClientRect();
+
+  // Horizontal: centre of the ruler's track column (right of the label stub).
+  // The track spans exactly the bar area so this avoids the label column.
+  const x = trackRect.left + trackRect.width  / 2;
+
+  // Vertical: centre of the Periods row (where the pill will visually live).
+  const y = econRect.top  + econRect.height / 2;
+
+  const root = document.documentElement;
+  root.style.setProperty('--mrl-left', `${x}px`);
+  root.style.setProperty('--mrl-top',  `${y}px`);
 }
 
-function _scheduleHideRangeLabel() {
-  clearTimeout(_hideTimer);
-  _hideTimer = setTimeout(() => {
-    const el = document.getElementById('mobileRangeLabel');
-    if (el) el.classList.remove('is-visible');
-  }, LABEL_HIDE_DELAY);
+// Enter "time navigation mode": show pill, fade Periods row.
+function _enterNavMode() {
+  _clearTimers();
+  _measureLabelAnchor();
+  document.body.classList.add('tl-dragging');
 }
 
-function _hideRangeLabelNow() {
-  clearTimeout(_hideTimer);
-  const el = document.getElementById('mobileRangeLabel');
-  if (el) el.classList.remove('is-visible');
+// Begin the exit sequence: pill fades in place, then Periods row restores.
+function _scheduleExitNavMode() {
+  _clearTimers();
+  _holdTimer = setTimeout(() => {
+    // Phase 1 — fade the pill while it is still centered / fixed.
+    const label = document.getElementById('mobileRangeLabel');
+    if (label) label.classList.add('is-fading');
+
+    // Phase 2 — after transition completes: snap back to corner (invisible),
+    // remove dragging state, Periods row fades back in via CSS transition.
+    _restoreTimer = setTimeout(() => {
+      const lbl = document.getElementById('mobileRangeLabel');
+      if (lbl) lbl.classList.remove('is-fading');
+      document.body.classList.remove('tl-dragging');
+    }, LABEL_FADE_MS);
+  }, LABEL_HOLD_MS);
+}
+
+// Immediate cleanup — used by destroyMobileDrag() and pointercancel.
+function _exitNavModeNow() {
+  _clearTimers();
+  const label = document.getElementById('mobileRangeLabel');
+  if (label) label.classList.remove('is-fading');
+  document.body.classList.remove('tl-dragging');
+}
+
+function _clearTimers() {
+  clearTimeout(_holdTimer);
+  clearTimeout(_restoreTimer);
 }
 
 // ── Pointer lifecycle ─────────────────────────────────────────
@@ -93,8 +160,8 @@ function _onPointerMove(e) {
     _dragging = true;
     _el.setPointerCapture(e.pointerId);
 
-    // Show the range label as soon as the gesture is committed
-    _showRangeLabel();
+    // Enter "time navigation mode" — pill appears, Periods row fades.
+    _enterNavMode();
   }
 
   // Prevent the browser from also scrolling vertically while we pan
@@ -116,8 +183,8 @@ function _onPointerMove(e) {
   //   upper bound: END_YEAR − MOBILE_TIMELINE_WINDOW_YEARS (2005 − 150 = 1855)
   setMobileViewStart(newStart);
 
-  // Repaint church lanes with the new viewport window.
-  // renderLanes() also calls renderMobileRuler() which updates the label text.
+  // Repaint church lanes. renderLanes() → renderMobileRuler() updates the
+  // pill text on the same frame.
   renderLanes();
 }
 
@@ -129,8 +196,8 @@ function _onPointerUp(e) {
     // so a fast swipe doesn't accidentally open a church detail drawer.
     _el.addEventListener('click', _suppressClick, { capture: true, once: true });
 
-    // Schedule the range label fade-out
-    _scheduleHideRangeLabel();
+    // Begin exit sequence: pill holds, then fades, then Periods restores.
+    _scheduleExitNavMode();
   }
 
   _pointerId = null;
@@ -176,8 +243,8 @@ export function destroyMobileDrag() {
   _el.removeEventListener('pointerup',     _onPointerUp);
   _el.removeEventListener('pointercancel', _onPointerUp);
 
-  // Hide the label immediately — no dangling fade timer on viewport switch
-  _hideRangeLabelNow();
+  // Force-exit nav mode so no dangling class or timer survives the viewport switch.
+  _exitNavModeNow();
 
   _el        = null;
   _active    = false;
