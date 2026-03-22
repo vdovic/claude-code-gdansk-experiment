@@ -7,7 +7,18 @@
 // _applyViewport('mobile') in main.js; destroyMobileDrag() is called
 // on every viewport switch so state never leaks across modes.
 //
-// ── "Time navigation mode" UI ────────────────────────────────────────
+// ── Event target ─────────────────────────────────────────────────────────────
+// Listeners are attached to #tlOuter (the common ancestor of the whole
+// timeline area) rather than to #lanesScroll alone.  This lets gestures
+// start on Global Context rows as well as on church lanes, so both areas
+// move together.
+//
+// _onPointerDown filters by hit-test so only events originating inside
+// #contextPanel or #lanesScroll are accepted.  Events on #churchesLabel
+// (the vertical split-resize handle) are explicitly rejected so its own
+// touchstart/touchmove logic is never interrupted.
+//
+// ── "Time navigation mode" UI ────────────────────────────────────────────────
 // When a drag gesture commits (threshold crossed), we enter "tl-dragging"
 // state by adding the class to document.body. Two CSS changes fire:
 //
@@ -33,7 +44,7 @@ import {
   setMobileViewStart, mobileViewStart,
   MOBILE_TIMELINE_WINDOW_YEARS, START_YEAR, END_YEAR,
 } from './state.js';
-import { mobilePPY, renderLanes } from './render.js';
+import { mobilePPY, renderLanes, renderContextTracks } from './render.js';
 
 // Minimum horizontal movement (px) before we commit to a horizontal drag.
 // 6 px is large enough to survive tap jitter, small enough to feel instant.
@@ -46,9 +57,13 @@ const LABEL_HOLD_MS = 100;
 // Should be slightly longer than the CSS opacity transition (0.28s → 280 ms).
 const LABEL_FADE_MS = 320;
 
-// ── Module state ─────────────────────────────────────────────
-let _active    = false;
-let _el        = null;   // #lanesScroll — the element we attach to
+// ── Module state ─────────────────────────────────────────────────────────────
+let _active        = false;
+let _tlOuter       = null;   // #tlOuter  — the unified event-listener target
+let _lanesEl       = null;   // #lanesScroll — ghost-click suppression target
+let _captureEl     = null;   // element on which setPointerCapture was called
+let _ctxScrollEls  = [];     // .tl-ctx-scroll elements — style-managed during mobile
+
 let _pointerId = null;   // pointer being tracked (null = idle)
 let _startX    = 0;
 let _startY    = 0;
@@ -58,7 +73,7 @@ let _dragging  = false;  // true once threshold is crossed and gesture committed
 let _holdTimer    = null;  // LABEL_HOLD_MS delay after drag end
 let _restoreTimer = null;  // LABEL_FADE_MS delay after .is-fading is added
 
-// ── Navigation mode helpers ───────────────────────────────────
+// ── Navigation mode helpers ───────────────────────────────────────────────────
 //
 // All three functions operate only on DOM + CSS — no state beyond the timers.
 
@@ -123,13 +138,35 @@ function _clearTimers() {
   clearTimeout(_restoreTimer);
 }
 
-// ── Pointer lifecycle ─────────────────────────────────────────
+// ── Pointer lifecycle ─────────────────────────────────────────────────────────
 
 function _onPointerDown(e) {
   // Touch only — desktop mouse drag is handled by the existing _initDragToPan()
   if (e.pointerType === 'mouse') return;
   // Ignore a second finger while one is already tracked
   if (_pointerId !== null) return;
+
+  // ── Hit-test: only accept gestures starting inside allowed zones ──────────
+  //
+  // Allowed:  #contextPanel (Global Context rows)
+  //           #lanesScroll  (church lanes)
+  //
+  // Rejected: #churchesLabel — the vertical split-resize drag handle.
+  //           Its own touchstart/touchmove handlers must not be interrupted.
+  //           Everything else in #tlOuter (axis, ruler, toggles) is also
+  //           rejected so we don't steal gestures from controls.
+  const handle = document.getElementById('churchesLabel');
+  if (handle && handle.contains(e.target)) return;
+
+  const ctxPanel = document.getElementById('contextPanel');
+  const inCtx    = ctxPanel && ctxPanel.contains(e.target);
+  const inLanes  = _lanesEl  && _lanesEl.contains(e.target);
+  if (!inCtx && !inLanes) return;
+
+  // Listeners live on #tlOuter, so pointer capture must also be on #tlOuter.
+  // After capture, all subsequent pointer events for this ID are dispatched
+  // here regardless of where the finger moves.
+  _captureEl = _tlOuter;
 
   _pointerId = e.pointerId;
   _startX    = e.clientX;
@@ -158,7 +195,7 @@ function _onPointerMove(e) {
     // Commit to horizontal drag: capture the pointer so subsequent
     // move/up events keep firing even if the finger leaves the element.
     _dragging = true;
-    _el.setPointerCapture(e.pointerId);
+    _captureEl.setPointerCapture(e.pointerId);
 
     // Enter "time navigation mode" — pill appears, Periods row fades.
     _enterNavMode();
@@ -167,7 +204,7 @@ function _onPointerMove(e) {
   // Prevent the browser from also scrolling vertically while we pan
   e.preventDefault();
 
-  // ── px → year conversion ─────────────────────────────────────
+  // ── px → year conversion ──────────────────────────────────────────────────
   // mobilePPY (px per year) is a live ES-module binding written by
   // renderLanes() on every repaint. It reflects the current bar-area
   // width ÷ MOBILE_TIMELINE_WINDOW_YEARS so the gesture always feels
@@ -183,9 +220,13 @@ function _onPointerMove(e) {
   //   upper bound: END_YEAR − MOBILE_TIMELINE_WINDOW_YEARS (2005 − 150 = 1855)
   setMobileViewStart(newStart);
 
-  // Repaint church lanes. renderLanes() → renderMobileRuler() updates the
-  // pill text on the same frame.
+  // Repaint church lanes + all context tracks in sync.
+  // renderLanes()         → updates church bars, grid, and mobile ruler ticks.
+  // renderContextTracks() → re-renders rulers/wars/political/etc. at the new
+  //                         mobileViewStart using the same _ctxX coordinate fn,
+  //                         keeping every visible row pixel-perfectly aligned.
   renderLanes();
+  renderContextTracks();
 }
 
 function _onPointerUp(e) {
@@ -199,7 +240,8 @@ function _onPointerUp(e) {
 
   // Explicitly release pointer capture.  The browser also auto-releases on
   // pointerup, but being explicit prevents any ambiguity in edge cases.
-  try { _el.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+  try { _captureEl?.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+  _captureEl = null;
 
   if (wasDragging) {
     // pointerup DOES generate a subsequent click event (the browser synthesises
@@ -207,7 +249,12 @@ function _onPointerUp(e) {
     // any child handler (.evt-dot click, .ch-label click) sees it.
     // once:true removes the listener after it fires so no legitimate tap is
     // ever suppressed.
-    _el.addEventListener('click', _suppressClick, { capture: true, once: true });
+    // Ghost-click suppression targets #lanesScroll (where evt-dot and ch-label
+    // listeners live).  Context row click handlers are benign (no drawer opens),
+    // so we only need to guard the lanes area.
+    if (_lanesEl) {
+      _lanesEl.addEventListener('click', _suppressClick, { capture: true, once: true });
+    }
 
     // Begin exit sequence: pill holds, then fades, then Periods restores.
     _scheduleExitNavMode();
@@ -226,7 +273,8 @@ function _onPointerCancel(e) {
   _pointerId = null;
   _dragging  = false;
 
-  try { _el.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+  try { _captureEl?.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+  _captureEl = null;
 
   if (wasDragging) {
     // Gesture was interrupted — collapse nav mode immediately rather than
@@ -243,45 +291,66 @@ function _suppressClick(e) {
   e.preventDefault();
 }
 
-// ── Public API ───────────────────────────────────────────────
+// ── Public API ────────────────────────────────────────────────────────────────
 
 export function initMobileDrag() {
   if (_active) destroyMobileDrag();   // clean slate if re-initialising
 
-  _el = document.getElementById('lanesScroll');
-  if (!_el) return;
+  _tlOuter = document.getElementById('tlOuter');
+  _lanesEl = document.getElementById('lanesScroll');
+  if (!_tlOuter) return;
 
   // Disable native horizontal scroll so browser pan-x never fights our handler.
   // touch-action: pan-y keeps native vertical scroll alive for scrolling through
   // church rows while our JS owns the horizontal axis.
-  _el.style.overflowX  = 'hidden';
-  _el.style.touchAction = 'pan-y';
+  if (_lanesEl) {
+    _lanesEl.style.overflowX   = 'hidden';
+    _lanesEl.style.touchAction = 'pan-y';
+  }
 
-  _el.addEventListener('pointerdown',   _onPointerDown);
-  _el.addEventListener('pointermove',   _onPointerMove, { passive: false });
-  _el.addEventListener('pointerup',     _onPointerUp);
-  _el.addEventListener('pointercancel', _onPointerCancel);
+  // Apply the same horizontal-scroll suppression to Global Context rows so a
+  // gesture starting on a context row doesn't trigger native scroll before our
+  // threshold logic runs.
+  _ctxScrollEls = [...document.querySelectorAll('.tl-ctx-scroll')];
+  _ctxScrollEls.forEach(el => {
+    el.style.overflowX   = 'hidden';
+    el.style.touchAction = 'pan-y';
+  });
+
+  _tlOuter.addEventListener('pointerdown',   _onPointerDown);
+  _tlOuter.addEventListener('pointermove',   _onPointerMove, { passive: false });
+  _tlOuter.addEventListener('pointerup',     _onPointerUp);
+  _tlOuter.addEventListener('pointercancel', _onPointerCancel);
 
   _active = true;
 }
 
 export function destroyMobileDrag() {
-  if (!_active || !_el) return;
+  if (!_active || !_tlOuter) return;
 
   // Restore scroll behaviour so desktop mode (or a re-init) starts clean
-  _el.style.overflowX   = '';
-  _el.style.touchAction = '';
+  if (_lanesEl) {
+    _lanesEl.style.overflowX   = '';
+    _lanesEl.style.touchAction = '';
+  }
+  _ctxScrollEls.forEach(el => {
+    el.style.overflowX   = '';
+    el.style.touchAction = '';
+  });
+  _ctxScrollEls = [];
 
-  _el.removeEventListener('pointerdown',   _onPointerDown);
-  _el.removeEventListener('pointermove',   _onPointerMove);
-  _el.removeEventListener('pointerup',     _onPointerUp);
-  _el.removeEventListener('pointercancel', _onPointerCancel);
+  _tlOuter.removeEventListener('pointerdown',   _onPointerDown);
+  _tlOuter.removeEventListener('pointermove',   _onPointerMove);
+  _tlOuter.removeEventListener('pointerup',     _onPointerUp);
+  _tlOuter.removeEventListener('pointercancel', _onPointerCancel);
 
   // Force-exit nav mode so no dangling class or timer survives the viewport switch.
   _exitNavModeNow();
 
-  _el        = null;
-  _active    = false;
-  _pointerId = null;
-  _dragging  = false;
+  _tlOuter    = null;
+  _lanesEl    = null;
+  _captureEl  = null;
+  _active     = false;
+  _pointerId  = null;
+  _dragging   = false;
 }
