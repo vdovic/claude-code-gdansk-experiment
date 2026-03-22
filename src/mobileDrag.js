@@ -17,6 +17,9 @@ import { mobilePPY, renderLanes } from './render.js';
 // 6 px is large enough to survive tap jitter, small enough to feel instant.
 const DRAG_THRESHOLD = 6;
 
+// Delay (ms) after drag release before the range label fades out.
+const LABEL_HIDE_DELAY = 1000;
+
 // ── Module state ─────────────────────────────────────────────
 let _active    = false;
 let _el        = null;   // #lanesScroll — the element we attach to
@@ -25,6 +28,33 @@ let _startX    = 0;
 let _startY    = 0;
 let _startVS   = 0;      // mobileViewStart at the moment the drag began
 let _dragging  = false;  // true once threshold is crossed and gesture committed
+
+// ── Range label lifecycle ─────────────────────────────────────
+// The label element (#mobileRangeLabel) is a persistent DOM node declared in
+// index.html — it is never created or destroyed here, only shown/hidden via
+// the .is-visible class. CSS opacity + transition does the actual fade.
+
+let _hideTimer = null;   // pending setTimeout id for fade-out
+
+function _showRangeLabel() {
+  clearTimeout(_hideTimer);
+  const el = document.getElementById('mobileRangeLabel');
+  if (el) el.classList.add('is-visible');
+}
+
+function _scheduleHideRangeLabel() {
+  clearTimeout(_hideTimer);
+  _hideTimer = setTimeout(() => {
+    const el = document.getElementById('mobileRangeLabel');
+    if (el) el.classList.remove('is-visible');
+  }, LABEL_HIDE_DELAY);
+}
+
+function _hideRangeLabelNow() {
+  clearTimeout(_hideTimer);
+  const el = document.getElementById('mobileRangeLabel');
+  if (el) el.classList.remove('is-visible');
+}
 
 // ── Pointer lifecycle ─────────────────────────────────────────
 
@@ -62,6 +92,9 @@ function _onPointerMove(e) {
     // move/up events keep firing even if the finger leaves the element.
     _dragging = true;
     _el.setPointerCapture(e.pointerId);
+
+    // Show the range label as soon as the gesture is committed
+    _showRangeLabel();
   }
 
   // Prevent the browser from also scrolling vertically while we pan
@@ -84,8 +117,7 @@ function _onPointerMove(e) {
   setMobileViewStart(newStart);
 
   // Repaint church lanes with the new viewport window.
-  // renderLanes() is called directly (not full render()) because the
-  // axis and context tracks use desktop state vars that haven't changed.
+  // renderLanes() also calls renderMobileRuler() which updates the label text.
   renderLanes();
 }
 
@@ -96,6 +128,9 @@ function _onPointerUp(e) {
     // Suppress the click event that fires immediately after a drag-release
     // so a fast swipe doesn't accidentally open a church detail drawer.
     _el.addEventListener('click', _suppressClick, { capture: true, once: true });
+
+    // Schedule the range label fade-out
+    _scheduleHideRangeLabel();
   }
 
   _pointerId = null;
@@ -140,6 +175,9 @@ export function destroyMobileDrag() {
   _el.removeEventListener('pointermove',   _onPointerMove);
   _el.removeEventListener('pointerup',     _onPointerUp);
   _el.removeEventListener('pointercancel', _onPointerUp);
+
+  // Hide the label immediately — no dangling fade timer on viewport switch
+  _hideRangeLabelNow();
 
   _el        = null;
   _active    = false;

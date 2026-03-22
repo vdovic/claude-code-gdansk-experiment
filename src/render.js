@@ -843,12 +843,15 @@ function renderMobileRuler() {
     html += `</div>`;
   }
 
-  // Live range label — updates on every drag frame alongside the ticks
-  const startYr = Math.round(mobileViewStart);
-  const endYr   = Math.round(mobileViewEnd);
-  html += `<span class="mobile-range-label">${startYr} – ${endYr}</span>`;
-
   track.innerHTML = html;
+
+  // Update the persistent range label text — the element lives as a sibling
+  // of the track (inside #mobileRuler) so it is never wiped by the innerHTML
+  // assignment above. Visibility is managed by mobileDrag.js via .is-visible.
+  const label = document.getElementById('mobileRangeLabel');
+  if (label) {
+    label.textContent = `${Math.round(mobileViewStart)} – ${Math.round(mobileViewEnd)}`;
+  }
 }
 
 // Track current sort key (needed inside renderLanes without import cycle)

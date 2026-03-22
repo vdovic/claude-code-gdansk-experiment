@@ -3437,6 +3437,7 @@ body.onb-open { overflow: hidden; }
   display: none;               /* hidden on desktop */
   flex-direction: row;
   flex-shrink: 0;
+  position: relative;          /* containing block for #mobileRangeLabel */
   height: 22px;
   background: var(--parchment-dk);
   border-bottom: 1px solid var(--tl-border);
@@ -3506,8 +3507,9 @@ body[data-viewport="mobile"] .tl-lanes-scroll::after {
   z-index: 2;
 }
 
-/* Range label — small live text in the top-right of the mobile ruler track.
-   Updated by renderMobileRuler() on every drag frame.                       */
+/* Range label — top-right of #mobileRuler, positioned relative to the ruler
+   row (not the track) so it is never wiped by track.innerHTML rebuilds.
+   Starts invisible; mobileDrag.js adds/removes .is-visible to show/fade it.  */
 .mobile-range-label {
   position: absolute;
   right: 6px;
@@ -3515,8 +3517,13 @@ body[data-viewport="mobile"] .tl-lanes-scroll::after {
   font-size: 9px;
   font-family: var(--font-ui, sans-serif);
   color: var(--text-muted);
-  opacity: 0.70;
+  opacity: 0;
+  transition: opacity 0.35s ease;
   pointer-events: none;
   white-space: nowrap;
   line-height: 1;
+  z-index: 1;                  /* sits above tick marks in the track */
+}
+.mobile-range-label.is-visible {
+  opacity: 0.70;
 }
