@@ -785,9 +785,11 @@ export function renderLanes() {
     el.addEventListener('pointerdown', e => { _lastPtrType = e.pointerType; });
     el.addEventListener('click', e => {
       if (_lastPtrType === 'touch') {
-        // Touch: first tap pins the event tooltip; second tap on the same marker opens detail
+        // Touch: first tap pins the event tooltip; second tap dismisses it.
+        // Detail drawer is intentionally not reachable by double-tapping a
+        // marker on mobile — the timeline is for navigation, not deep-dive.
         if (isTTPinnedFor(ci, ei)) {
-          openCD(ci, ei);
+          unpinTT();
         } else {
           const r = el.getBoundingClientRect();
           const fakeEv = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
