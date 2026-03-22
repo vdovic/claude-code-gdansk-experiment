@@ -311,7 +311,16 @@ export function initMobileDrag() {
   // Apply the same horizontal-scroll suppression to Global Context rows so a
   // gesture starting on a context row doesn't trigger native scroll before our
   // threshold logic runs.
-  _ctxScrollEls = [...document.querySelectorAll('.tl-ctx-scroll')];
+  // Suppress native horizontal scroll on context rows so a gesture starting
+  // on one of them doesn't trigger the browser's own pan-x before our
+  // threshold logic runs.
+  //
+  // Exception: #econErasRow's scroll container is intentionally independent —
+  // renderEconErasMobile() marks it data-no-sync="1" so the user can swipe
+  // through historical periods without moving the main timeline.  Setting
+  // overflow-x:hidden there would permanently break that interaction.
+  _ctxScrollEls = [...document.querySelectorAll('.tl-ctx-scroll')]
+    .filter(el => !el.closest('#econErasRow'));
   _ctxScrollEls.forEach(el => {
     el.style.overflowX   = 'hidden';
     el.style.touchAction = 'pan-y';
