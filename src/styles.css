@@ -3427,3 +3427,60 @@ body.mode-combined  #trackToggles { display: flex;  }
 
 /* Prevent background scroll when overlay is open */
 body.onb-open { overflow: hidden; }
+
+/* ── Mobile year ruler (baba-dunya Step 4) ───────────────────────────────── */
+/* Hidden on desktop; shown only when data-viewport="mobile".                */
+/* Sits between the Periods row and the church lanes — always reflects the   */
+/* same mobileViewStart/mobileViewEnd slice used by bars and markers.        */
+
+#mobileRuler {
+  display: none;               /* hidden on desktop */
+  flex-direction: row;
+  flex-shrink: 0;
+  height: 22px;
+  background: var(--parchment-dk);
+  border-bottom: 1px solid var(--tl-border);
+}
+body[data-viewport="mobile"] #mobileRuler {
+  display: flex;
+}
+
+/* Left stub — same width as the church-name column so ticks align with bars */
+.mobile-ruler-stub {
+  width: var(--label-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--tl-border);
+}
+
+/* Right track — clips overflow so ticks outside the visible slice are hidden */
+.mobile-ruler-track {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Individual tick marks — bottom-anchored vertical lines                     */
+.mobile-ruler-tick {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 5px;
+  background: var(--tl-border);
+}
+.mobile-ruler-tick.major {
+  height: 11px;
+  background: var(--text-muted);
+}
+
+/* Year label — sits above the major tick line */
+.mobile-ruler-yr {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-size: 9px;
+  font-family: var(--font-ui, sans-serif);
+  color: var(--text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1;
+}

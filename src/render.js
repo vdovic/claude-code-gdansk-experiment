@@ -748,6 +748,10 @@ export function renderLanes() {
   labelsEl.innerHTML  = labHtml;
   lanesEl.innerHTML   = laneHtml;
 
+  // Keep the mobile ruler in sync — rebuilds ticks from the same mobileViewStart
+  // and mobilePPY values used above, so years always align with bars and markers.
+  renderMobileRuler();
+
   // Attach event listeners to labels.
   // Church metadata is shown only in the detail drawer (explicit click).
   // Hover tooltip removed from labels — avoids conflating marker-level
@@ -797,6 +801,49 @@ export function renderLanes() {
   });
 
   // Confessional overlay bands — visual only, no tooltips (removed per UX request)
+}
+
+// ── Mobile year ruler ──────────────────────────────────────────────────────
+// Rebuilds tick marks inside #mobileRuler .mobile-ruler-track to match the
+// current mobileViewStart / mobileViewEnd / mobilePPY.
+//
+// Called at the end of renderLanes() so the ruler always stays in lock-step
+// with bars and markers — they all share the same coordinate computation.
+//
+// Tick cadence for a 150-year window:
+//   Major (labeled):   every 50 years  → 3–4 labels always visible
+//   Minor (tick only): every 25 years  → additional 25-year reference lines
+//
+// The Periods row (#econErasRow) is completely separate DOM and is never
+// touched here — its independent native scroll is unaffected.
+function renderMobileRuler() {
+  if (!_isMobile()) return;
+
+  const track = document.querySelector('#mobileRuler .mobile-ruler-track');
+  if (!track) return;
+
+  // Use the same bar-area width → ppy formula as renderLanes().
+  // mobilePPY (the exported let) is already set to this value at this point
+  // in the call chain, so we can read it directly.
+  const ppy = mobilePPY > 0 ? mobilePPY : 1;
+
+  const MAJOR = 50;   // years between labeled major ticks
+  const MINOR = 25;   // years between all ticks (major + minor)
+
+  let html = '';
+  const firstTick = Math.ceil(mobileViewStart / MINOR) * MINOR;
+
+  for (let yr = firstTick; yr <= mobileViewEnd; yr += MINOR) {
+    const x        = (yr - mobileViewStart) * ppy;
+    const isMajor  = yr % MAJOR === 0;
+    html += `<div class="mobile-ruler-tick${isMajor ? ' major' : ''}" style="left:${x}px">`;
+    if (isMajor) {
+      html += `<span class="mobile-ruler-yr">${yr}</span>`;
+    }
+    html += `</div>`;
+  }
+
+  track.innerHTML = html;
 }
 
 // Track current sort key (needed inside renderLanes without import cycle)
