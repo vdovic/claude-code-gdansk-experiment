@@ -3643,14 +3643,16 @@ body[data-viewport="mobile"] .tl-outer::before {
   );
 }
 
-/* Right accent — mirror image */
+/* Right accent — slightly wider span than the left for visual balance
+   (the right edge has no label column to anchor it visually)          */
 body[data-viewport="mobile"] .tl-outer::after {
   right: 0;
+  width: 22px;
   background: linear-gradient(
     to left,
-    rgba(44, 32, 22, 0.28)  0px,
-    rgba(44, 32, 22, 0.10)  7px,
-    transparent            16px
+    rgba(44, 32, 22, 0.34)  0px,
+    rgba(44, 32, 22, 0.14) 10px,
+    transparent            22px
   );
 }
 
