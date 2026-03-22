@@ -2315,6 +2315,27 @@ body[data-viewport="desktop"] .econ-era-desc {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   MOBILE TOOLTIP — preview / expand behaviour
+   ══════════════════════════════════════════════════════════════ */
+
+/* Hide desktop "click to pin" hint — irrelevant on touch */
+body[data-viewport="mobile"] .tt-pin-hint { display: none !important; }
+
+/* Preview mode: collapse body to 5 lines; ellipsis signals more content */
+body[data-viewport="mobile"] .tooltip.tt-preview .tt-body {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Preview mode: pointer cursor signals the tooltip is tappable */
+body[data-viewport="mobile"] .tooltip.tt-preview { cursor: pointer; }
+
+/* Expanded mode: body shows in full; scroll is handled by .tt-scroll-body */
+body[data-viewport="mobile"] .tooltip:not(.tt-preview) .tt-body { display: block; }
+
+/* ══════════════════════════════════════════════════════════════
    SCROLLBAR GLOBAL
    ══════════════════════════════════════════════════════════════ */
 .drawer-body::-webkit-scrollbar-track { background: transparent; }
@@ -3000,6 +3021,10 @@ body[data-viewport="mobile"] .tl-lanes-scroll {
 
 /* Tier-1 mobile UX — mirror of @media rules; covers forced-mobile on wide screens */
 body[data-viewport="mobile"] .ctrl-hint { display: none !important; }
+
+/* ── Filter / sort bars: hidden on mobile (covered by Sort & Filter bottom sheet) ─ */
+body[data-viewport="mobile"] #filterBar,
+body[data-viewport="mobile"] #sortBar { display: none !important; }
 body[data-viewport="mobile"] .filter-bar.filter-wrap {
   flex-wrap: nowrap !important; overflow-x: auto !important;
   row-gap: 0 !important; touch-action: pan-x;
