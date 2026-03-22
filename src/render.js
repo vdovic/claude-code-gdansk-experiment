@@ -19,7 +19,15 @@ import {
   visibleChurches, sortedIndices, trackVisibility,
   typeColors, getCluster,
   syncedPeriodsExperiment,          // [EXPERIMENT] synced periods flag
+  // Mobile viewport state (Step 2 — baba-dunya experiment)
+  mobileViewStart, mobileViewEnd, MOBILE_TIMELINE_WINDOW_YEARS,
 } from './state.js';
+
+// Pixels-per-year used by the current mobile render pass.
+// Written by renderLanes() on mobile; reset to 0 on desktop.
+// Exported so the Step-3 drag handler can convert touch delta → year delta
+// without re-reading the DOM.
+export let mobilePPY = 0;
 import { showTT, showChurchTT, showGenericTT, hideTT, unpinTT, pinTT, isTTPinned, isTTPinnedFor, showPinnedTT, showPinnedGenericTT } from './tooltip.js';
 import { openCD, openPD, openCalD, openWarD } from './detail.js';
 import { getConfessionalPhases } from './data/confessional.js';
@@ -618,10 +626,35 @@ function renderLanes() {
   const lanesEl   = document.getElementById('lanesInner');
   if (!labelsEl || !lanesEl) return;
 
-  const tw = getTotalWidth() - labelOffset;
+  // ── Coordinate helpers: mobile vs desktop ──────────────────────────────────
+  // Desktop path: identical to the original code — uses shared state vars.
+  // Mobile path:  maps bars/markers into the fixed MOBILE_TIMELINE_WINDOW_YEARS
+  //               slice defined by mobileViewStart/mobileViewEnd.
+  //               _x(year) returns px from the left edge of the lanes area
+  //               (labelOffset is already excluded, matching the desktop formula
+  //               yearToX(y) - labelOffset = (y - viewStart) * pixelsPerYear).
+  //               mobilePPY is written here and exported for Step-3 drag handler.
+  let _vs, _ve, _x, _tw;
+  if (_isMobile()) {
+    const lanesScroll = document.getElementById('lanesScroll');
+    const barW  = lanesScroll?.clientWidth || Math.max(window.innerWidth - labelOffset, 200);
+    mobilePPY   = barW / MOBILE_TIMELINE_WINDOW_YEARS;   // exported for drag handler
+    _vs  = mobileViewStart;
+    _ve  = mobileViewEnd;
+    _x   = yr => (yr - _vs) * mobilePPY;
+    _tw  = barW;                                          // inner exactly fills viewport
+  } else {
+    mobilePPY   = 0;   // reset — desktop never reads this
+    _vs  = viewStart;
+    _ve  = viewEnd;
+    _x   = yr => yearToX(yr) - labelOffset;              // identical to original
+    _tw  = getTotalWidth() - labelOffset;                 // identical to original
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const visibleCount = sortedIndices.filter(ci => visibleChurches.has(churches[ci].id)).length;
   const laneH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lane-h')) || 43;
-  lanesEl.style.width  = tw + 'px';
+  lanesEl.style.width  = _tw + 'px';
   lanesEl.style.height = (visibleCount * laneH) + 'px';
 
   const metaFn = {
@@ -644,9 +677,9 @@ function renderLanes() {
 
   // Build grid lines once (not per lane)
   let gridHtml = '';
-  const gridStart = Math.ceil(viewStart / 10) * 10;
-  for (let y = gridStart; y <= viewEnd; y += 10) {
-    const x   = yearToX(y) - labelOffset;
+  const gridStart = Math.ceil(_vs / 10) * 10;
+  for (let y = gridStart; y <= _ve; y += 10) {
+    const x   = _x(y);
     const maj = y % 50 === 0;
     gridHtml += `<div class="grid-vl ${maj ? 'maj' : 'min'}" style="left:${x}px"></div>`;
   }
@@ -678,9 +711,9 @@ function renderLanes() {
     // Lane content
     let denomHtml = '';
     ch.denomBars.forEach(b => {
-      if (b.end < viewStart || b.start > viewEnd) return;
-      const x1 = yearToX(Math.max(b.start, viewStart)) - labelOffset;
-      const x2 = yearToX(Math.min(b.end, viewEnd)) - labelOffset;
+      if (b.end < _vs || b.start > _ve) return;
+      const x1 = _x(Math.max(b.start, _vs));
+      const x2 = _x(Math.min(b.end,   _ve));
       denomHtml += `<div class="denom-bar ${b.type}" data-denom="${b.type}"
         style="left:${x1}px;width:${Math.max(x2 - x1, 2)}px"
         title="${b.type} ${b.start}–${b.end}"></div>`;
@@ -690,9 +723,9 @@ function renderLanes() {
     let confHtml = '';
     const confPhases = getConfessionalPhases(ch.id);
     confPhases.forEach((phase, pi) => {
-      if (phase.end < viewStart || phase.start > viewEnd) return;
-      const cx1 = yearToX(Math.max(phase.start, viewStart)) - labelOffset;
-      const cx2 = yearToX(Math.min(phase.end, viewEnd)) - labelOffset;
+      if (phase.end < _vs || phase.start > _ve) return;
+      const cx1 = _x(Math.max(phase.start, _vs));
+      const cx2 = _x(Math.min(phase.end,   _ve));
       confHtml += `<div class="confessional-overlay" data-ci="${ci}" data-phase="${pi}"
         style="left:${cx1}px;width:${Math.max(cx2 - cx1, 4)}px"
         title="${phase.tooltipTitle}"></div>`;
@@ -700,8 +733,8 @@ function renderLanes() {
 
     let evtHtml = '';
     ch.events.forEach((ev, ei) => {
-      if (ev.year < viewStart || ev.year > viewEnd) return;
-      const x = yearToX(ev.year) - labelOffset;
+      if (ev.year < _vs || ev.year > _ve) return;
+      const x = _x(ev.year);
       const col = typeColors[ev.type] || 'var(--amber)';
       const dotSvg = eventMarkerSVG(ev.type, col, 13);
       evtHtml += `<div class="evt-dot" data-ci="${ci}" data-ei="${ei}" data-type="${ev.type}"
