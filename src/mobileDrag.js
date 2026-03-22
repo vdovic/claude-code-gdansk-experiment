@@ -40,7 +40,7 @@ import { mobilePPY, renderLanes } from './render.js';
 const DRAG_THRESHOLD = 6;
 
 // How long the pill stays fully visible after the finger lifts (ms).
-const LABEL_HOLD_MS = 900;
+const LABEL_HOLD_MS = 100;
 
 // How long to wait after adding .is-fading before resetting state (ms).
 // Should be slightly longer than the CSS opacity transition (0.28s → 280 ms).
