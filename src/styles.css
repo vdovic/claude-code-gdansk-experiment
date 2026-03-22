@@ -3488,24 +3488,7 @@ body[data-viewport="mobile"] #mobileRuler {
 
 /* ── Mobile timeline focus cues (baba-dunya Step 5) ──────────────────────── */
 
-/* Center guide — thin vertical reference at the horizontal midpoint of the
-   bar area. Lives as ::after on the scroll container so it is naturally
-   clipped to the lane viewport and never reaches the label column, the
-   Periods row, or the ruler.                                                */
-body[data-viewport="mobile"] .tl-lanes-scroll {
-  position: relative;   /* establish containing block for ::after */
-}
-body[data-viewport="mobile"] .tl-lanes-scroll::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.09);   /* subtle, works on both themes */
-  pointer-events: none;
-  z-index: 2;
-}
+/* Center guide removed — replaced by the edge-line frame in the frame branch. */
 
 /* ── Periods row — fade during mobile drag ────────────────────────────────
    opacity:0 keeps the row in layout (no shift); transition makes it smooth.
