@@ -3578,3 +3578,84 @@ body[data-viewport="mobile"].tl-dragging .mobile-range-label {
 body[data-viewport="mobile"].tl-dragging .mobile-range-label.is-fading {
   opacity: 0;
 }
+
+/* ── Navigation frame — mobile, active only during horizontal drag ───────────
+ *
+ * Two thin vertical accent strips bracket the scrollable timeline area
+ * (Global Context rows + church lanes) while the user pans through history.
+ * They share the lifecycle of the range-label pill: fade in when
+ * body.tl-dragging is added, fade out when it is removed.
+ *
+ * Gothic cue — lancet arch:
+ *   clip-path narrows each strip to a point at y=0 (the arch tip) and
+ *   reaches full width at y=36 px (the impost / springing line).
+ *   On a 16 px wide strip this gives a 2.25∶1 height-to-width proportion,
+ *   well within the classic lancet range used in Gdańsk brick Gothic.
+ *   The arch "emerges" from the top of the viewport, evoking looking
+ *   through a tall masonry window rather than a decorative frame.
+ *
+ * Color:
+ *   rgba(44, 32, 22, …) — dark warm neutral, the tone of aged mortar and
+ *   shadow-side brick in Gdańsk's St Mary's and Artushof facades.
+ *   Opacity peaks at 0.28 (opaque edge) and fades to zero within 16 px
+ *   so the readable timeline content is never obscured.
+ *
+ * Scope:
+ *   • position:relative added to .tl-outer so pseudo-elements anchor there.
+ *   • .tl-outer already carries overflow:hidden, which clips the strips
+ *     cleanly to the timeline bounds with no extra containment needed.
+ *   • Left strip is inset by --label-w so the frozen church-name column
+ *     is always clear.
+ *   • pointer-events:none — no interference with drag, taps, or the
+ *     split-resize handle.
+ *   • z-index:9 — above lane content, below the range-label pill (10).   */
+
+/* Positioning context — safe to add; does not reparent position:fixed
+   children (only transform/filter/perspective do that).               */
+body[data-viewport="mobile"] .tl-outer {
+  position: relative;
+}
+
+/* Shared strip base — invisible by default */
+body[data-viewport="mobile"] .tl-outer::before,
+body[data-viewport="mobile"] .tl-outer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  /* Lancet arch: tip at centre-top (50% 0), impost at 36 px */
+  clip-path: polygon(50% 0, 100% 36px, 100% 100%, 0 100%, 0 36px);
+}
+
+/* Left accent — starts at the right edge of the frozen label column */
+body[data-viewport="mobile"] .tl-outer::before {
+  left: var(--label-w, 110px);
+  background: linear-gradient(
+    to right,
+    rgba(44, 32, 22, 0.28)  0px,
+    rgba(44, 32, 22, 0.10)  7px,
+    transparent            16px
+  );
+}
+
+/* Right accent — mirror image */
+body[data-viewport="mobile"] .tl-outer::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(44, 32, 22, 0.28)  0px,
+    rgba(44, 32, 22, 0.10)  7px,
+    transparent            16px
+  );
+}
+
+/* Activate during drag — fades in sync with the range-label pill */
+body[data-viewport="mobile"].tl-dragging .tl-outer::before,
+body[data-viewport="mobile"].tl-dragging .tl-outer::after {
+  opacity: 1;
+}
