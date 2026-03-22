@@ -14,6 +14,11 @@ const TT_CORRIDOR_MS = 250;  // grace ms when cursor is heading toward the toolt
 const TT_MAX_PREVIEW = 220;  // body chars shown in hover preview
 const TT_MAX_BODY    = 280;  // body chars shown in pinned / click-expanded state
 
+/** True when running in mobile viewport — used to switch tooltip behaviour. */
+function _isMobile() {
+  return document.body?.dataset?.viewport === 'mobile';
+}
+
 let ttEl        = null;
 let ttPinned    = false;
 let ttPinnedCI  = -1;
@@ -83,6 +88,28 @@ function _show(html, ev, extraClass) {
   ttContent = html;
   tt.innerHTML = _buildBase(html);
   tt.className = 'tooltip visible' + (extraClass ? ' ' + extraClass : '');
+
+  // ── Mobile preview mode ──────────────────────────────────────
+  // On touch devices the tooltip starts collapsed (CSS line-clamp on .tt-body).
+  // A single tap anywhere inside the tooltip (except ✕) removes the preview
+  // class, showing the full text with scroll support.
+  if (_isMobile()) {
+    tt.classList.add('tt-preview');
+    // Remove any stale handler from a previous render
+    if (tt._mobileExpandHandler) {
+      tt.removeEventListener('click', tt._mobileExpandHandler);
+    }
+    const _handler = (e) => {
+      if (e.target.closest('#ttClose')) return;
+      const el = _el();
+      el.classList.remove('tt-preview');
+      el.removeEventListener('click', _handler);
+      el._mobileExpandHandler = null;
+    };
+    tt._mobileExpandHandler = _handler;
+    tt.addEventListener('click', _handler);
+  }
+
   if (ttPinned) return; // keep pinned position
 
   // Measure first, then position precisely for large tooltips
@@ -95,56 +122,60 @@ function _show(html, ev, extraClass) {
 
 export function showTT(ev, kind, idx, sub, opts = {}) {
   if (ttPinned) return;
+  const mob = _isMobile();  // mobile flag — drives full-text + no desktop hints
   let body = '';
 
   if (kind === 'p') {
     const e   = politicalEvents[idx];
     const col = e.color || 'var(--amber)';
-    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    // Mobile: always pass full text; CSS line-clamp handles visual preview
+    const hasMore = !mob && e.detail.length > TT_MAX_PREVIEW;
     const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${Math.floor(e.year)}</div>
       <div class="tt-type" style="background:${col}20;color:${col}">Political</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${mob ? e.detail : e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'war') {
     const e = wars[idx];
-    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    const hasMore = !mob && e.detail.length > TT_MAX_PREVIEW;
     const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.start}–${e.end}</div>
       <div class="tt-type" style="background:rgba(192,48,48,0.15);color:var(--ev-siege)">War / Conflict</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${mob ? e.detail : e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'cal') {
     const e = calamities[idx];
-    const hasMore = e.detail.length > TT_MAX_PREVIEW;
+    const hasMore = !mob && e.detail.length > TT_MAX_PREVIEW;
     const esc = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.year}</div>
       <div class="tt-type" style="background:rgba(106,64,128,0.15);color:var(--ev-plague)">Plague / Epidemic</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${esc}"` : ''}>${mob ? e.detail : e.detail.substring(0, TT_MAX_PREVIEW)}${hasMore ? '…' : ''}</div>`;
   } else if (kind === 'ruler') {
     const r   = rulers[idx];
     const col = r.color || 'var(--amber)';
-    const RULER_MAX = 400;
-    const hasMore = r.note && r.note.length > RULER_MAX;
+    // Mobile: no char limit; desktop: 400-char cap with "click to pin" hint
+    const RULER_MAX = mob ? Infinity : 400;
+    const hasMore = !mob && r.note && r.note.length > RULER_MAX;
     const escaped = r.note ? r.note.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${r.start}–${r.end}</div>
       <div class="tt-type" style="background:${col}20;color:${col}">Ruler / Authority</div>
       <div class="tt-title">${r.name}</div>
-      ${r.note ? `<div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${r.note.substring(0, RULER_MAX)}${hasMore ? '… <em style="color:var(--amber-lt)">click to pin</em>' : ''}</div>` : ''}`;
+      ${r.note ? `<div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${mob ? r.note : r.note.substring(0, RULER_MAX)}${hasMore ? '… <em style="color:var(--amber-lt)">click to pin</em>' : ''}</div>` : ''}`;
   } else {
     // Church event (kind === 'c')
     const ch      = churches[idx];
     const e       = ch.events[sub];
     const col     = typeColors[e.type] || 'var(--amber)';
     const typeLabel = e.type === 'cornerstone' ? 'brick cornerstone' : e.type;
-    const maxLen  = opts.immediate ? TT_MAX_BODY : TT_MAX_PREVIEW;
-    const hasMore = e.detail.length > maxLen;
+    // Mobile: always full text; desktop: existing truncation logic
+    const maxLen  = mob ? Infinity : (opts.immediate ? TT_MAX_BODY : TT_MAX_PREVIEW);
+    const hasMore = !mob && e.detail.length > maxLen;
     const escaped = hasMore ? e.detail.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${e.year} · ${ch.name}</div>
       <div class="tt-type" style="background:${col}20;color:${col}">${typeLabel}</div>
       <div class="tt-title">${e.label}</div>
-      <div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${e.detail.substring(0, maxLen)}${hasMore ? '… <em style="color:var(--amber-lt)">click</em>' : ''}</div>`;
+      <div class="tt-body"${hasMore ? ` data-full="${escaped}"` : ''}>${mob ? e.detail : e.detail.substring(0, maxLen)}${hasMore ? '… <em style="color:var(--amber-lt)">click</em>' : ''}</div>`;
   }
 
   _scheduleShow(body, ev, undefined, opts.immediate);
