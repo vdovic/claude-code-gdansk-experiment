@@ -70,7 +70,10 @@
       "WebFetch(domain:www.geographicus.com)",
       "Bash(where python)",
       "Bash(where python3)",
-      "Bash(python serve.py 8092)"
+      "Bash(python serve.py 8092)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(\"D:\\\\Claude_Code_Gdansk_experiment\\\\src\\\\styles.css\":*)"
     ]
   }
 }
