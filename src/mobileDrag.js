@@ -191,20 +191,54 @@ function _onPointerMove(e) {
 function _onPointerUp(e) {
   if (_pointerId === null || e.pointerId !== _pointerId) return;
 
-  if (_dragging) {
-    // Suppress the click event that fires immediately after a drag-release
-    // so a fast swipe doesn't accidentally open a church detail drawer.
+  // Capture drag state before we clear it — used for post-release decisions.
+  const wasDragging = _dragging;
+
+  _pointerId = null;
+  _dragging  = false;
+
+  // Explicitly release pointer capture.  The browser also auto-releases on
+  // pointerup, but being explicit prevents any ambiguity in edge cases.
+  try { _el.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+
+  if (wasDragging) {
+    // pointerup DOES generate a subsequent click event (the browser synthesises
+    // it from the touch sequence).  Intercept it in the capture phase before
+    // any child handler (.evt-dot click, .ch-label click) sees it.
+    // once:true removes the listener after it fires so no legitimate tap is
+    // ever suppressed.
     _el.addEventListener('click', _suppressClick, { capture: true, once: true });
 
     // Begin exit sequence: pill holds, then fades, then Periods restores.
     _scheduleExitNavMode();
   }
+}
+
+// pointercancel fires when the OS steals the gesture (incoming call, scroll
+// lock, palm rejection, etc.).  Unlike pointerup, it does NOT generate a
+// click event — registering _suppressClick here would cause the listener to
+// sit idle and fire against the next legitimate tap instead.
+function _onPointerCancel(e) {
+  if (_pointerId === null || e.pointerId !== _pointerId) return;
+
+  const wasDragging = _dragging;
 
   _pointerId = null;
   _dragging  = false;
+
+  try { _el.releasePointerCapture(e.pointerId); } catch (_) { /* already released */ }
+
+  if (wasDragging) {
+    // Gesture was interrupted — collapse nav mode immediately rather than
+    // letting the hold/fade timers run.
+    _exitNavModeNow();
+  }
 }
 
 function _suppressClick(e) {
+  // Stop the ghost-click from reaching any child handler (evt-dot, ch-label).
+  // capture:true already puts us ahead of bubbling listeners; stopPropagation
+  // is the primary guard.  preventDefault is added defensively.
   e.stopPropagation();
   e.preventDefault();
 }
@@ -226,7 +260,7 @@ export function initMobileDrag() {
   _el.addEventListener('pointerdown',   _onPointerDown);
   _el.addEventListener('pointermove',   _onPointerMove, { passive: false });
   _el.addEventListener('pointerup',     _onPointerUp);
-  _el.addEventListener('pointercancel', _onPointerUp);
+  _el.addEventListener('pointercancel', _onPointerCancel);
 
   _active = true;
 }
@@ -241,7 +275,7 @@ export function destroyMobileDrag() {
   _el.removeEventListener('pointerdown',   _onPointerDown);
   _el.removeEventListener('pointermove',   _onPointerMove);
   _el.removeEventListener('pointerup',     _onPointerUp);
-  _el.removeEventListener('pointercancel', _onPointerUp);
+  _el.removeEventListener('pointercancel', _onPointerCancel);
 
   // Force-exit nav mode so no dangling class or timer survives the viewport switch.
   _exitNavModeNow();
