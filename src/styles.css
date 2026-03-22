@@ -3579,85 +3579,89 @@ body[data-viewport="mobile"].tl-dragging .mobile-range-label.is-fading {
   opacity: 0;
 }
 
-/* ── Navigation frame — mobile, active only during horizontal drag ───────────
+/* ── Focus-mode frame + decade grid — mobile drag only ───────────────────────
  *
- * Two thin vertical accent strips bracket the scrollable timeline area
- * (Global Context rows + church lanes) while the user pans through history.
- * They share the lifecycle of the range-label pill: fade in when
- * body.tl-dragging is added, fade out when it is removed.
+ * Three signals that together tell the user they are in focus mode:
  *
- * Gothic cue — lancet arch:
- *   clip-path narrows each strip to a point at y=0 (the arch tip) and
- *   reaches full width at y=36 px (the impost / springing line).
- *   On a 16 px wide strip this gives a 2.25∶1 height-to-width proportion,
- *   well within the classic lancet range used in Gdańsk brick Gothic.
- *   The arch "emerges" from the top of the viewport, evoking looking
- *   through a tall masonry window rather than a decorative frame.
+ *   1. Left / right edge lines — straight vertical boundaries bracketing
+ *      the bar area; sharp ~1-2 px leading edge + soft inward shadow,
+ *      equal on both sides.
  *
- * Color:
- *   rgba(44, 32, 22, …) — dark warm neutral, the tone of aged mortar and
- *   shadow-side brick in Gdańsk's St Mary's and Artushof facades.
- *   Opacity peaks at 0.28 (opaque edge) and fades to zero within 16 px
- *   so the readable timeline content is never obscured.
+ *   2. Decade grid lines — .grid-vl marks (every 10 yr from renderLanes())
+ *      become visible; 50-yr lines widen to 2 px and gain more opacity.
  *
- * Scope:
- *   • position:relative added to .tl-outer so pseudo-elements anchor there.
- *   • .tl-outer already carries overflow:hidden, which clips the strips
- *     cleanly to the timeline bounds with no extra containment needed.
- *   • Left strip is inset by --label-w so the frozen church-name column
- *     is always clear.
- *   • pointer-events:none — no interference with drag, taps, or the
- *     split-resize handle.
- *   • z-index:9 — above lane content, below the range-label pill (10).   */
+ *   3. Ruler tick heights — minor ticks grow 5→7 px; major 50-yr ticks
+ *      grow 11→16 px and widen to 2 px.
+ *
+ * All three share body.tl-dragging as trigger so they appear and disappear
+ * in sync with the range-label pill.                                        */
 
-/* Positioning context — safe to add; does not reparent position:fixed
-   children (only transform/filter/perspective do that).               */
+/* Positioning context for edge-line pseudo-elements */
 body[data-viewport="mobile"] .tl-outer {
   position: relative;
 }
 
-/* Shared strip base — invisible by default */
+/* ── 1. Edge lines — shared base, invisible by default ── */
 body[data-viewport="mobile"] .tl-outer::before,
 body[data-viewport="mobile"] .tl-outer::after {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 16px;
+  width: 18px;
   pointer-events: none;
   z-index: 9;
   opacity: 0;
   transition: opacity 0.25s ease;
-  /* Lancet arch: tip at centre-top (50% 0), impost at 36 px */
-  clip-path: polygon(50% 0, 100% 36px, 100% 100%, 0 100%, 0 36px);
 }
 
-/* Left accent — starts at the right edge of the frozen label column */
+/* Left edge — starts at the right edge of the frozen label column */
 body[data-viewport="mobile"] .tl-outer::before {
   left: var(--label-w, 110px);
   background: linear-gradient(
     to right,
-    rgba(44, 32, 22, 0.28)  0px,
-    rgba(44, 32, 22, 0.10)  7px,
-    transparent            16px
+    rgba(44, 32, 22, 0.50)  0px,
+    rgba(44, 32, 22, 0.18)  5px,
+    rgba(44, 32, 22, 0.06) 10px,
+    transparent            18px
   );
 }
 
-/* Right accent — slightly wider span than the left for visual balance
-   (the right edge has no label column to anchor it visually)          */
+/* Right edge — identical gradient, mirrored */
 body[data-viewport="mobile"] .tl-outer::after {
   right: 0;
-  width: 22px;
   background: linear-gradient(
     to left,
-    rgba(44, 32, 22, 0.34)  0px,
-    rgba(44, 32, 22, 0.14) 10px,
-    transparent            22px
+    rgba(44, 32, 22, 0.50)  0px,
+    rgba(44, 32, 22, 0.18)  5px,
+    rgba(44, 32, 22, 0.06) 10px,
+    transparent            18px
   );
 }
 
-/* Activate during drag — fades in sync with the range-label pill */
+/* Activate edge lines */
 body[data-viewport="mobile"].tl-dragging .tl-outer::before,
 body[data-viewport="mobile"].tl-dragging .tl-outer::after {
   opacity: 1;
+}
+
+/* ── 2. Decade grid lines ── */
+body[data-viewport="mobile"] .grid-vl {
+  transition: background 0.2s ease, width 0.2s ease;
+}
+body[data-viewport="mobile"].tl-dragging .grid-vl.min {
+  background: rgba(0, 0, 0, 0.09);
+}
+body[data-viewport="mobile"].tl-dragging .grid-vl.maj {
+  background: rgba(0, 0, 0, 0.22);
+  width: 2px;
+}
+
+/* ── 3. Ruler tick heights ── */
+body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick {
+  height: 7px;
+}
+body[data-viewport="mobile"].tl-dragging .mobile-ruler-tick.major {
+  height: 16px;
+  width: 2px;
 }

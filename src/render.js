@@ -842,7 +842,7 @@ function renderMobileRuler() {
   const ppy = mobilePPY > 0 ? mobilePPY : 1;
 
   const MAJOR = 50;   // years between labeled major ticks
-  const MINOR = 25;   // years between all ticks (major + minor)
+  const MINOR = 10;   // years between all ticks — every decade
 
   let html = '';
   const firstTick = Math.ceil(mobileViewStart / MINOR) * MINOR;
