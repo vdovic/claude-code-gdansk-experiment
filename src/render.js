@@ -621,7 +621,7 @@ function setCtxRowVisible(id, visible) {
 }
 
 // ── Church lanes renderer ─────────────────────────────────────
-function renderLanes() {
+export function renderLanes() {
   const labelsEl  = document.getElementById('tlLabels');
   const lanesEl   = document.getElementById('lanesInner');
   if (!labelsEl || !lanesEl) return;

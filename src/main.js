@@ -17,6 +17,7 @@ import {
   // Mobile viewport — keeps desktop state vars above completely untouched
   resetMobileViewport,
 } from './state.js';
+import { initMobileDrag, destroyMobileDrag } from './mobileDrag.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=10';
@@ -224,6 +225,11 @@ function _applyViewport(vp, save = true) {
   //   desktop → Timeline (the full interactive timeline is the primary desktop view)
   switchTab(vp === 'mobile' ? 'list' : 'timeline');
   zoomFit(); // recalculates pixelsPerYear for the new layout width, then renders
+  // Mobile drag handler — always destroy first so switching mobile↔desktop
+  // never leaves a stale handler attached. initMobileDrag() sets overflowX
+  // and touch-action on #lanesScroll; destroyMobileDrag() restores them.
+  destroyMobileDrag();
+  if (vp === 'mobile') initMobileDrag();
 }
 
 function _initViewportToggle() {
