@@ -134,7 +134,7 @@ export const churchPatrons = {
   stbarbara:    { founder: 'Suburban settlers', order: null, guildsConfirmed: [], notes: 'Small suburban parish serving gardeners and charcoal burners.' },
   stelizabeth:  { founder: 'Hospital brotherhood', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin; later served as a Reformed (Calvinist) worship site.' },
   stcorpus:     { founder: 'Carmelite Order', order: 'Carmelite (OCarm)', guildsConfirmed: [], notes: 'Carmelite priory church with Marian confraternity connections.' },
-  stjoseph:     { founder: 'Discalced Carmelite Order', order: 'Discalced Carmelite (OCD)', guildsConfirmed: [], notes: 'Late foundation by Discalced Carmelites.' },
+  stjoseph:     { founder: 'Carmelite Order', order: 'Carmelite (OCarm)', guildsConfirmed: [], notes: 'Carmelite foundation, received former St. George\'s Hospital site in 1467.' },
   oliwa:        { founder: 'Pomeranian Dukes (Sambor I)', order: 'Cistercian (OCist)', guildsConfirmed: [], notes: 'Cistercian abbey founded by the Pomeranian dukes, oldest monastic foundation in the region.' },
   immaculate:   { founder: 'Franciscan Reformati', order: 'Franciscan Reformati (OFMRef)', guildsConfirmed: [], notes: 'Late Franciscan reform community.' },
   royalchapel:  { founder: 'King John III Sobieski (royal patronage)', order: null, guildsConfirmed: [], notes: 'Royal foundation providing Catholic worship space adjacent to Lutheran St. Mary\'s.' },

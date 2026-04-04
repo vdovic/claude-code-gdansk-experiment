@@ -26,7 +26,7 @@ export const affectedBy1525 = [
   'sttrinity',   // Franciscan — friars expelled; church intact, later Academic Gymnasium
   'stbrigid',    // Birgittine — convent disrupted; nuns eventually departed
   'stcorpus',    // Carmelite — monks violently expelled; church structure survived
-  'stjoseph',    // Discalced Carmelite — disrupted, Carmelites eventually returned
+  'stjoseph',    // Carmelite — disrupted, Carmelites eventually returned
 ];
 
 // ── Confessional overlay phases per church ────────────────────
@@ -156,7 +156,7 @@ export const confessionalPhases = {
           status: 'monastic_life_suspended',
           label: 'Tumults & Disruption',
           tooltipBody: [
-            '1525: Discalced Carmelite monastery disrupted during religious unrest.',
+            '1525: Carmelite monastery disrupted during religious unrest.',
             '1526: Royal intervention; Carmelites eventually resumed monastic life.',
           ],
         },
