@@ -29,7 +29,7 @@ import { render }        from './render.js';
 import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }    from './detail.js';
 import { hideTT, showGenericTT } from './tooltip.js';
-import { eventShapes, eventMarkerSVG, eventColors } from './theme.js';
+import { eventShapes, eventMarkerSVG, eventColors, ctxMarkerSVG } from './theme.js';
 
 // ── Legend panel ──────────────────────────────────────────────
 
@@ -49,6 +49,10 @@ function _ctxShapeHtml(shape, color) {
       return `<div style="${base}width:10px;height:10px;clip-path:polygon(0% 0%,100% 0%,50% 100%);border:2px solid ${color};background:transparent;"></div>`;
     case 'triangle-outline':
       return `<svg width="11" height="11" viewBox="0 0 11 11" style="flex-shrink:0"><polygon points="5.5,0.5 10.5,10.5 0.5,10.5" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    case 'triangle-up-outline':
+      return ctxMarkerSVG('fires', color, 10);
+    case 'raindrop-outline':
+      return ctxMarkerSVG('floods', color, 10);
     case 'hexagon-outline':
       return `<svg width="11" height="11" viewBox="0 0 11 11" style="flex-shrink:0"><polygon points="5.5,0.5 10.2,2.75 10.2,8.25 5.5,10.5 0.8,8.25 0.8,2.75" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
     case 'circle':
@@ -76,8 +80,12 @@ export function renderLegend() {
         desc: 'Armed conflicts and sieges affecting Gdańsk — all shown in the same red' },
       { shape: 'diamond',   color: 'var(--ctx-political-marker)', label: 'Political Events',
         desc: 'Key political milestones: treaties, incorporations, annexations, rebellions' },
-      { shape: 'triangle-outline', color: 'var(--ctx-plague-marker)', label: 'Plagues & Epidemics',
-        desc: 'Disease outbreaks and epidemics with major demographic impact' },
+      { shape: 'triangle-outline',     color: 'var(--ctx-plague-marker)', label: 'Pandemics & Epidemics',
+        desc: 'Plague, cholera and epidemic outbreaks with major demographic impact' },
+      { shape: 'triangle-up-outline',  color: 'var(--ctx-fire-marker)',   label: 'Great Fires',
+        desc: 'Major fires that caused widespread destruction across Gdańsk' },
+      { shape: 'raindrop-outline',     color: 'var(--ctx-flood-marker)',  label: 'Devastating Floods',
+        desc: 'Catastrophic Vistula flood events that inundated the city' },
       { shape: 'hexagon-outline',  color: 'var(--ctx-urban-marker)', label: 'Urban Power',
         desc: 'Municipal governance changes: law grants, privileges, council shifts' },
     ];
@@ -514,7 +522,7 @@ export function buildTrackToggles() {
     { k: 'wars',       l: 'Wars' },
     { k: 'political',  l: 'Political' },
     { k: 'religious',  l: 'Religious' },
-    { k: 'plagues',    l: 'Plagues' },
+    { k: 'plagues',    l: 'Pandemics, Floods & Fires' },
     { k: 'urbanPower', l: 'Urban Power' },
     { k: 'population', l: 'Population' },
     { k: 'grain',      l: 'Grain Export' },
@@ -951,7 +959,7 @@ function _buildBottomSheetContent() {
     const tracks = [
       { k: 'econEras', l: 'Periods' }, { k: 'rulers', l: 'Kings/Rulers' },
       { k: 'wars', l: 'Wars' }, { k: 'political', l: 'Political' },
-      { k: 'religious', l: 'Religious' }, { k: 'plagues', l: 'Plagues' },
+      { k: 'religious', l: 'Religious' }, { k: 'plagues', l: 'Pandemics, Floods & Fires' },
       { k: 'urbanPower', l: 'Urban Power' }, { k: 'population', l: 'Population' },
       { k: 'grain', l: 'Grain Export' },
     ];

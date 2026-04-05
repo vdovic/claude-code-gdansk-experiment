@@ -11,6 +11,9 @@ import { districtGeo } from './data/geodata.js';
 import { denomColors, denomNames, visibleChurches } from './state.js';
 import { openCD }      from './detail.js';
 
+const UNIFICATION_YEAR = 1454;
+const UNIFIED_COLOR    = '#8a6d20';  // Main Town gold — represents unified Gdańsk governance
+
 // ── Module state ──────────────────────────────────────────────
 let leafletMap   = null;
 let mapMarkers   = [];         // markers in same order as churches that exist
@@ -24,6 +27,7 @@ let showDistricts       = true;
 let districtPolygons    = [];
 let districtLabelMarkers = [];
 let districtVisible     = [];
+let _unifiedLabel = null;
 
 let showChurches = true;
 
@@ -338,6 +342,15 @@ function _initDistrictLayers() {
     districtVisible.push(true);
   });
 
+  _unifiedLabel = L.marker([54.352, 18.652], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="font-family:'Cinzel',Georgia,serif;font-size:11px;font-weight:600;color:${UNIFIED_COLOR};text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;text-shadow:1px 1px 3px rgba(247,242,232,0.95),-1px -1px 3px rgba(247,242,232,0.95);pointer-events:none;transform:translate(-50%,-50%);opacity:0.9;background:rgba(247,242,232,0.65);padding:2px 7px;border-radius:3px;border:1px solid rgba(138,109,32,0.3);">✦ Unified Gdańsk</div>`,
+      iconSize: [0, 0], iconAnchor: [0, 0],
+    }),
+    interactive: false,
+  });
+
   _updateDistrictYearVisibility();
   districtLayerGroup.addTo(leafletMap);
   districtLabelsGroup.addTo(leafletMap);
@@ -346,17 +359,36 @@ function _initDistrictLayers() {
 // Show/hide each district polygon based on mapYear vs. founded/dissolved dates
 function _updateDistrictYearVisibility() {
   if (!districtLayerGroup) return;
+  const unified = mapYear >= UNIFICATION_YEAR;
   districtGeo.forEach((d, i) => {
     const exists = mapYear >= d.founded && (!d.dissolved || mapYear <= d.dissolved);
     const on = exists && showDistricts && districtVisible[i];
     if (on) {
       districtLayerGroup.addLayer(districtPolygons[i]);
       districtLabelsGroup.addLayer(districtLabelMarkers[i]);
+      if (unified) {
+        districtPolygons[i].setStyle({
+          color: UNIFIED_COLOR, weight: 1.8, opacity: 0.75,
+          fillColor: UNIFIED_COLOR, fillOpacity: 0.13, dashArray: null,
+        });
+      } else {
+        districtPolygons[i].setStyle({
+          color: d.color, weight: 1.5, opacity: 0.6,
+          fillColor: d.color, fillOpacity: 0.08, dashArray: '4,3',
+        });
+      }
     } else {
       districtLayerGroup.removeLayer(districtPolygons[i]);
       districtLabelsGroup.removeLayer(districtLabelMarkers[i]);
     }
   });
+  if (_unifiedLabel) {
+    if (unified && showDistricts) {
+      districtLabelsGroup.addLayer(_unifiedLabel);
+    } else {
+      districtLabelsGroup.removeLayer(_unifiedLabel);
+    }
+  }
 }
 
 export function toggleDistrictLayer() {
@@ -411,6 +443,9 @@ export function buildMapLayerToggles() {
         <div class="map-layer-name" style="${(on && existsNow) ? '' : 'opacity:0.4'}">${d.shortName} <span style="font-size:8px;color:var(--text-muted);">(${dateStr})</span></div>
       </div>`;
     });
+    if (mapYear >= UNIFICATION_YEAR) {
+      html += `<div style="margin-top:6px;padding:4px 8px;background:rgba(138,109,32,0.12);border-radius:5px;font-size:9px;color:${UNIFIED_COLOR};border:1px solid rgba(138,109,32,0.2);">✦ Unified city charter since ${UNIFICATION_YEAR}</div>`;
+    }
   }
   el.innerHTML = html;
 

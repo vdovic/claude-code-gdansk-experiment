@@ -192,9 +192,13 @@ function renderPlagues() {
   calamities.forEach((c, i) => {
     if (c.year < _ctxVS || c.year > _ctxVE) return;
     const x = _ctxX(c.year);
+    const type = c.type || 'plague';
+    const trackKey   = type === 'fire' ? 'fires' : type === 'flood' ? 'floods' : 'plagues';
+    const colorVar   = type === 'fire' ? 'var(--ev-fire)' : type === 'flood' ? 'var(--ev-flood)' : 'var(--ev-plague)';
+    const markerVar  = type === 'fire' ? 'var(--ctx-fire-marker)' : type === 'flood' ? 'var(--ctx-flood-marker)' : 'var(--ctx-plague-marker)';
     html += `<div class="calamity-marker" data-cal="${i}" style="left:${x}px">
-      <div class="marker-label" style="color:var(--ev-plague)">${c.year} · ${c.label}</div>
-      <div class="ctx-marker-svg">${ctxMarkerSVG('plagues', 'var(--ctx-plague-marker)', 11)}</div>
+      <div class="marker-label" style="color:${colorVar}">${c.year} · ${c.label}</div>
+      <div class="ctx-marker-svg">${ctxMarkerSVG(trackKey, markerVar, 11)}</div>
     </div>`;
   });
   inner.innerHTML = html;

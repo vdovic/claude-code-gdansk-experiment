@@ -70,6 +70,8 @@
   --ev-notable:     var(--accent);
   --ev-tumult:      #d4841a;
   --ev-plague:      #9060b0;
+  --ev-fire:            #e05a20;
+  --ev-flood:           #2a72c8;
   --ev-siege:       #d04040;
 
   /* Context track colours */
@@ -82,6 +84,8 @@
   --ctx-political-marker: #4a9edd;
   --ctx-religious-marker: #c05abc;
   --ctx-plague-marker:    #9060b0;
+  --ctx-fire-marker:      #d44a18;
+  --ctx-flood-marker:     #2a65b8;
   --ctx-urban-marker:     #b87333;
 
   /* Layout */
@@ -196,6 +200,8 @@
   --ev-notable:     var(--accent);
   --ev-tumult:      #c07015;
   --ev-plague:      #7a4a9a;
+  --ev-fire:            #c04a10;
+  --ev-flood:           #1a5ab0;
   --ev-siege:       #c03030;
 
   /* Context track colours */
@@ -208,6 +214,8 @@
   --ctx-political-marker: #2874a6;
   --ctx-religious-marker: #8a3a8a;
   --ctx-plague-marker:    #7a4a9a;
+  --ctx-fire-marker:      #b83a10;
+  --ctx-flood-marker:     #1a4a9a;
   --ctx-urban-marker:     #8a5a20;
 
   /* Shadows — softer for light theme */
@@ -1317,17 +1325,62 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
    CHURCH LIST SCREEN
    ══════════════════════════════════════════════════════════════ */
 #scrList { flex-direction: column; }
-.list-search {
-  flex-shrink: 0; padding: 10px var(--sp-4);
+
+/* Compact icon-only search trigger */
+.list-search-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 5px 10px;
   background: var(--parchment-dk); border-bottom: 1px solid var(--tl-border);
+  min-height: 38px;
 }
-.list-search input {
-  width: 100%; padding: 10px var(--sp-4); border-radius: 24px;
-  border: 1px solid var(--tl-border); background: var(--tl-bg);
-  font-family: var(--font-ui); font-size: var(--fs-base); color: var(--tl-text); outline: none;
+.list-search-icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--tl-text-lt); padding: 5px 8px; border-radius: 8px;
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-ui); font-size: 11px;
+  transition: background var(--ease-default), color var(--ease-default);
+}
+.list-search-icon-btn:hover, .list-search-icon-btn:focus-visible {
+  background: rgba(0,0,0,0.07); color: var(--tl-text); outline: none;
+}
+.list-search-icon-btn.active { color: var(--accent); }
+
+/* Collapsible search input */
+.list-search-collapsible {
+  flex-shrink: 0; overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.22s ease, padding 0.22s ease, border-color 0.22s ease;
+  padding: 0 var(--sp-4);
+  background: var(--parchment-dk);
+  border-bottom: 1px solid transparent;
+}
+.list-search-collapsible.open {
+  max-height: 56px; padding: 7px var(--sp-4);
+  border-bottom-color: var(--tl-border);
+}
+.list-search-inner {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--tl-bg); border: 1px solid var(--tl-border);
+  border-radius: 22px; padding: 0 12px;
   transition: border-color var(--ease-default), box-shadow var(--ease-default);
 }
-.list-search input:focus { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+.list-search-inner:focus-within { border-color: var(--accent); box-shadow: var(--shadow-glow); }
+.list-search-inner input {
+  flex: 1; padding: 8px 0; border: none; background: none; outline: none;
+  font-family: var(--font-ui); font-size: var(--fs-base); color: var(--tl-text);
+}
+.list-search-clear {
+  background: none; border: none; cursor: pointer;
+  color: var(--tl-text-lt); font-size: 11px; padding: 3px 4px;
+  display: none; line-height: 1; border-radius: 50%;
+  transition: background var(--ease-default);
+}
+.list-search-clear:hover { background: rgba(0,0,0,0.09); }
+.list-search-clear.visible { display: block; }
+
+[data-theme="light"] .list-search-inner { background: #fff; border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .list-search-inner input { color: #1a1e24; }
 
 /* Historical panorama banner — between search and filters */
 .list-panorama {

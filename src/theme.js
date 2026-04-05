@@ -119,6 +119,20 @@ export function ctxMarkerSVG(track, color, size = 11) {
     case 'plagues': // outlined inverted triangle
       return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${half},${s - 1} 1,1 ${s - 1},1" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
 
+    case 'fires': { // outlined upward triangle (flame shape)
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><polygon points="${half},1 ${s-1},${s-1} 1,${s-1}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    }
+
+    case 'floods': { // outlined teardrop/raindrop
+      const cy = half + 1;
+      const ry = half - 2;
+      const rx2 = half - 2;
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">` +
+        `<path d="M${half},1.5 C${half+rx2*0.7},${half-ry*0.1} ${half+rx2},${cy-ry*0.3} ${half+rx2},${cy} ` +
+        `A${rx2},${ry} 0 0 1 ${half-rx2},${cy} C${half-rx2},${cy-ry*0.3} ${half-rx2*0.7},${half-ry*0.1} ${half},1.5 Z" ` +
+        `fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+    }
+
     case 'urbanPower': { // outlined hexagon
       const r = half - 1;
       const pts = Array.from({ length: 6 }, (_, i) => {
