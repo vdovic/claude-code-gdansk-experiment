@@ -9,7 +9,7 @@
 // with a single horizontally-scrolling area (tl-lanes-scroll) that drives all other
 // scroll panels via JS synchronisation in main.js.
 
-import { churches }       from './data/churches.js';
+import { churches }       from './data/churches.js?v=3';
 import { calamities, politicalEvents, religiousEvents, wars, rulers, eras, siegeBands, urbanPowerEvents } from './data/context.js';
 import { grainExport, shipTraffic, economicEras, populationData } from './data/economic.js';
 import { getGrainValue, getShipsValue, getShipsTrend } from './data/grainCurve.js';
@@ -21,7 +21,7 @@ import {
   syncedPeriodsExperiment,          // [EXPERIMENT] synced periods flag
   // Mobile viewport state (Step 2 — baba-dunya experiment)
   mobileViewStart, mobileViewEnd, MOBILE_TIMELINE_WINDOW_YEARS,
-} from './state.js';
+} from './state.js?v=3';
 
 // Pixels-per-year used by the current mobile render pass.
 // Written by renderLanes() on mobile; reset to 0 on desktop.
@@ -574,7 +574,7 @@ function _relDenomColor(rawColor) {
   if (!rawColor || rawColor === 'var(--ctx-religious-marker)') return 'var(--ctx-religious-marker)';
   if (rawColor === '#c0463a' || rawColor === 'var(--catholic)')  return 'var(--catholic)';
   if (rawColor === '#3a7a9e' || rawColor === 'var(--lutheran)')  return 'var(--lutheran)';
-  if (rawColor === '#4a6a3a' || rawColor === 'var(--calvinist)') return 'var(--calvinist)';
+  if (rawColor === '#9035b5' || rawColor === 'var(--calvinist)') return 'var(--calvinist)';
   return 'var(--ctx-religious-marker)'; // ecumenical / general
 }
 

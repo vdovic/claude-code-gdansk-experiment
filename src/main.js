@@ -2,7 +2,7 @@
 // App entry point: initialises all modules, wires up scroll sync,
 // keyboard shortcuts, zoom, search, and the DOMContentLoaded sequence.
 
-import { churches } from './data/churches.js';
+import { churches } from './data/churches.js?v=3';
 import { eras }     from './data/context.js';
 import {
   START_YEAR, END_YEAR, DEFAULT_VIEW_START, DEFAULT_VIEW_END,
@@ -16,12 +16,12 @@ import {
   setChurchNameFilter,
   // Mobile viewport — keeps desktop state vars above completely untouched
   resetMobileViewport,
-} from './state.js';
+} from './state.js?v=3';
 import { initMobileDrag, destroyMobileDrag } from './mobileDrag.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=10';
-import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js';
+import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=17';
+import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js?v=9';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 

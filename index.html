@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=31">
+<link rel="stylesheet" href="src/styles.css?v=34">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -121,6 +121,8 @@
             <div class="map-legend-row"><div style="width:10px;height:10px;border-radius:2px;background:var(--ink-lt);flex-shrink:0;"></div>Hospital</div>
             <div class="mlb-title" style="margin-top:6px;">Pin size = height</div>
           </div>
+          <!-- Sacred Topography — prominent standalone block -->
+          <div id="sacredTopoBlock" class="sacred-topo-block"></div>
           <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.06em;margin:8px 0 4px;">Layers</div>
           <div id="mapLayerToggles"></div>
           <div style="font-family:'Cinzel',serif;font-size:8px;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.06em;margin:6px 0 4px;">Churches</div>
@@ -868,7 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=29"></script>
+<script type="module" src="src/main.js?v=39"></script>
 
 
 </body>

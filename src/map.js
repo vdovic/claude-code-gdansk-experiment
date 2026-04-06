@@ -6,9 +6,9 @@
 //   • Sidebar: church list, layer toggles, legend
 //   • Syncs with timeline filter (visibleChurches)
 
-import { churches }    from './data/churches.js';
+import { churches }    from './data/churches.js?v=3';
 import { districtGeo } from './data/geodata.js';
-import { denomColors, denomNames, visibleChurches } from './state.js';
+import { denomColors, denomNames, visibleChurches } from './state.js?v=3';
 import { openCD }      from './detail.js';
 
 const UNIFICATION_YEAR = 1454;
@@ -30,6 +30,16 @@ let districtVisible     = [];
 let _unifiedLabel = null;
 
 let showChurches = true;
+
+// ── Historic map overlay ──────────────────────────────────────
+let _historicOverlay    = null;
+let _historicOpacity    = 0.25;   // default: 25% opaque
+let _showHistoricOverlay = true;
+// Geographic bounds for the Kubicki historic church map (street plan of medieval Gdańsk).
+// The original 508×768 image was affine-warped (10 church anchors, least-squares) to
+// remove ~2° rotation so L.imageOverlay can display it axis-aligned.  Max residual ≈ 68 m.
+const HISTORIC_MAP_BOUNDS = [[54.34188, 18.64220], [54.36082, 18.66571]];
+const HISTORIC_MAP_SRC    = 'assets/images/historic-churches-map-warped.png';
 
 // ── Denomination helpers ──────────────────────────────────────
 export function getDenomAtYear(ch, yr) {
@@ -115,21 +125,47 @@ function _buildFsOverlay() {
 function _buildFsLayerToggles() {
   const el = document.getElementById('mapLayerTogglesFs');
   if (!el) return;
-  const allOn = showChurches && showDistricts;
-  let html = '';
-  html += _fsTgl('All Layers', allOn, 'fsToggleAll');
+  const unified = mapYear >= UNIFICATION_YEAR;
+  const allOn   = showChurches && showDistricts;
+  const pct     = Math.round(_historicOpacity * 100);
+  const on      = _showHistoricOverlay;
+
+  let html = _fsTgl('All Layers', allOn, 'fsToggleAll');
   html += _fsTgl(`Churches (${churches.length})`, showChurches, 'fsToggleChurches');
-  html += _fsTgl(`Districts`, showDistricts, 'fsToggleDistricts');
+  if (!unified) {
+    html += _fsTgl('Districts', showDistricts, 'fsToggleDistricts');
+  } else {
+    html += `<div style="font-size:9px;color:${UNIFIED_COLOR};padding:2px 0;">✦ Merged ${UNIFICATION_YEAR}</div>`;
+  }
+  // Sacred Topo section
+  html += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(138,109,32,0.25);">
+    <div id="fsToggleSacred" style="cursor:pointer;padding:4px 0;color:${on ? 'var(--accent)' : 'var(--text-muted)'};font-weight:${on ? '600' : '400'};font-size:10px;transition:color 0.15s;">
+      ${on ? '◉' : '○'} Sacred Topography, c. 1500
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:4px;opacity:${on ? 1 : 0.4};">
+      <span style="font-size:9px;color:var(--text-muted);">Opacity</span>
+      <input type="range" id="fsHistoricOpacity" min="0" max="100" value="${pct}"
+        style="flex:1;height:3px;accent-color:var(--accent);" ${on ? '' : 'disabled'}>
+      <span id="fsHistoricOpacityVal" style="font-size:9px;color:var(--accent);min-width:24px;">${pct}%</span>
+    </div>
+  </div>`;
+
   el.innerHTML = html;
 
   document.getElementById('fsToggleAll')?.addEventListener('click', () => {
-    const on = showChurches && showDistricts;
-    showChurches = showDistricts = !on;
+    const cur = showChurches && showDistricts;
+    showChurches = showDistricts = !cur;
     _updateDistrictYearVisibility();
     renderMap(); buildMapLayerToggles(); _buildFsLayerToggles();
   });
   document.getElementById('fsToggleChurches')?.addEventListener('click', () => { toggleChurchesLayer(); _buildFsLayerToggles(); });
   document.getElementById('fsToggleDistricts')?.addEventListener('click', () => { toggleDistrictLayer(); _buildFsLayerToggles(); });
+  document.getElementById('fsToggleSacred')?.addEventListener('click', () => { toggleHistoricOverlay(); _buildFsLayerToggles(); });
+  document.getElementById('fsHistoricOpacity')?.addEventListener('input', e => {
+    setHistoricOpacity(e.target.value / 100);
+    const v = document.getElementById('fsHistoricOpacityVal');
+    if (v) v.textContent = e.target.value + '%';
+  });
 }
 
 function _fsTgl(label, on, id) {
@@ -154,6 +190,35 @@ function _initLeafletMap() {
   }).addTo(leafletMap);
 
   _initDistrictLayers();
+  _initHistoricOverlay();
+  buildMapLayerToggles();
+}
+
+// ── Historic map image overlay ────────────────────────────────
+function _initHistoricOverlay() {
+  // L.imageOverlay is placed in the overlayPane which participates in
+  // Leaflet's zoom animation pipeline, so the image stays synced with
+  // tile layers at every zoom level. The `leaflet-zoom-animated` class is
+  // auto-added by Leaflet for imageOverlay since v1.0.
+  _historicOverlay = L.imageOverlay(HISTORIC_MAP_SRC, HISTORIC_MAP_BOUNDS, {
+    opacity: _showHistoricOverlay ? _historicOpacity : 0,
+    interactive: false,
+    className: 'historic-map-overlay',
+    zIndex: 200,
+    // Keep the image in sync with map movements/zooms
+    bubblingMouseEvents: false,
+  });
+  _historicOverlay.addTo(leafletMap);
+}
+
+export function setHistoricOpacity(val) {
+  _historicOpacity = Math.max(0, Math.min(1, val));
+  if (_historicOverlay) _historicOverlay.setOpacity(_showHistoricOverlay ? _historicOpacity : 0);
+}
+
+export function toggleHistoricOverlay() {
+  _showHistoricOverlay = !_showHistoricOverlay;
+  if (_historicOverlay) _historicOverlay.setOpacity(_showHistoricOverlay ? _historicOpacity : 0);
   buildMapLayerToggles();
 }
 
@@ -356,38 +421,33 @@ function _initDistrictLayers() {
   districtLabelsGroup.addTo(leafletMap);
 }
 
-// Show/hide each district polygon based on mapYear vs. founded/dissolved dates
+// Show/hide each district polygon based on mapYear vs. founded/dissolved dates.
+// After 1454 (unification) district borders are hidden entirely — the city became
+// one legal entity under the Main Town council.
 function _updateDistrictYearVisibility() {
   if (!districtLayerGroup) return;
   const unified = mapYear >= UNIFICATION_YEAR;
+
   districtGeo.forEach((d, i) => {
     const exists = mapYear >= d.founded && (!d.dissolved || mapYear <= d.dissolved);
-    const on = exists && showDistricts && districtVisible[i];
+    // After unification, hide all district polygons regardless of showDistricts flag
+    const on = exists && showDistricts && districtVisible[i] && !unified;
     if (on) {
       districtLayerGroup.addLayer(districtPolygons[i]);
       districtLabelsGroup.addLayer(districtLabelMarkers[i]);
-      if (unified) {
-        districtPolygons[i].setStyle({
-          color: UNIFIED_COLOR, weight: 1.8, opacity: 0.75,
-          fillColor: UNIFIED_COLOR, fillOpacity: 0.13, dashArray: null,
-        });
-      } else {
-        districtPolygons[i].setStyle({
-          color: d.color, weight: 1.5, opacity: 0.6,
-          fillColor: d.color, fillOpacity: 0.08, dashArray: '4,3',
-        });
-      }
+      districtPolygons[i].setStyle({
+        color: d.color, weight: 1.5, opacity: 0.6,
+        fillColor: d.color, fillOpacity: 0.08, dashArray: '4,3',
+      });
     } else {
       districtLayerGroup.removeLayer(districtPolygons[i]);
       districtLabelsGroup.removeLayer(districtLabelMarkers[i]);
     }
   });
+
+  // No unified label either — the sacred topography overlay speaks for itself
   if (_unifiedLabel) {
-    if (unified && showDistricts) {
-      districtLabelsGroup.addLayer(_unifiedLabel);
-    } else {
-      districtLabelsGroup.removeLayer(_unifiedLabel);
-    }
+    districtLabelsGroup.removeLayer(_unifiedLabel);
   }
 }
 
@@ -408,48 +468,50 @@ export function buildMapLayerToggles() {
   const el = document.getElementById('mapLayerToggles');
   if (!el) return;
 
-  // All layers enabled?
-  const allOn = showChurches && showDistricts;
+  const unified = mapYear >= UNIFICATION_YEAR;
+  const allOn   = showChurches && showDistricts;
 
-  // Master toggle
+  // ── Standard layers section ──────────────────────────────────
   let html = `<div class="map-layer-toggle ${allOn ? 'on' : ''}" id="masterToggleAll" style="font-weight:700;border-bottom:1px solid var(--border-color);padding-bottom:8px;margin-bottom:8px;">
     <div class="map-layer-cb">${allOn ? '✓' : ''}</div>
     <div class="map-layer-name">All Layers</div>
   </div>`;
 
-  // Churches toggle
-  const churchCount = churches.length;
   html += `<div class="map-layer-toggle ${showChurches ? 'on' : ''}" id="churchesToggleAll">
     <div class="map-layer-swatch" style="background:#d4a574;border-radius:50%"></div>
     <div class="map-layer-name">Churches & Chapels
-      <span style="font-size:8px;color:var(--text-muted);">(${churchCount} structures)</span>
+      <span style="font-size:8px;color:var(--text-muted);">(${churches.length})</span>
     </div>
   </div>`;
 
-  // Districts toggle
-  html += `<div class="map-layer-toggle ${showDistricts ? 'on' : ''}" id="districtToggleAll">
-    <div class="map-layer-cb">${showDistricts ? '✓' : ''}</div>
-    <div class="map-layer-name">Historic Districts</div>
-  </div>`;
-
-  if (showDistricts) {
-    districtGeo.forEach((d, i) => {
-      const on = districtVisible[i] !== false;
-      const existsNow = mapYear >= d.founded && (!d.dissolved || mapYear <= d.dissolved);
-      const dateStr = d.dissolved ? `${d.founded}–${d.dissolved}` : `${d.founded}–`;
-      html += `<div class="map-layer-toggle ${on && existsNow ? 'on' : ''} district-toggle-single" data-idx="${i}"
-        style="padding-left:18px;${existsNow ? '' : 'opacity:0.4'}">
-        <div class="map-layer-swatch" style="background:${d.color};${(on && existsNow) ? '' : 'opacity:0.25'}"></div>
-        <div class="map-layer-name" style="${(on && existsNow) ? '' : 'opacity:0.4'}">${d.shortName} <span style="font-size:8px;color:var(--text-muted);">(${dateStr})</span></div>
-      </div>`;
-    });
-    if (mapYear >= UNIFICATION_YEAR) {
-      html += `<div style="margin-top:6px;padding:4px 8px;background:rgba(138,109,32,0.12);border-radius:5px;font-size:9px;color:${UNIFIED_COLOR};border:1px solid rgba(138,109,32,0.2);">✦ Unified city charter since ${UNIFICATION_YEAR}</div>`;
+  // Districts: only show toggle when before unification
+  if (!unified) {
+    html += `<div class="map-layer-toggle ${showDistricts ? 'on' : ''}" id="districtToggleAll">
+      <div class="map-layer-cb">${showDistricts ? '✓' : ''}</div>
+      <div class="map-layer-name">Historic Districts</div>
+    </div>`;
+    if (showDistricts) {
+      districtGeo.forEach((d, i) => {
+        const on = districtVisible[i] !== false;
+        const existsNow = mapYear >= d.founded && (!d.dissolved || mapYear <= d.dissolved);
+        const dateStr = d.dissolved ? `${d.founded}–${d.dissolved}` : `${d.founded}–`;
+        html += `<div class="map-layer-toggle ${on && existsNow ? 'on' : ''} district-toggle-single" data-idx="${i}"
+          style="padding-left:18px;${existsNow ? '' : 'opacity:0.4'}">
+          <div class="map-layer-swatch" style="background:${d.color};${(on && existsNow) ? '' : 'opacity:0.25'}"></div>
+          <div class="map-layer-name" style="${(on && existsNow) ? '' : 'opacity:0.4'}">${d.shortName} <span style="font-size:8px;color:var(--text-muted);">(${dateStr})</span></div>
+        </div>`;
+      });
     }
+  } else {
+    html += `<div style="margin-top:4px;padding:3px 6px;background:rgba(138,109,32,0.10);border-radius:4px;font-size:9px;color:${UNIFIED_COLOR};border:1px solid rgba(138,109,32,0.2);">✦ Districts merged under unified charter, ${UNIFICATION_YEAR}</div>`;
   }
+
   el.innerHTML = html;
 
-  // Master toggle: toggles all layers together
+  // ── Sacred Topography block — injected into its own dedicated host ────
+  _buildSacredTopoBlock();
+
+  // Event listeners
   document.getElementById('masterToggleAll')?.addEventListener('click', () => {
     const allCurrentlyOn = showChurches && showDistricts;
     showChurches = showDistricts = !allCurrentlyOn;
@@ -457,10 +519,40 @@ export function buildMapLayerToggles() {
     renderMap();
     buildMapLayerToggles();
   });
-
   document.getElementById('churchesToggleAll')?.addEventListener('click', toggleChurchesLayer);
   document.getElementById('districtToggleAll')?.addEventListener('click', toggleDistrictLayer);
   el.querySelectorAll('.district-toggle-single').forEach(el2 => {
     el2.addEventListener('click', () => toggleSingleDistrict(+el2.dataset.idx));
+  });
+}
+
+// Builds the prominent Sacred Topography control block (desktop sidebar)
+function _buildSacredTopoBlock() {
+  const host = document.getElementById('sacredTopoBlock');
+  if (!host) return;
+  const pct = Math.round(_historicOpacity * 100);
+  const on  = _showHistoricOverlay;
+  host.innerHTML = `
+    <div class="sacred-topo-toggle ${on ? 'on' : ''}" id="sacredTopoToggle">
+      <div class="sacred-topo-icon">${on ? '◉' : '○'}</div>
+      <div class="sacred-topo-label">Sacred Topography of Gdańsk, c. 1500</div>
+    </div>
+    <div class="sacred-topo-opacity ${on ? '' : 'disabled'}">
+      <div class="sacred-topo-opacity-row">
+        <span class="sacred-topo-opacity-label">Overlay opacity</span>
+        <span class="sacred-topo-opacity-val" id="sacredTopoOpacityVal">${pct}%</span>
+      </div>
+      <input type="range" id="sacredTopoSlider" min="0" max="100" value="${pct}"
+        class="sacred-topo-slider" ${on ? '' : 'disabled'}>
+    </div>`;
+
+  document.getElementById('sacredTopoToggle')?.addEventListener('click', () => {
+    toggleHistoricOverlay();
+    _buildSacredTopoBlock();   // toggleHistoricOverlay calls buildMapLayerToggles which calls this
+  });
+  document.getElementById('sacredTopoSlider')?.addEventListener('input', e => {
+    setHistoricOpacity(e.target.value / 100);
+    const v = document.getElementById('sacredTopoOpacityVal');
+    if (v) v.textContent = e.target.value + '%';
   });
 }

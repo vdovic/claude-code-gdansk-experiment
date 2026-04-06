@@ -57,7 +57,7 @@
   /* Denomination colours (saturated) */
   --catholic:       #c0463a;
   --lutheran:       #3a7a9e;
-  --calvinist:      #5a8a4a;
+  --calvinist:      #9035b5;
   --armenian:       #c0842a;
   --secular:        #8a8a90;
 
@@ -187,7 +187,7 @@
   /* Denomination colours — same hues, slightly adjusted */
   --catholic:       #c0463a;
   --lutheran:       #2a6a8e;
-  --calvinist:      #3a7a3a;
+  --calvinist:      #a040cc;
   --armenian:       #b07020;
   --secular:        #6a6a70;
 
@@ -1320,6 +1320,73 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .leaflet-popup-content .mp-denom { display: inline-block; font-size: var(--fs-xs); padding: 1px 7px; border-radius: 4px; margin-bottom: 4px; color: white; font-family: var(--font-ui); }
 .leaflet-popup-content .mp-fact { font-size: var(--fs-sm); color: var(--tl-text-lt); margin: 1px 0; padding-left: 8px; text-indent: -8px; }
 .leaflet-popup-content .mp-fact::before { content: '· '; color: var(--accent); }
+
+/* Historic map overlay — multiply blends black lines with map tiles.
+   will-change + transform hints tell the browser to promote the layer,
+   eliminating flicker/lag during Leaflet zoom animations so the overlay
+   stays pixel-synced with tile layers at every zoom level. */
+.historic-map-overlay {
+  mix-blend-mode: multiply;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+/* In dark theme multiply looks too dark — switch to screen */
+[data-theme="dark"] .historic-map-overlay { mix-blend-mode: screen; filter: invert(1); }
+
+/* ── Sacred Topography control block (map sidebar) ─────────── */
+.sacred-topo-block {
+  margin: 6px 0 8px;
+  border: 1.5px solid rgba(138,109,32,0.35);
+  border-radius: 7px;
+  padding: 8px 10px 10px;
+  background: rgba(138,109,32,0.07);
+}
+.sacred-topo-toggle {
+  display: flex; align-items: flex-start; gap: 7px;
+  cursor: pointer; padding: 2px 0 6px;
+  border-bottom: 1px solid rgba(138,109,32,0.18);
+  margin-bottom: 8px;
+  transition: opacity 0.15s;
+}
+.sacred-topo-toggle:hover { opacity: 0.8; }
+.sacred-topo-icon {
+  font-size: 15px; color: var(--accent);
+  flex-shrink: 0; line-height: 1.3; margin-top: 1px;
+  transition: color 0.15s;
+}
+.sacred-topo-toggle:not(.on) .sacred-topo-icon { color: var(--text-muted); }
+.sacred-topo-label {
+  font-family: var(--font-display); font-size: 10px; font-weight: 600;
+  color: var(--accent); line-height: 1.4; letter-spacing: 0.01em;
+}
+.sacred-topo-toggle:not(.on) .sacred-topo-label { color: var(--text-muted); }
+.sacred-topo-opacity { transition: opacity 0.2s; }
+.sacred-topo-opacity.disabled { opacity: 0.35; pointer-events: none; }
+.sacred-topo-opacity-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 4px;
+}
+.sacred-topo-opacity-label {
+  font-family: var(--font-ui); font-size: 9px;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sacred-topo-opacity-val {
+  font-family: var(--font-ui); font-size: 10px;
+  font-weight: 600; color: var(--accent);
+}
+.sacred-topo-slider {
+  width: 100%; height: 5px; cursor: pointer;
+  accent-color: var(--accent);
+  border-radius: 3px;
+}
+[data-theme="light"] .sacred-topo-block {
+  background: rgba(138,109,32,0.05);
+  border-color: rgba(138,109,32,0.30);
+}
 
 /* ══════════════════════════════════════════════════════════════
    CHURCH LIST SCREEN
