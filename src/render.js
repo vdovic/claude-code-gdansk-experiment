@@ -71,39 +71,52 @@ function _isMobile() {
   return window.innerWidth <= 900 || navigator.maxTouchPoints > 0;
 }
 
-// ── Axis tick renderer (full-range overview with percentage positioning) ──
-// The axis always shows START_YEAR–END_YEAR. Year ticks and era bands share
-// the same percentage coordinate system as the integrated range handles.
-const _AXIS_SPAN = END_YEAR - START_YEAR;   // 805
-function _yearPct(y) { return ((y - START_YEAR) / _AXIS_SPAN) * 100; }
-
+// ── Axis tick renderer (pixel-positioned, scrolls in sync with content) ──
+// Year ticks use the same coordinate system as ctx-inner / lanesInner:
+//   x = (year - viewStart) × pixelsPerYear
+// axisScroll.scrollLeft is kept equal to lanesScroll.scrollLeft by _initScrollSync
+// in main.js, so ticks always sit directly above the matching years in the content.
+// The range handles (rangeFill, rangeHandleL/R) remain percentage-positioned in
+// axis-track and are unaffected by this scroll wrapper.
 export function renderAxis() {
   const inner = document.getElementById('axisInner');
   if (!inner) return;
+
+  // Match content width (same formula as ctx-inner)
+  const contentW = getTotalWidth() - labelOffset;
+  inner.style.width = contentW + 'px';
+
+  // Pixel helper — same as _ctxX on desktop
+  const xOf = y => (y - viewStart) * pixelsPerYear;
+
   let html = '';
 
-  // Era bands (behind tick marks)
+  // Era bands (behind tick marks) — clipped to visible range by overflow:hidden
   eras.forEach(e => {
-    const p1 = _yearPct(Math.max(e.start, START_YEAR));
-    const p2 = _yearPct(Math.min(e.end, END_YEAR));
-    html += `<div class="era-band" style="left:${p1}%;width:${p2 - p1}%;background:${e.color}"></div>`;
+    const x1 = xOf(e.start);
+    const x2 = xOf(e.end);
+    if (x2 < 0 || x1 > contentW) return;
+    html += `<div class="era-band" style="left:${x1}px;width:${x2 - x1}px;background:${e.color}"></div>`;
   });
 
   // Siege hazard overlay
   siegeBands.forEach(s => {
-    const p1 = _yearPct(Math.max(s.start, START_YEAR));
-    const p2 = _yearPct(Math.min(s.end, END_YEAR));
-    html += `<div class="siege-band" style="left:${p1}%;width:${Math.max(p2 - p1, 0.5)}%"></div>`;
+    const x1 = xOf(s.start);
+    const x2 = xOf(s.end);
+    if (x2 < 0 || x1 > contentW) return;
+    html += `<div class="siege-band" style="left:${x1}px;width:${Math.max(x2 - x1, 1)}px"></div>`;
   });
 
-  // Year ticks — 100-year major, 25-year minor (fixed, since we always show 805 years)
-  const majorTick = 100;
-  const minorTick = 50;
-  const tickStart = Math.ceil(START_YEAR / minorTick) * minorTick;
-  for (let y = tickStart; y <= END_YEAR; y += minorTick) {
-    const pct = _yearPct(y);
+  // Year ticks — adaptive density based on visible year span
+  const visYears = viewEnd - viewStart;
+  const majorTick = visYears <= 200 ? 50  : 100;
+  const minorTick = visYears <= 200 ? 25  : 50;
+
+  const tickStart = Math.ceil(viewStart / minorTick) * minorTick;
+  for (let y = tickStart; y <= viewEnd; y += minorTick) {
+    const x   = xOf(y);
     const maj = y % majorTick === 0;
-    html += `<div class="yr-tick ${maj ? '' : 'minor'}" style="left:${pct}%">`;
+    html += `<div class="yr-tick ${maj ? '' : 'minor'}" style="left:${x}px">`;
     if (maj) html += `<div class="yr-tick-lbl">${y}</div>`;
     html += `<div class="yr-tick-line"></div></div>`;
   }

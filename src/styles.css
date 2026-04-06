@@ -794,8 +794,15 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
   height: 54px;            /* tall enough for prominent handles */
   background: var(--bg-base);
 }
+/* Scroll wrapper for pixel-positioned year ticks (synced to lanesScroll).
+   pointer-events:none so mouse events pass through to range handles below. */
+.axis-scroll {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 .axis-inner {
-  position: absolute; left: 0; right: 0;
+  position: absolute; left: 0;  /* right:0 removed — width set by JS */
   top: 16px; bottom: 0;   /* top 16px reserved for handle heads */
   background: var(--bg-base);
   white-space: nowrap;
