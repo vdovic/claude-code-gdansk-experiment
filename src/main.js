@@ -49,6 +49,16 @@ function _afterZoom() {
   render();
   updateViewRangeLabel();
   window._updateRangeHandles?.();
+  // On desktop, zoomFit() ensures the content fits exactly in the viewport.
+  // Reset horizontal scroll to 0 so the timeline always starts at viewStart,
+  // keeping the year ruler and all content layers in perfect alignment.
+  if (!_isMobileViewport()) {
+    const ls = document.getElementById('lanesScroll');
+    if (ls && ls.scrollLeft !== 0) {
+      ls.scrollLeft = 0;
+      document.querySelectorAll('.tl-ctx-scroll').forEach(el => { el.scrollLeft = 0; });
+    }
+  }
 }
 
 // ── Navigation ────────────────────────────────────────────────

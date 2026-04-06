@@ -71,10 +71,13 @@ function _isMobile() {
   return window.innerWidth <= 900 || navigator.maxTouchPoints > 0;
 }
 
-// ── Axis tick renderer (full-range overview with percentage positioning) ──
-// The axis always shows START_YEAR–END_YEAR. Year ticks and era bands share
-// the same percentage coordinate system as the integrated range handles.
-const _AXIS_SPAN = END_YEAR - START_YEAR;   // 805
+// ── Axis decorator (era bands + siege bands only — NO year ticks) ──
+// The axis-track is a RANGE-SELECTION control: the handles and fill/mute
+// overlays show which slice of the full 1150–2005 span is selected.
+// Year tick labels have been moved to #yearRulerRow (renderYearRuler below)
+// which uses the same pixel coordinate system as every other content layer,
+// guaranteeing perfect vertical alignment at all zoom levels and scroll positions.
+const _AXIS_SPAN = END_YEAR - START_YEAR;
 function _yearPct(y) { return ((y - START_YEAR) / _AXIS_SPAN) * 100; }
 
 export function renderAxis() {
@@ -82,7 +85,7 @@ export function renderAxis() {
   if (!inner) return;
   let html = '';
 
-  // Era bands (behind tick marks)
+  // Era colour bands — give the range selector visual historical context
   eras.forEach(e => {
     const p1 = _yearPct(Math.max(e.start, START_YEAR));
     const p2 = _yearPct(Math.min(e.end, END_YEAR));
@@ -96,15 +99,35 @@ export function renderAxis() {
     html += `<div class="siege-band" style="left:${p1}%;width:${Math.max(p2 - p1, 0.5)}%"></div>`;
   });
 
-  // Year ticks — 100-year major, 25-year minor (fixed, since we always show 805 years)
-  const majorTick = 100;
-  const minorTick = 50;
-  const tickStart = Math.ceil(START_YEAR / minorTick) * minorTick;
-  for (let y = tickStart; y <= END_YEAR; y += minorTick) {
-    const pct = _yearPct(y);
-    const maj = y % majorTick === 0;
-    html += `<div class="yr-tick ${maj ? '' : 'minor'}" style="left:${pct}%">`;
-    if (maj) html += `<div class="yr-tick-lbl">${y}</div>`;
+  inner.innerHTML = html;
+}
+
+// ── Desktop Year Ruler ──────────────────────────────────────────────────────
+// Renders pixel-positioned tick marks into #yearRulerInner using the EXACT
+// same _ctxX coordinate function as rulers, wars, grain, and all other tracks.
+// Result: a vertical line from any year label passes through the correct
+// events and chart values in every layer, at every zoom level and scroll position.
+// Called from renderContextTracks() (desktop branch only).
+function renderYearRuler() {
+  const inner = document.getElementById('yearRulerInner');
+  if (!inner) return;
+  inner.style.width = _ctxTW + 'px';
+
+  // Adaptive tick cadence — denser when zoomed in
+  const visYears = _ctxVE - _ctxVS;
+  let majorTick, minorTick;
+  if      (visYears <= 100) { majorTick = 25;  minorTick = 5;   }
+  else if (visYears <= 250) { majorTick = 50;  minorTick = 25;  }
+  else if (visYears <= 600) { majorTick = 100; minorTick = 50;  }
+  else                      { majorTick = 200; minorTick = 100; }
+
+  let html = '';
+  const firstTick = Math.ceil(_ctxVS / minorTick) * minorTick;
+  for (let y = firstTick; y <= _ctxVE; y += minorTick) {
+    const x     = _ctxX(y);
+    const isMaj = y % majorTick === 0;
+    html += `<div class="yr-tick${isMaj ? '' : ' minor'}" style="left:${x}px">`;
+    if (isMaj) html += `<span class="yr-tick-lbl">${y}</span>`;
     html += `<div class="yr-tick-line"></div></div>`;
   }
   inner.innerHTML = html;
@@ -913,6 +936,8 @@ export function renderContextTracks() {
     _ctxVE  = viewEnd;
     _ctxX   = yr => yearToX(yr) - labelOffset;
     _ctxTW  = getTotalWidth() - labelOffset;
+    // Desktop year ruler — always rendered, uses same _ctxX as every other layer
+    renderYearRuler();
   }
   // ──────────────────────────────────────────────────────────────────────────
 

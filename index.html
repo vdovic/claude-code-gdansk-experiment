@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=35">
+<link rel="stylesheet" href="src/styles.css?v=36">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -138,8 +138,8 @@
       <!-- Unified axis row — year scale + integrated range handles -->
       <div class="tl-axis-row" id="axisRow">
         <div class="tl-axis-stub">
-          <span class="range-label" id="rangeLabel">1200 – 1750</span>
-          <button class="range-reset" id="rangeReset" title="Reset to 1200–1750">↺</button>
+          <span class="range-label" id="rangeLabel">1150 – 1750</span>
+          <button class="range-reset" id="rangeReset" title="Reset to default range (1150–1750)">↺ Reset</button>
         </div>
         <div class="axis-track" id="axisTrack">
           <div class="axis-inner" id="axisInner"></div>
@@ -154,6 +154,17 @@
           <div class="period-marker" id="periodMarkerL" aria-hidden="true"><span class="period-marker-yr"></span></div>
           <div class="period-marker" id="periodMarkerR" aria-hidden="true"><span class="period-marker-yr"></span></div>
           <div class="range-drag-label" id="rangeDragLabel" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <!-- Desktop year ruler — always visible on desktop, pixel-positioned via JS.
+           Uses the same _ctxX coordinate as every other content layer so it stays
+           perfectly synchronised with event bars, grain chart, and church lanes.
+           Hidden on mobile (which has its own #mobileRuler). -->
+      <div class="tl-ctx-row tl-year-ruler" id="yearRulerRow" style="height:22px;overflow:hidden;">
+        <div class="tl-ctx-stub tl-year-ruler-stub">Year</div>
+        <div class="tl-ctx-scroll">
+          <div class="ctx-inner" id="yearRulerInner" style="height:22px;position:relative;"></div>
         </div>
       </div>
 
@@ -876,7 +887,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=41"></script>
+<script type="module" src="src/main.js?v=42"></script>
 
 
 </body>
