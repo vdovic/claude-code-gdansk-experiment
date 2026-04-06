@@ -6,7 +6,7 @@
 //   • Sidebar: church list, layer toggles, legend
 //   • Syncs with timeline filter (visibleChurches)
 
-import { churches }    from './data/churches.js?v=3';
+import { churches }    from './data/churches.js?v=4';
 import { districtGeo } from './data/geodata.js';
 import { denomColors, denomNames, visibleChurches } from './state.js?v=3';
 import { openCD }      from './detail.js';

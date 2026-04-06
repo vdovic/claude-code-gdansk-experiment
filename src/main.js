@@ -2,7 +2,7 @@
 // App entry point: initialises all modules, wires up scroll sync,
 // keyboard shortcuts, zoom, search, and the DOMContentLoaded sequence.
 
-import { churches } from './data/churches.js?v=3';
+import { churches } from './data/churches.js?v=4';
 import { eras }     from './data/context.js';
 import {
   START_YEAR, END_YEAR, DEFAULT_VIEW_START, DEFAULT_VIEW_END,

@@ -8,7 +8,7 @@
 // Uses the v6 drawer pattern: position:fixed bottom sheet with handle,
 // styled in .drawer / .drawer-overlay (dark ink background).
 
-import { churches, shieldSVGs } from './data/churches.js?v=3';
+import { churches, shieldSVGs } from './data/churches.js?v=4';
 import { calamities, politicalEvents, wars } from './data/context.js';
 import { typeColors, denomColors, getCluster, getMostSimilar, setSelectedCI } from './state.js?v=3';
 import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js';
