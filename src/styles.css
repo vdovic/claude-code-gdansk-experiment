@@ -3164,6 +3164,18 @@ body[data-viewport="mobile"] .tl-ctx-scroll {
   -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 body[data-viewport="mobile"] .tl-ctx-scroll::-webkit-scrollbar { display: none; }
+/* Lock all context-row scrollers except the Periods card row so they
+   cannot scroll independently — mobileDrag.js redraws them on every frame. */
+@media (max-width: 900px) {
+  .tl-ctx-row:not(#econErasRow) .tl-ctx-scroll {
+    overflow-x: hidden !important;
+    touch-action: pan-y !important;
+  }
+}
+body[data-viewport="mobile"] .tl-ctx-row:not(#econErasRow) .tl-ctx-scroll {
+  overflow-x: hidden !important;
+  touch-action: pan-y !important;
+}
 body[data-viewport="mobile"] .tl-lanes-scroll {
   touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
 }

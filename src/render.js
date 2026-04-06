@@ -116,9 +116,9 @@ function renderYearRuler() {
   // Adaptive tick cadence — denser when zoomed in
   const visYears = _ctxVE - _ctxVS;
   let majorTick, minorTick;
-  if      (visYears <= 100) { majorTick = 25;  minorTick = 5;   }
-  else if (visYears <= 250) { majorTick = 50;  minorTick = 25;  }
-  else if (visYears <= 600) { majorTick = 100; minorTick = 50;  }
+  if      (visYears <= 100) { majorTick = 25;  minorTick = 10;  }
+  else if (visYears <= 300) { majorTick = 50;  minorTick = 25;  }
+  else if (visYears <= 900) { majorTick = 100; minorTick = 50;  }
   else                      { majorTick = 200; minorTick = 100; }
 
   let html = '';
