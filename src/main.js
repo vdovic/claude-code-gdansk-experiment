@@ -49,11 +49,6 @@ function _afterZoom() {
   render();
   updateViewRangeLabel();
   window._updateRangeHandles?.();
-  // After re-render, axis ticks may have new pixel positions.
-  // Restore axisScroll to match the current lanesScroll position.
-  const ls = document.getElementById('lanesScroll');
-  const as = document.getElementById('axisScroll');
-  if (ls && as) as.scrollLeft = ls.scrollLeft;
 }
 
 // ── Navigation ────────────────────────────────────────────────
@@ -169,7 +164,6 @@ function _initScrollSync() {
 
   // Shared helper — routes a new scrollLeft to all scroll containers
   // except the one that originated the event, preventing feedback loops.
-  const axisScroll = document.getElementById('axisScroll');
   let _syncing = false;
   function _syncScrollTo(sx, source) {
     if (_syncing) return;
@@ -179,8 +173,6 @@ function _initScrollSync() {
       if (el.dataset.noSync || el === source) return;
       el.scrollLeft = sx;
     });
-    // Keep axis tick scroll in lock-step with content (ticks are now pixel-positioned)
-    if (axisScroll) axisScroll.scrollLeft = sx;
     _syncing = false;
   }
 
