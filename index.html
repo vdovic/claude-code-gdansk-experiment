@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=34">
+<link rel="stylesheet" href="src/styles.css?v=35">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -587,6 +587,7 @@
     { key: 'height',      label: 'Height',           sortKey: 'height'      },
     { key: 'capacity',    label: 'Capacity',         sortKey: 'capacity'    },
     { key: 'guilds',      label: 'Guild Patrons',    sortKey: null          },
+    { key: 'guardian',    label: 'Guardianship',     sortKey: null          },
   ];
 
   // ── Build filter bar (no Sort section — table headers handle sorting) ──
@@ -703,6 +704,10 @@
       const heightTxt    = ch.height   ? ch.height + ' m'   : '—';
       const capacityTxt  = ch.capacity ? ch.capacity.toLocaleString() : '—';
       const guilds       = ch.guilds && ch.guilds.length ? ch.guilds.join(', ') : '—';
+      const g            = ch.guardianship;
+      const guardianHtml = g
+        ? `<div class="ct-guardian-name">${g.name}</div>${g.since ? `<div class="ct-guardian-since">since ${g.since}</div>` : ''}`
+        : '—';
 
       return `<tr class="ct-row" data-ci="${ci}">
         <td class="ct-td ct-name"><div class="ct-name-inner">${dot}${ch.name}</div></td>
@@ -714,6 +719,7 @@
         <td class="ct-td ct-num">${heightTxt}</td>
         <td class="ct-td ct-num">${capacityTxt}</td>
         <td class="ct-td ct-guilds">${guilds}</td>
+        <td class="ct-td ct-guardian">${guardianHtml}</td>
       </tr>`;
     }).join('');
 
@@ -870,7 +876,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=40"></script>
+<script type="module" src="src/main.js?v=41"></script>
 
 
 </body>

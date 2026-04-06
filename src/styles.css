@@ -1598,6 +1598,13 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 .ct-founder  { min-width: 180px; }
 .ct-num      { white-space: nowrap; min-width: 68px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
 .ct-guilds   { color: var(--text-muted); min-width: 160px; }
+.ct-guardian { min-width: 160px; }
+.ct-guardian-name {
+  color: var(--text-primary); font-weight: 600; white-space: nowrap;
+}
+.ct-guardian-since {
+  color: var(--text-muted); font-size: 10px; margin-top: 1px; white-space: nowrap;
+}
 
 /* Light theme overrides */
 [data-theme="light"] .ct-th { background: #e8eaed; }
@@ -1605,6 +1612,7 @@ body.timeline-panning .tl-outer * { cursor: grabbing !important; user-select: no
 [data-theme="light"] .ct-td { color: #1a1e24; }
 [data-theme="light"] .ct-type,
 [data-theme="light"] .ct-guilds { color: #4a5260; }
+[data-theme="light"] .ct-guardian-since { color: #4a5260; }
 
 /* ══════════════════════════════════════════════════════════════
    MAP SCREEN (fullscreen — shares #mapLeaflet with timeline)

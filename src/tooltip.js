@@ -2,7 +2,7 @@
 // Hover tooltip with pin-to-screen support.
 // The tooltip element is styled by .tooltip in styles.css (dark ink background).
 
-import { churches }    from './data/churches.js?v=4';
+import { churches }    from './data/churches.js?v=5';
 import { calamities, politicalEvents, wars, rulers } from './data/context.js';
 import { clusterDefs } from './data/clusters.js';
 import { typeColors, denomColors, getCluster, getMostSimilar } from './state.js?v=3';

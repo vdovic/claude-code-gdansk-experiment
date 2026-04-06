@@ -3,7 +3,7 @@
 // Computed values (sorted indices, visible set) are re-derived by calling
 // the exported functions after updating raw state.
 
-import { churches } from './data/churches.js?v=4';
+import { churches } from './data/churches.js?v=5';
 import { clusterDefs, distMatrix } from './data/clusters.js';
 import { district1450ByChurchId } from './data/districts1450.js';
 

@@ -9,7 +9,7 @@
 // with a single horizontally-scrolling area (tl-lanes-scroll) that drives all other
 // scroll panels via JS synchronisation in main.js.
 
-import { churches }       from './data/churches.js?v=4';
+import { churches }       from './data/churches.js?v=5';
 import { calamities, politicalEvents, religiousEvents, wars, rulers, eras, siegeBands, urbanPowerEvents } from './data/context.js';
 import { grainExport, shipTraffic, economicEras, populationData } from './data/economic.js';
 import { getGrainValue, getShipsValue, getShipsTrend } from './data/grainCurve.js';

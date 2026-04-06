@@ -2,7 +2,7 @@
 // Controls, filter chips, track toggles,
 // legend, mobile tab switching, and collapsible chrome.
 
-import { churches }    from './data/churches.js?v=4';
+import { churches }    from './data/churches.js?v=5';
 import { clusterDefs } from './data/clusters.js';
 import { eras, siegeBands, legendItems } from './data/context.js';
 import { getGrainValue, getShipsValue, getShipsTrend, GRAIN_MAX } from './data/grainCurve.js';
