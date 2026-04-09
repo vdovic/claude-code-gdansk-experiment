@@ -112,7 +112,7 @@ export function returnMapToTimeline() {
   }
 }
 
-// ── Compact overlay controls (year + opacity, collapsible) ───
+// ── Compact overlay controls (year + opacity) ────────────────
 function _buildFsOverlay() {
   const disp   = document.getElementById('mapYearDisplayFs');
   const slider = document.getElementById('mapYearSliderFs');
@@ -126,6 +126,49 @@ function _buildFsOverlay() {
   if (opSlider) opSlider.value = pct;
   if (opVal)    opVal.textContent = pct + '%';
 
+  // Prevent Leaflet from stealing drag events on slider controls
+  _shieldSlider(document.getElementById('mapYearSliderFs'));
+  _shieldSlider(document.getElementById('fsHistoricOpacity'));
+}
+
+// Disable ALL Leaflet interaction while user touches a slider.
+// Uses capture-phase touchmove on the element to beat Leaflet's
+// document-level capture handlers.
+function _shieldSlider(el) {
+  if (!el || el._shielded || !leafletMap) return;
+  el._shielded = true;
+
+  let touching = false;
+
+  function onStart(e) {
+    touching = true;
+    leafletMap.dragging.disable();
+    leafletMap.touchZoom && leafletMap.touchZoom.disable();
+    leafletMap.scrollWheelZoom && leafletMap.scrollWheelZoom.disable();
+  }
+
+  function onMove(e) {
+    if (touching) {
+      // Stop Leaflet's capture handlers from consuming this touch
+      e.stopPropagation();
+    }
+  }
+
+  function onEnd() {
+    touching = false;
+    leafletMap.dragging.enable();
+    leafletMap.touchZoom && leafletMap.touchZoom.enable();
+    leafletMap.scrollWheelZoom && leafletMap.scrollWheelZoom.enable();
+  }
+
+  // Capture phase so we fire before Leaflet's document-level listeners
+  el.addEventListener('touchstart',  onStart, { capture: true, passive: true });
+  el.addEventListener('touchmove',   onMove,  { capture: true, passive: true });
+  el.addEventListener('touchend',    onEnd,   { capture: true, passive: true });
+  el.addEventListener('mousedown',   onStart, { capture: true });
+  el.addEventListener('mousemove',   onMove,  { capture: true });
+  document.addEventListener('mouseup',   onEnd);
+  document.addEventListener('touchend',  onEnd, { passive: true });
 }
 
 // ── Leaflet init ──────────────────────────────────────────────
