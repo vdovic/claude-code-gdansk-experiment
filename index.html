@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=37">
+<link rel="stylesheet" href="src/styles.css?v=39">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -358,14 +358,28 @@
     <div id="scrMapHost" style="flex:1;width:100%;overflow:hidden;position:relative;"></div>
     <!-- Overlay controls (built by JS after map is moved in) -->
     <div class="map-fs-overlay" id="mapFsOverlay">
-      <div style="margin-bottom:6px;font-weight:600;font-size:11px;">Year:</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span id="mapYearDisplayFs" style="font-weight:700;color:var(--accent);min-width:40px;font-size:13px;">1500</span>
-        <input type="range" id="mapYearSliderFs" min="1186" max="2000" value="1500" step="1" style="flex:1;cursor:pointer;">
+      <!-- Collapsed summary bar -->
+      <div class="mco-header" id="mcoHeader"
+        onclick="document.getElementById('mcoToggle').classList.toggle('open');document.getElementById('mcoBody').classList.toggle('collapsed')">
+        <span class="mco-summary">
+          <span class="mco-val" id="mcoYearVal">1500</span>
+          <span class="mco-sep">&middot;</span>
+          <span class="mco-val" id="mcoOpVal">45%</span>
+        </span>
+        <button class="mco-toggle" id="mcoToggle" aria-label="Expand controls"
+          onclick="event.stopPropagation();this.classList.toggle('open');document.getElementById('mcoBody').classList.toggle('collapsed')">&#9660;</button>
       </div>
-      <div style="font-size:9px;color:var(--text-muted);margin-bottom:8px;">Denomination at selected year</div>
-      <div style="font-size:10px;font-weight:600;margin-bottom:4px;">Layers</div>
-      <div id="mapLayerTogglesFs" style="font-size:10px;"></div>
+      <!-- Expanded slider body -->
+      <div class="mco-body" id="mcoBody">
+        <div class="mco-row">
+          <label class="mco-label">Year <span class="mco-live" id="mapYearDisplayFs">1500</span></label>
+          <input type="range" class="mco-slider" id="mapYearSliderFs" min="1186" max="2000" value="1500" step="1">
+        </div>
+        <div class="mco-row">
+          <label class="mco-label">Map opacity <span class="mco-live" id="fsHistoricOpacityVal">45%</span></label>
+          <input type="range" class="mco-slider" id="fsHistoricOpacity" min="0" max="100" value="45" step="1">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -887,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ══════════════════════════════════════════════
      MAIN APP MODULE
      ══════════════════════════════════════════════ -->
-<script type="module" src="src/main.js?v=42"></script>
+<script type="module" src="src/main.js?v=43"></script>
 
 
 </body>

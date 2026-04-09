@@ -8,7 +8,7 @@
 
 import { churches }    from './data/churches.js?v=5';
 import { districtGeo } from './data/geodata.js';
-import { denomColors, denomNames, visibleChurches } from './state.js?v=3';
+import { denomColors, denomNames, visibleChurches } from './state.js?v=4';
 import { openCD }      from './detail.js';
 
 const UNIFICATION_YEAR = 1454;
@@ -33,8 +33,8 @@ let showChurches = true;
 
 // ── Historic map overlay ──────────────────────────────────────
 let _historicOverlay    = null;
-let _historicOpacity    = 0.25;   // default: 25% opaque
-let _showHistoricOverlay = true;
+let _historicOpacity    = 0.45;   // default: 45% opaque
+let _showHistoricOverlay = true;  // always on — no toggle
 // Geographic bounds for the Kubicki historic church map (street plan of medieval Gdańsk).
 // The original 508×768 image was affine-warped (10 church anchors, least-squares) to
 // remove ~2° rotation so L.imageOverlay can display it axis-aligned.  Max residual ≈ 68 m.
@@ -112,71 +112,32 @@ export function returnMapToTimeline() {
   }
 }
 
-// Build / refresh the fullscreen overlay controls (year + layers)
+// ── Compact overlay controls (year + opacity, collapsible) ───
 function _buildFsOverlay() {
   const disp   = document.getElementById('mapYearDisplayFs');
   const slider = document.getElementById('mapYearSliderFs');
   if (disp)   disp.textContent = mapYear;
   if (slider) slider.value     = mapYear;
-  // Build layer toggles into the fs overlay
-  _buildFsLayerToggles();
-}
 
-function _buildFsLayerToggles() {
-  const el = document.getElementById('mapLayerTogglesFs');
-  if (!el) return;
-  const unified = mapYear >= UNIFICATION_YEAR;
-  const allOn   = showChurches && showDistricts;
-  const pct     = Math.round(_historicOpacity * 100);
-  const on      = _showHistoricOverlay;
+  // Sync opacity slider
+  const pct = Math.round(_historicOpacity * 100);
+  const opSlider = document.getElementById('fsHistoricOpacity');
+  const opVal    = document.getElementById('fsHistoricOpacityVal');
+  if (opSlider) opSlider.value = pct;
+  if (opVal)    opVal.textContent = pct + '%';
 
-  let html = _fsTgl('All Layers', allOn, 'fsToggleAll');
-  html += _fsTgl(`Churches (${churches.length})`, showChurches, 'fsToggleChurches');
-  if (!unified) {
-    html += _fsTgl('Districts', showDistricts, 'fsToggleDistricts');
-  } else {
-    html += `<div style="font-size:9px;color:${UNIFIED_COLOR};padding:2px 0;">✦ Merged ${UNIFICATION_YEAR}</div>`;
-  }
-  // Sacred Topo section
-  html += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(138,109,32,0.25);">
-    <div id="fsToggleSacred" style="cursor:pointer;padding:4px 0;color:${on ? 'var(--accent)' : 'var(--text-muted)'};font-weight:${on ? '600' : '400'};font-size:10px;transition:color 0.15s;">
-      ${on ? '◉' : '○'} Sacred Topography, c. 1500
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:4px;opacity:${on ? 1 : 0.4};">
-      <span style="font-size:9px;color:var(--text-muted);">Opacity</span>
-      <input type="range" id="fsHistoricOpacity" min="0" max="100" value="${pct}"
-        style="flex:1;height:3px;accent-color:var(--accent);" ${on ? '' : 'disabled'}>
-      <span id="fsHistoricOpacityVal" style="font-size:9px;color:var(--accent);min-width:24px;">${pct}%</span>
-    </div>
-  </div>`;
+  // Sync collapsed summary values
+  const mcoYear = document.getElementById('mcoYearVal');
+  const mcoOp   = document.getElementById('mcoOpVal');
+  if (mcoYear) mcoYear.textContent = mapYear;
+  if (mcoOp)   mcoOp.textContent = pct + '%';
 
-  el.innerHTML = html;
-
-  document.getElementById('fsToggleAll')?.addEventListener('click', () => {
-    const cur = showChurches && showDistricts;
-    showChurches = showDistricts = !cur;
-    _updateDistrictYearVisibility();
-    renderMap(); buildMapLayerToggles(); _buildFsLayerToggles();
-  });
-  document.getElementById('fsToggleChurches')?.addEventListener('click', () => { toggleChurchesLayer(); _buildFsLayerToggles(); });
-  document.getElementById('fsToggleDistricts')?.addEventListener('click', () => { toggleDistrictLayer(); _buildFsLayerToggles(); });
-  document.getElementById('fsToggleSacred')?.addEventListener('click', () => { toggleHistoricOverlay(); _buildFsLayerToggles(); });
-  document.getElementById('fsHistoricOpacity')?.addEventListener('input', e => {
-    setHistoricOpacity(e.target.value / 100);
-    const v = document.getElementById('fsHistoricOpacityVal');
-    if (v) v.textContent = e.target.value + '%';
-  });
-}
-
-function _fsTgl(label, on, id) {
-  const col = on ? 'var(--accent)' : 'var(--text-muted)';
-  return `<div id="${id}" style="cursor:pointer;padding:3px 0;color:${col};transition:color 0.15s;">${on ? '✓' : '○'} ${label}</div>`;
 }
 
 // ── Leaflet init ──────────────────────────────────────────────
 function _initLeafletMap() {
   leafletMap = L.map('mapLeaflet', {
-    center:           [54.362, 18.640],
+    center:           [54.351, 18.654],
     zoom:             13,
     zoomControl:      true,
     attributionControl: true,
@@ -214,8 +175,15 @@ function _initHistoricOverlay() {
 export function setHistoricOpacity(val) {
   _historicOpacity = Math.max(0, Math.min(1, val));
   if (_historicOverlay) _historicOverlay.setOpacity(_showHistoricOverlay ? _historicOpacity : 0);
+  // Sync all displays
+  const pct = Math.round(_historicOpacity * 100);
+  const opVal = document.getElementById('fsHistoricOpacityVal');
+  const mcoOp = document.getElementById('mcoOpVal');
+  if (opVal) opVal.textContent = pct + '%';
+  if (mcoOp) mcoOp.textContent = pct + '%';
 }
 
+// Desktop sidebar still uses this toggle
 export function toggleHistoricOverlay() {
   _showHistoricOverlay = !_showHistoricOverlay;
   if (_historicOverlay) _historicOverlay.setOpacity(_showHistoricOverlay ? _historicOpacity : 0);
@@ -325,10 +293,12 @@ export function setMapYear(yr) {
   const slider = document.getElementById('mapYearSlider');
   const dispFs   = document.getElementById('mapYearDisplayFs');
   const sliderFs = document.getElementById('mapYearSliderFs');
+  const mcoYear  = document.getElementById('mcoYearVal');
   if (disp)     disp.textContent = yr;
   if (slider)   slider.value = yr;
   if (dispFs)   dispFs.textContent = yr;
   if (sliderFs) sliderFs.value = yr;
+  if (mcoYear)  mcoYear.textContent = yr;
   renderMap();
 }
 

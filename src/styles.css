@@ -1642,18 +1642,96 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 #scrMapHost { flex: 1; width: 100%; overflow: hidden; position: relative; }
 #scrMapHost #mapLeaflet { width: 100% !important; height: 100% !important; }
 
-/* Overlay panel on top of the fullscreen map */
+/* ── Mobile compact overlay (MCO) ── */
 .map-fs-overlay {
-  position: absolute; top: 10px; left: 10px;
-  max-width: 200px; z-index: 999;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-radius: 8px; padding: 10px 12px;
-  background: rgba(0,0,0,0.72); color: #e8e4dc;
-  font-family: var(--font-ui); font-size: 11px;
-  pointer-events: auto;
+  position: absolute; bottom: 16px; left: 10px; right: 10px;
+  z-index: 999; pointer-events: auto;
+  max-width: 340px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px; padding: 0;
+  background: rgba(0,0,0,0.55); color: #e8e4dc;
+  font-family: var(--font-ui); font-size: 13px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  transition: background 0.2s;
 }
 [data-theme="light"] .map-fs-overlay {
-  background: rgba(255,255,255,0.88); color: #1a1e24;
+  background: rgba(255,255,255,0.72); color: #1a1e24;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+/* Header / collapsed summary */
+.mco-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; cursor: pointer; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mco-summary { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+.mco-val { color: var(--accent); }
+.mco-sep { opacity: 0.4; font-size: 10px; }
+.mco-toggle {
+  background: none; border: none; color: inherit; font-size: 10px;
+  padding: 4px 6px; cursor: pointer; opacity: 0.5; transition: transform 0.25s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mco-toggle.open { transform: rotate(180deg); }
+
+/* Expanded body */
+.mco-body {
+  padding: 2px 14px 12px;
+  display: flex; flex-direction: column; gap: 11px;
+  overflow: hidden; transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+  max-height: 200px; opacity: 1;
+}
+.mco-body.collapsed {
+  max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0;
+}
+
+/* Row: label + slider */
+.mco-row { display: flex; flex-direction: column; gap: 6px; }
+.mco-label {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+}
+.mco-live { font-weight: 700; color: var(--accent); font-size: 13px; }
+
+/* ── Touch-friendly slider ── */
+.mco-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.15); outline: none; cursor: pointer;
+  touch-action: none;
+}
+[data-theme="light"] .mco-slider {
+  background: rgba(0,0,0,0.1);
+}
+.mco-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); border: 3px solid rgba(255,255,255,0.9);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.mco-slider::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); border: 3px solid rgba(255,255,255,0.9);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.mco-slider::-webkit-slider-thumb { margin-top: -8px; }
+.mco-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; }
+.mco-slider::-moz-range-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); }
+
+/* Desktop: position top-left, narrower */
+@media (min-width: 769px) {
+  .map-fs-overlay {
+    bottom: auto; top: 10px; left: 10px; right: auto;
+    max-width: 220px; border-radius: 10px;
+    background: rgba(0,0,0,0.65);
+  }
+  [data-theme="light"] .map-fs-overlay { background: rgba(255,255,255,0.82); }
+  .mco-slider::-webkit-slider-thumb { width: 16px; height: 16px; border-width: 2px; margin-top: -5px; }
+  .mco-slider::-moz-range-thumb { width: 16px; height: 16px; border-width: 2px; }
+  .mco-slider { height: 5px; }
 }
 
 /* ══════════════════════════════════════════════════════════════

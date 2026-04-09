@@ -16,12 +16,12 @@ import {
   setChurchNameFilter,
   // Mobile viewport — keeps desktop state vars above completely untouched
   resetMobileViewport,
-} from './state.js?v=3';
+} from './state.js?v=4';
 import { initMobileDrag, destroyMobileDrag } from './mobileDrag.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=17';
-import { renderMap, toggleMapPanel, setMapYear, isMapExpanded } from './map.js?v=9';
+import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js?v=10';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 
@@ -763,6 +763,9 @@ function _wireButtons() {
 
   // Map year slider (fullscreen map tab)
   document.getElementById('mapYearSliderFs')?.addEventListener('input', e => setMapYear(+e.target.value));
+
+  // Sacred Topography opacity slider (fullscreen map tab)
+  document.getElementById('fsHistoricOpacity')?.addEventListener('input', e => setHistoricOpacity(+e.target.value / 100));
 
   // Event search
   document.getElementById('searchInput')?.addEventListener('input', e => searchEvents(e.target.value));
