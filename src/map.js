@@ -126,49 +126,60 @@ function _buildFsOverlay() {
   if (opSlider) opSlider.value = pct;
   if (opVal)    opVal.textContent = pct + '%';
 
-  // Prevent Leaflet from stealing drag events on slider controls
-  _shieldSlider(document.getElementById('mapYearSliderFs'));
-  _shieldSlider(document.getElementById('fsHistoricOpacity'));
+  // Wire manual touch handlers (bypasses Leaflet entirely on mobile)
+  _makeTouchSlider(document.getElementById('mapYearSliderFs'),  'horizontal');
+  _makeTouchSlider(document.getElementById('fsHistoricOpacity'), 'vertical');
 }
 
-// Disable ALL Leaflet interaction while user touches a slider.
-// Uses capture-phase touchmove on the element to beat Leaflet's
-// document-level capture handlers.
-function _shieldSlider(el) {
-  if (!el || el._shielded || !leafletMap) return;
-  el._shielded = true;
+// Completely bypass native range input touch behaviour.
+// Leaflet's touch system intercepts touches before the browser's range
+// handler fires on mobile. Instead we listen to touch events ourselves,
+// compute the new value from finger position, update the input, and
+// fire a synthetic 'input' event that the existing listeners pick up.
+function _makeTouchSlider(el, orientation) {
+  if (!el || el._touchWired) return;
+  el._touchWired = true;
 
-  let touching = false;
+  const isVert = orientation === 'vertical';
 
-  function onStart(e) {
-    touching = true;
-    leafletMap.dragging.disable();
-    leafletMap.touchZoom && leafletMap.touchZoom.disable();
-    leafletMap.scrollWheelZoom && leafletMap.scrollWheelZoom.disable();
-  }
-
-  function onMove(e) {
-    if (touching) {
-      // Stop Leaflet's capture handlers from consuming this touch
-      e.stopPropagation();
+  function valueFromTouch(touch) {
+    const rect = el.getBoundingClientRect();
+    const min  = parseFloat(el.min);
+    const max  = parseFloat(el.max);
+    let ratio;
+    if (isVert) {
+      // Vertical: top = max, bottom = min (standard vertical slider)
+      ratio = 1 - (touch.clientY - rect.top) / rect.height;
+    } else {
+      ratio = (touch.clientX - rect.left) / rect.width;
     }
+    ratio = Math.max(0, Math.min(1, ratio));
+    return Math.round(min + ratio * (max - min));
   }
 
-  function onEnd() {
-    touching = false;
-    leafletMap.dragging.enable();
-    leafletMap.touchZoom && leafletMap.touchZoom.enable();
-    leafletMap.scrollWheelZoom && leafletMap.scrollWheelZoom.enable();
+  function applyValue(val) {
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype, 'value').set;
+    nativeSetter.call(el, val);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  // Capture phase so we fire before Leaflet's document-level listeners
-  el.addEventListener('touchstart',  onStart, { capture: true, passive: true });
-  el.addEventListener('touchmove',   onMove,  { capture: true, passive: true });
-  el.addEventListener('touchend',    onEnd,   { capture: true, passive: true });
-  el.addEventListener('mousedown',   onStart, { capture: true });
-  el.addEventListener('mousemove',   onMove,  { capture: true });
-  document.addEventListener('mouseup',   onEnd);
-  document.addEventListener('touchend',  onEnd, { passive: true });
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();               // stop Leaflet & scroll
+    e.stopPropagation();
+    applyValue(valueFromTouch(e.touches[0]));
+  }, { passive: false, capture: true });
+
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    applyValue(valueFromTouch(e.touches[0]));
+  }, { passive: false, capture: true });
+
+  el.addEventListener('touchend', e => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, { passive: false, capture: true });
 }
 
 // ── Leaflet init ──────────────────────────────────────────────
