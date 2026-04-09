@@ -1644,7 +1644,7 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 
 /* ── Mobile compact overlay (MCO) ── */
 .map-fs-overlay {
-  position: absolute; bottom: 16px; left: 10px; right: 10px;
+  position: absolute; top: 10px; left: 10px; right: 10px;
   z-index: 999; pointer-events: auto;
   max-width: 340px;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -1720,6 +1720,13 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .mco-slider::-webkit-slider-thumb { margin-top: -8px; }
 .mco-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; }
 .mco-slider::-moz-range-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); }
+
+/* Mobile: hide Leaflet zoom buttons (users pinch-zoom) */
+@media (max-width: 768px) {
+  #scrMapHost .leaflet-control-zoom { display: none !important; }
+  /* Hide Sort & Filter when map tab is active */
+  body:has(#scrMap.active) .bst-group { display: none !important; }
+}
 
 /* Desktop: position top-left, narrower */
 @media (min-width: 769px) {

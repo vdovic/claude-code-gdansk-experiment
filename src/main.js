@@ -21,7 +21,7 @@ import { initMobileDrag, destroyMobileDrag } from './mobileDrag.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js?v=17';
-import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js?v=10';
+import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js?v=11';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 

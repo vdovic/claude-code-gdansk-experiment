@@ -126,19 +126,11 @@ function _buildFsOverlay() {
   if (opSlider) opSlider.value = pct;
   if (opVal)    opVal.textContent = pct + '%';
 
-  // Sync collapsed summary values
-  const mcoYear = document.getElementById('mcoYearVal');
-  const mcoOp   = document.getElementById('mcoOpVal');
-  if (mcoYear) mcoYear.textContent = mapYear;
-  if (mcoOp)   mcoOp.textContent = pct + '%';
-
 }
 
 // ── Leaflet init ──────────────────────────────────────────────
 function _initLeafletMap() {
   leafletMap = L.map('mapLeaflet', {
-    center:           [54.351, 18.654],
-    zoom:             13,
     zoomControl:      true,
     attributionControl: true,
   });
@@ -149,6 +141,9 @@ function _initLeafletMap() {
     subdomains: 'abcd',
     maxZoom: 19,
   }).addTo(leafletMap);
+
+  // Fit to Sacred map bounds with 20% padding on all sides
+  leafletMap.fitBounds(L.latLngBounds(HISTORIC_MAP_BOUNDS).pad(0.2));
 
   _initDistrictLayers();
   _initHistoricOverlay();
@@ -175,12 +170,10 @@ function _initHistoricOverlay() {
 export function setHistoricOpacity(val) {
   _historicOpacity = Math.max(0, Math.min(1, val));
   if (_historicOverlay) _historicOverlay.setOpacity(_showHistoricOverlay ? _historicOpacity : 0);
-  // Sync all displays
+  // Sync opacity display
   const pct = Math.round(_historicOpacity * 100);
   const opVal = document.getElementById('fsHistoricOpacityVal');
-  const mcoOp = document.getElementById('mcoOpVal');
   if (opVal) opVal.textContent = pct + '%';
-  if (mcoOp) mcoOp.textContent = pct + '%';
 }
 
 // Desktop sidebar still uses this toggle
@@ -293,12 +286,10 @@ export function setMapYear(yr) {
   const slider = document.getElementById('mapYearSlider');
   const dispFs   = document.getElementById('mapYearDisplayFs');
   const sliderFs = document.getElementById('mapYearSliderFs');
-  const mcoYear  = document.getElementById('mcoYearVal');
   if (disp)     disp.textContent = yr;
   if (slider)   slider.value = yr;
   if (dispFs)   dispFs.textContent = yr;
   if (sliderFs) sliderFs.value = yr;
-  if (mcoYear)  mcoYear.textContent = yr;
   renderMap();
 }
 
