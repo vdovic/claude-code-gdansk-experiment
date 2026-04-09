@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- App styles -->
-<link rel="stylesheet" href="src/styles.css?v=40">
+<link rel="stylesheet" href="src/styles.css?v=42">
 <!-- Apply saved theme immediately to prevent flash -->
 <script>
 (function(){
@@ -358,23 +358,15 @@
     <div id="scrMapHost" style="flex:1;width:100%;overflow:hidden;position:relative;"></div>
     <!-- Overlay controls (built by JS after map is moved in) -->
     <div class="map-fs-overlay" id="mapFsOverlay">
-      <!-- Collapsed summary bar -->
-      <div class="mco-header" id="mcoHeader"
-        onclick="document.getElementById('mcoToggle').classList.toggle('open');document.getElementById('mcoBody').classList.toggle('collapsed')">
-        <button class="mco-toggle" id="mcoToggle" aria-label="Expand controls"
-          onclick="event.stopPropagation();this.classList.toggle('open');document.getElementById('mcoBody').classList.toggle('collapsed')">&#9660;</button>
+      <div class="mco-row">
+        <label class="mco-label">Year <span class="mco-live" id="mapYearDisplayFs">1500</span></label>
+        <input type="range" class="mco-slider" id="mapYearSliderFs" min="1186" max="2000" value="1500" step="1">
       </div>
-      <!-- Expanded slider body -->
-      <div class="mco-body" id="mcoBody">
-        <div class="mco-row">
-          <label class="mco-label">Year <span class="mco-live" id="mapYearDisplayFs">1500</span></label>
-          <input type="range" class="mco-slider" id="mapYearSliderFs" min="1186" max="2000" value="1500" step="1">
-        </div>
-        <div class="mco-row">
-          <label class="mco-label">Map opacity <span class="mco-live" id="fsHistoricOpacityVal">45%</span></label>
-          <input type="range" class="mco-slider" id="fsHistoricOpacity" min="0" max="100" value="45" step="1">
-        </div>
-      </div>
+    </div>
+    <div class="map-opacity-rail" id="mapOpacityRail">
+      <span class="mop-val" id="fsHistoricOpacityVal">45%</span>
+      <input type="range" class="mop-slider" id="fsHistoricOpacity" min="0" max="100" value="45" step="1" orient="vertical">
+      <span class="mop-label">Opacity</span>
     </div>
   </div>
 
