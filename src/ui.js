@@ -2,7 +2,7 @@
 // Controls, filter chips, track toggles,
 // legend, mobile tab switching, and collapsible chrome.
 
-import { churches }    from './data/churches.js?v=5';
+import { churches }    from './data/churches.js';
 import { clusterDefs } from './data/clusters.js';
 import { eras, siegeBands, legendItems } from './data/context.js';
 import { getGrainValue, getShipsValue, getShipsTrend, GRAIN_MAX } from './data/grainCurve.js';
@@ -23,10 +23,10 @@ import {
   toggleTrack, allTracksOn, allTracksOff,
   denomColors,
   patronageMode, setPatronageMode,
-} from './state.js?v=3';
+} from './state.js';
 import { churchPatrons } from './data/patronage.js';
 import { render }        from './render.js';
-import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js?v=9';
+import { renderMap, openMapForMobile, returnMapToTimeline, setMapYear, isMapExpanded } from './map.js';
 import { closePanel }    from './detail.js';
 import { hideTT, showGenericTT } from './tooltip.js';
 import { eventShapes, eventMarkerSVG, eventColors, ctxMarkerSVG } from './theme.js';

@@ -3,7 +3,7 @@
 // Computed values (sorted indices, visible set) are re-derived by calling
 // the exported functions after updating raw state.
 
-import { churches } from './data/churches.js?v=5';
+import { churches } from './data/churches.js';
 import { clusterDefs, distMatrix } from './data/clusters.js';
 import { district1450ByChurchId } from './data/districts1450.js';
 
@@ -313,7 +313,7 @@ export function allTracksOff() { Object.keys(trackVisibility).forEach(k => { tra
 // instead of pixel-based positioning tied to the scrollable content.
 // This fixes the visual drift between the ruler year-scale and the
 // period bands. Toggle via the ⚗ button on the Periods row label.
-export let syncedPeriodsExperiment = true;
+export let syncedPeriodsExperiment = false;
 export function setSyncedPeriodsExperiment(v) { syncedPeriodsExperiment = v; }
 
 // ── Patronage Mode (panel open/close only — no filtering) ──

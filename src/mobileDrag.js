@@ -43,7 +43,7 @@
 import {
   setMobileViewStart, mobileViewStart,
   MOBILE_TIMELINE_WINDOW_YEARS, START_YEAR, END_YEAR,
-} from './state.js?v=3';
+} from './state.js';
 import { mobilePPY, renderLanes, renderContextTracks } from './render.js';
 
 // Minimum horizontal movement (px) before we commit to a horizontal drag.

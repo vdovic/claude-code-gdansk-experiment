@@ -6,9 +6,9 @@
 //   • Sidebar: church list, layer toggles, legend
 //   • Syncs with timeline filter (visibleChurches)
 
-import { churches }    from './data/churches.js?v=5';
+import { churches }    from './data/churches.js';
 import { districtGeo } from './data/geodata.js';
-import { denomColors, denomNames, visibleChurches } from './state.js?v=4';
+import { denomColors, denomNames, visibleChurches } from './state.js';
 import { openCD }      from './detail.js';
 
 const UNIFICATION_YEAR = 1454;
