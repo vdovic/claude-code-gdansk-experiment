@@ -185,9 +185,12 @@ function _makeTouchSlider(el, orientation) {
 // ── Leaflet init ──────────────────────────────────────────────
 function _initLeafletMap() {
   leafletMap = L.map('mapLeaflet', {
-    zoomControl:      true,
+    zoomControl:      false,   // we use our own HTML buttons
     attributionControl: true,
   });
+
+  // Wire our HTML zoom + location buttons
+  _wireMapButtons();
 
   // Muted CartoDB "Positron" tile layer — neutral parchment-like base
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -202,6 +205,40 @@ function _initLeafletMap() {
   _initDistrictLayers();
   _initHistoricOverlay();
   buildMapLayerToggles();
+}
+
+function _wireMapButtons() {
+  // Zoom buttons
+  document.getElementById('mapZoomIn')?.addEventListener('click',  () => leafletMap?.zoomIn());
+  document.getElementById('mapZoomOut')?.addEventListener('click', () => leafletMap?.zoomOut());
+
+  // Location button
+  let locationMarker = null;
+  let locationCircle = null;
+  const locBtn = document.getElementById('mapLocBtn');
+  if (!locBtn) return;
+
+  locBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) return;
+    locBtn.classList.add('locating');
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        locBtn.classList.remove('locating');
+        const latlng = [coords.latitude, coords.longitude];
+        if (locationMarker) { locationMarker.remove(); locationCircle.remove(); }
+        locationCircle = L.circle(latlng, {
+          radius: coords.accuracy, color: '#2a7ae4', weight: 1, fillOpacity: 0.12,
+        }).addTo(leafletMap);
+        locationMarker = L.circleMarker(latlng, {
+          radius: 8, color: '#fff', weight: 2.5,
+          fillColor: '#2a7ae4', fillOpacity: 1,
+        }).addTo(leafletMap);
+        leafletMap.setView(latlng, Math.max(leafletMap.getZoom(), 15));
+      },
+      () => locBtn.classList.remove('locating'),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  });
 }
 
 // ── Historic map image overlay ────────────────────────────────

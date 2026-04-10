@@ -1739,11 +1739,44 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .mco-slider-sm::-webkit-slider-thumb { width: 18px; height: 18px; border-width: 2px; margin-top: -6px; }
 .mco-slider-sm::-moz-range-thumb { width: 18px; height: 18px; border-width: 2px; }
 
-/* Mobile: hide Leaflet zoom buttons (users pinch-zoom) */
+/* Mobile: hide Sort & Filter when map is active */
 @media (max-width: 768px) {
-  #scrMapHost .leaflet-control-zoom { display: none !important; }
   body:has(#scrMap.active) .bst-group { display: none !important; }
 }
+
+/* ── Map control buttons (zoom + location) ── */
+.map-ctrl-btn {
+  width: 40px; height: 40px;
+  border: none; cursor: pointer;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+  color: #333; font-size: 22px; font-weight: 400; line-height: 1;
+  transition: background 0.15s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.map-ctrl-btn:hover  { background: rgba(255,255,255,0.97); }
+.map-ctrl-btn:active { transform: scale(0.92); }
+[data-theme="dark"] .map-ctrl-btn { background: rgba(30,34,42,0.82); color: #e8e4dc; }
+
+/* Zoom group — bottom-left column */
+.map-zoom-btns {
+  position: absolute; bottom: 20px; left: 14px; z-index: 999;
+  display: flex; flex-direction: column; gap: 2px;
+  pointer-events: auto;
+}
+.map-zoom-btns .map-ctrl-btn:first-child { border-radius: 10px 10px 4px 4px; }
+.map-zoom-btns .map-ctrl-btn:last-child  { border-radius: 4px 4px 10px 10px; }
+
+/* Location button — bottom-right */
+.map-loc-btn {
+  position: absolute; bottom: 20px; right: 14px; z-index: 999;
+  border-radius: 50%; pointer-events: auto;
+}
+.map-loc-btn svg { width: 20px; height: 20px; }
+.map-loc-btn.locating { animation: loc-pulse 1s infinite; color: #2a7ae4; }
+@keyframes loc-pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
 /* Desktop: position top-left, narrower */
 @media (min-width: 769px) {
