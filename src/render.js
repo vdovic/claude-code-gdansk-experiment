@@ -595,9 +595,10 @@ export function initGrainTooltip() {
 //   #c0463a → Catholic,  #3a7a9e → Lutheran,  #4a6a3a → Calvinist,  anything else → General
 function _relDenomColor(rawColor) {
   if (!rawColor || rawColor === 'var(--ctx-religious-marker)') return 'var(--ctx-religious-marker)';
-  if (rawColor === '#c0463a' || rawColor === 'var(--catholic)')  return 'var(--catholic)';
-  if (rawColor === '#3a7a9e' || rawColor === 'var(--lutheran)')  return 'var(--lutheran)';
-  if (rawColor === '#9035b5' || rawColor === 'var(--calvinist)') return 'var(--calvinist)';
+  if (rawColor === '#c0463a' || rawColor === 'var(--catholic)')         return 'var(--catholic)';
+  if (rawColor === '#3a7a9e' || rawColor === 'var(--lutheran)')         return 'var(--lutheran)';
+  if (rawColor === '#9035b5' || rawColor === 'var(--calvinist)')        return 'var(--calvinist)';
+  if (rawColor === '#8a3a6a' || rawColor === 'var(--polish-catholic)')  return 'var(--polish-catholic)';
   return 'var(--ctx-religious-marker)'; // ecumenical / general
 }
 

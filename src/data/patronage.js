@@ -133,7 +133,7 @@ export const churchPatrons = {
   stbartholomew:{ founder: 'Suburban commune', order: null, guildsConfirmed: [], notes: 'Outer suburb parish; tanners and dyers were primary parishioners.' },
   stbarbara:    { founder: 'Suburban settlers', order: null, guildsConfirmed: [], notes: 'Small suburban parish serving gardeners and charcoal burners.' },
   stelizabeth:  { founder: 'Hospital brotherhood', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin; later served as a Reformed (Calvinist) worship site.' },
-  stcorpus:     { founder: 'Carmelite Order', order: 'Carmelite (OCarm)', guildsConfirmed: [], notes: 'Carmelite priory church with Marian confraternity connections.' },
+  stcorpus:     { founder: 'City of Gda\u0144sk / Hospital Foundation', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin (leper hospital); later principal evangelical suburban parish. Since 1947/1974 belongs to the Polish Catholic Church (Polskokatolicki).' },
   stjoseph:     { founder: 'Carmelite Order', order: 'Carmelite (OCarm)', guildsConfirmed: [], notes: 'Carmelite foundation, received former St. George\'s Hospital site in 1467.' },
   oliwa:        { founder: 'Pomeranian Dukes (Sambor I)', order: 'Cistercian (OCist)', guildsConfirmed: [], notes: 'Cistercian abbey founded by the Pomeranian dukes, oldest monastic foundation in the region.' },
   immaculate:   { founder: 'Franciscan Reformati', order: 'Franciscan Reformati (OFMRef)', guildsConfirmed: [], notes: 'Late Franciscan reform community.' },

@@ -25,7 +25,7 @@ export const affectedBy1525 = [
   'stnicolaus',  // Dominican — attacked but survived; unique continuous Catholic presence
   'sttrinity',   // Franciscan — friars expelled; church intact, later Academic Gymnasium
   'stbrigid',    // Birgittine — convent disrupted; nuns eventually departed
-  'stcorpus',    // Carmelite — monks violently expelled; church structure survived
+  // Note: stcorpus (Corpus Christi) was a hospital chapel, not monastic — not directly affected by the 1525 tumults
   'stjoseph',    // Carmelite — disrupted, Carmelites eventually returned
 ];
 
@@ -114,24 +114,24 @@ export const confessionalPhases = {
 
   stcorpus: [
     {
-      start: 1525,
+      start: 1522,
       end: 1557,
       status: 'confessional_realignment',
       label: 'Confessional Realignment',
-      tooltipTitle: 'Confessional Realignment (1525\u20131557)',
+      tooltipTitle: 'Confessional Realignment (1522\u20131557)',
       tooltipBody: [
-        'Carmelite monks violently expelled in 1525; church building survived.',
-        'Former monastery church transitioned to Lutheran parish use by 1557.',
+        'Hospital chapel where Jacob Hegge delivered the first Lutheran sermon in Gda\u0144sk (1522).',
+        'Formally converted to evangelical Protestant use by 1557; became principal suburban parish by 1592.',
       ],
       micro: [
         {
-          start: 1525,
-          end: 1526,
-          status: 'order_expelled',
-          label: 'Tumults & Expulsion',
+          start: 1522,
+          end: 1525,
+          status: 'mixed',
+          label: 'Early Reformation Preaching',
           tooltipBody: [
-            '1525: Carmelite monks violently expelled during Danzig Tumult.',
-            '1526: Royal intervention; church remained in civic custody.',
+            '1522: Jacob Hegge preached the first Lutheran sermon in Gda\u0144sk here.',
+            'The hospital chapel became an early focal point of Reformation ideas in the city.',
           ],
         },
       ],

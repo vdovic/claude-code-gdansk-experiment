@@ -55,11 +55,12 @@
   --panel-border-hi:var(--border-emphasis);
 
   /* Denomination colours (saturated) */
-  --catholic:       #c0463a;
-  --lutheran:       #3a7a9e;
-  --calvinist:      #9035b5;
-  --armenian:       #c0842a;
-  --secular:        #8a8a90;
+  --catholic:         #c0463a;
+  --lutheran:         #3a7a9e;
+  --calvinist:        #9035b5;
+  --armenian:         #c0842a;
+  --polish-catholic:  #8a3a6a;
+  --secular:          #8a8a90;
 
   /* Event-type accent colours */
   --ev-founded:     #3aaa68;
@@ -185,11 +186,12 @@
   --panel-border-hi:var(--border-emphasis);
 
   /* Denomination colours — same hues, slightly adjusted */
-  --catholic:       #c0463a;
-  --lutheran:       #2a6a8e;
-  --calvinist:      #a040cc;
-  --armenian:       #b07020;
-  --secular:        #6a6a70;
+  --catholic:         #c0463a;
+  --lutheran:         #2a6a8e;
+  --calvinist:        #a040cc;
+  --armenian:         #b07020;
+  --polish-catholic:  #7a2a5a;
+  --secular:          #6a6a70;
 
   /* Event-type accent colours — slightly muted for light bg */
   --ev-founded:     #2a8a58;
@@ -1213,10 +1215,11 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
   transition: opacity var(--ease-default);
 }
 .denom-bar:hover { opacity: 1; }
-.denom-bar.catholic    { background: var(--catholic); }
-.denom-bar.lutheran    { background: var(--lutheran); }
-.denom-bar.calvinist   { background: var(--calvinist); }
-.denom-bar.armenian    { background: var(--armenian); }
+.denom-bar.catholic         { background: var(--catholic); }
+.denom-bar.lutheran         { background: var(--lutheran); }
+.denom-bar.calvinist        { background: var(--calvinist); }
+.denom-bar.armenian         { background: var(--armenian); }
+.denom-bar.polish_catholic  { background: var(--polish-catholic); }
 .denom-bar.secular     { background: var(--secular); }
 
 /* Event dots */
