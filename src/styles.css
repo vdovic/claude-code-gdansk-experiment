@@ -57,7 +57,7 @@
   /* Denomination colours (saturated) */
   --catholic:         #c0463a;
   --lutheran:         #3a7a9e;
-  --calvinist:        #9035b5;
+  --calvinist:        #2a8a4a;
   --armenian:         #c0842a;
   --polish-catholic:  #8a3a6a;
   --secular:          #8a8a90;
@@ -188,7 +188,7 @@
   /* Denomination colours — same hues, slightly adjusted */
   --catholic:         #c0463a;
   --lutheran:         #2a6a8e;
-  --calvinist:        #a040cc;
+  --calvinist:        #228040;
   --armenian:         #b07020;
   --polish-catholic:  #7a2a5a;
   --secular:          #6a6a70;

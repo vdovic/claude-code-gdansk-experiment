@@ -20,7 +20,7 @@ import {
 import { initMobileDrag, destroyMobileDrag } from './mobileDrag.js';
 import { render, renderAxis, renderContextTracks, setRenderSortKey, initGrainTooltip } from './render.js';
 import { economicEras } from './data/economic.js';
-import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js';
+import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, getCurrentTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js';
 import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
@@ -63,11 +63,14 @@ function _afterZoom() {
 
 // ── Navigation ────────────────────────────────────────────────
 export function scrollToYear(yr) {
+  // Never scroll the timeline or change the map year when the user is on the
+  // Map tab — the map has its own independent year control.
+  if (getCurrentTab() === 'map') return;
   const lanesScroll = document.getElementById('lanesScroll');
   if (!lanesScroll) return;
   const x = Math.max(0, yearToX(yr) - lanesScroll.clientWidth / 3);
   lanesScroll.scrollTo({ left: x, behavior: 'smooth' });
-  // Sync map year if map is visible
+  // Sync map year only when the inline timeline map panel is open
   if (isMapExpanded() && yr >= 1186 && yr <= 2000) {
     setMapYear(Math.round(yr));
   }

@@ -573,6 +573,7 @@ export function toggleMobileChrome() {
 
 // ── Mobile tab switching ──────────────────────────────────────
 let _currentMobileTab = 'timeline';
+export function getCurrentTab() { return _currentMobileTab; }
 
 export function switchTab(tabId) {
   const wasMap = _currentMobileTab === 'map';

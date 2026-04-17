@@ -19,7 +19,7 @@ let leafletMap   = null;
 let mapMarkers   = [];         // markers in same order as churches that exist
 let mapMarkerMap = new Map();  // ci → marker
 let mapExpanded  = false;
-export let mapYear = 1500;
+export let mapYear = 1655;
 
 let districtLayerGroup  = null;
 let districtLabelsGroup = null;

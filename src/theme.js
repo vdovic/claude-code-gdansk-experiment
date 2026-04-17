@@ -8,7 +8,7 @@
 export const denominationColors = {
   catholic:         '#c0463a',
   lutheran:         '#3a7a9e',
-  calvinist:        '#9035b5',
+  calvinist:        '#2a8a4a',
   armenian:         '#c0842a',
   polish_catholic:  '#8a3a6a',
   secular:          '#8a8a90',
