@@ -33,7 +33,7 @@ let showChurches = true;
 
 // ── Historic map overlay ──────────────────────────────────────
 let _historicOverlay    = null;
-let _historicOpacity    = 0.45;   // default: 45% opaque
+let _historicOpacity    = 0.23;   // default: 23% opaque
 let _showHistoricOverlay = true;  // always on — no toggle
 // Geographic bounds for the Kubicki historic church map (street plan of medieval Gdańsk).
 // The original 508×768 image was affine-warped (10 church anchors, least-squares) to
