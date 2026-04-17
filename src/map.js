@@ -202,6 +202,18 @@ function _initLeafletMap() {
   // Fit to Sacred map bounds with 20% padding on all sides
   leafletMap.fitBounds(L.latLngBounds(HISTORIC_MAP_BOUNDS).pad(0.2));
 
+  // 📍 DEV HELPER: click anywhere on map to log coordinates to the page
+  // Remove this block once all pins are calibrated
+  const _coordBox = document.createElement('div');
+  _coordBox.id = 'mapCoordHelper';
+  _coordBox.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;font-family:monospace;font-size:13px;padding:8px 16px;border-radius:8px;z-index:9999;pointer-events:none;display:none;';
+  document.body.appendChild(_coordBox);
+  leafletMap.on('click', e => {
+    const { lat, lng } = e.latlng;
+    _coordBox.style.display = 'block';
+    _coordBox.textContent = `lat:${lat.toFixed(6)}, lon:${lng.toFixed(6)}`;
+  });
+
   _initDistrictLayers();
   _initHistoricOverlay();
   buildMapLayerToggles();
