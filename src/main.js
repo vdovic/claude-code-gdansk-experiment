@@ -23,7 +23,7 @@ import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, getCurrentTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js';
 import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
-import { MOBILE_BREAKPOINT, MOBILE_TOUCH_MAX_WIDTH } from './config.js';
+import { isMobileScreen } from './utils/viewport.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 
 // ── Expose scrollToYear globally so detail.js/ui.js can call it ─
@@ -213,9 +213,8 @@ function _isMobileViewport() {
   const vp = document.body?.dataset?.viewport;
   if (vp === 'mobile') return true;
   if (vp === 'desktop') return false;
-  // No manual override — use width, or touch + narrow screen (landscape phones).
-  // maxTouchPoints alone is too broad: touchscreen laptops/desktops also have it.
-  return window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH);
+  // No manual override — delegate to the shared utility (src/utils/viewport.js).
+  return isMobileScreen();
 }
 
 function _applyViewport(vp, save = true) {
@@ -251,7 +250,7 @@ function _initViewportToggle() {
   const btn = document.getElementById('viewportToggleBtn');
   const saved = localStorage.getItem('viewport-forced');
   // Use the same threshold as _isMobileViewport() so the two functions agree.
-  const defVp = (window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH)) ? 'mobile' : 'desktop';
+  const defVp = isMobileScreen() ? 'mobile' : 'desktop';
   _applyViewport(saved || defVp, false);
   btn?.addEventListener('click', () => {
     const cur = document.body.dataset.viewport || defVp;
@@ -923,7 +922,7 @@ function _initScrollHint() {
   if (!hint || !lanesScroll) return;
 
   // Only show on desktop
-  if (window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH)) {
+  if (isMobileScreen()) {
     hint.classList.add('hidden');
     return;
   }
