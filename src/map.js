@@ -10,6 +10,7 @@ import { churches }    from './data/churches.js';
 import { districtGeo } from './data/geodata.js';
 import { denomColors, denomNames, visibleChurches } from './state.js';
 import { openCD }      from './detail.js';
+import { HISTORIC_MAP_BOUNDS, DEFAULT_MAP_YEAR, DEFAULT_HISTORIC_OPACITY } from './config.js';
 
 const UNIFICATION_YEAR = 1454;
 const UNIFIED_COLOR    = '#8a6d20';  // Main Town gold — represents unified Gdańsk governance
@@ -19,7 +20,7 @@ let leafletMap   = null;
 let mapMarkers   = [];         // markers in same order as churches that exist
 let mapMarkerMap = new Map();  // ci → marker
 let mapExpanded  = false;
-export let mapYear = 1655;
+export let mapYear = DEFAULT_MAP_YEAR;
 
 let districtLayerGroup  = null;
 let districtLabelsGroup = null;
@@ -33,12 +34,12 @@ let showChurches = true;
 
 // ── Historic map overlay ──────────────────────────────────────
 let _historicOverlay    = null;
-let _historicOpacity    = 0.23;   // default: 23% opaque
+let _historicOpacity    = DEFAULT_HISTORIC_OPACITY;   // default: 23% opaque
 let _showHistoricOverlay = true;  // always on — no toggle
 // Geographic bounds for the Kubicki historic church map (street plan of medieval Gdańsk).
 // The original 508×768 image was affine-warped (10 church anchors, least-squares) to
 // remove ~2° rotation so L.imageOverlay can display it axis-aligned.  Max residual ≈ 68 m.
-const HISTORIC_MAP_BOUNDS = [[54.34188, 18.64220], [54.36082, 18.66571]];
+// HISTORIC_MAP_BOUNDS is imported from ./config.js
 const HISTORIC_MAP_SRC    = 'assets/images/historic-churches-map-warped.png';
 
 // ── Denomination helpers ──────────────────────────────────────

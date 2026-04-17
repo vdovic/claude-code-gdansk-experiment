@@ -6,6 +6,7 @@
 import { churches } from './data/churches.js';
 import { clusterDefs, distMatrix } from './data/clusters.js';
 import { district1450ByChurchId } from './data/districts1450.js';
+import { denominationColors, denominationNames } from './theme.js';
 
 // ── Timeline layout constants ──
 export const START_YEAR = 1150;
@@ -117,23 +118,11 @@ export const typeColors = {
   tumult:       'var(--ev-tumult)',
 };
 
-export const denomColors = {
-  catholic:         '#c0463a',
-  lutheran:         '#3a7a9e',
-  calvinist:        '#e6c800',
-  armenian:         '#c0842a',
-  polish_catholic:  '#8a3a6a',
-  secular:          '#8a8a90',
-};
-
-export const denomNames = {
-  catholic:         'Catholic',
-  lutheran:         'Lutheran',
-  calvinist:        'Calvinist',
-  armenian:         'Armenian Cath.',
-  polish_catholic:  'Polish Catholic',
-  secular:          'Secular',
-};
+// ── Denomination colours & names ──────────────────────────────
+// theme.js is the single JS source of truth. These re-exports keep all
+// existing imports (map.js, render.js, ui.js, etc.) working unchanged.
+export const denomColors = denominationColors;
+export const denomNames  = denominationNames;
 
 // ── Geometry helpers ──
 export function yearToX(y) {

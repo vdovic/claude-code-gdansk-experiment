@@ -23,6 +23,7 @@ import { economicEras } from './data/economic.js';
 import { updateViewRangeLabel, buildFilterChips, buildChurchBar, buildTrackToggles, buildChurchRow, renderLegend, initLegendPanel, initChurchSelector, toggleFilters, toggleMobileChrome, switchTab, getCurrentTab, setupMobileTouchDismiss, buildMobileFilters, initBottomSheet } from './ui.js';
 import { renderMap, toggleMapPanel, setMapYear, setHistoricOpacity, isMapExpanded } from './map.js';
 import { closePanel }  from './detail.js';
+import { MOBILE_BREAKPOINT, MOBILE_TOUCH_MAX_WIDTH } from './config.js';
 import { setupTooltipClickHandling, hideTT, showPinnedGenericTT } from './tooltip.js';
 
 // ── Expose scrollToYear globally so detail.js/ui.js can call it ─
@@ -214,7 +215,7 @@ function _isMobileViewport() {
   if (vp === 'desktop') return false;
   // No manual override — use width, or touch + narrow screen (landscape phones).
   // maxTouchPoints alone is too broad: touchscreen laptops/desktops also have it.
-  return window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
+  return window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH);
 }
 
 function _applyViewport(vp, save = true) {
@@ -250,7 +251,7 @@ function _initViewportToggle() {
   const btn = document.getElementById('viewportToggleBtn');
   const saved = localStorage.getItem('viewport-forced');
   // Use the same threshold as _isMobileViewport() so the two functions agree.
-  const defVp = (window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024)) ? 'mobile' : 'desktop';
+  const defVp = (window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH)) ? 'mobile' : 'desktop';
   _applyViewport(saved || defVp, false);
   btn?.addEventListener('click', () => {
     const cur = document.body.dataset.viewport || defVp;
@@ -922,7 +923,7 @@ function _initScrollHint() {
   if (!hint || !lanesScroll) return;
 
   // Only show on desktop
-  if (window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024)) {
+  if (window.innerWidth <= MOBILE_BREAKPOINT || (navigator.maxTouchPoints > 0 && window.innerWidth <= MOBILE_TOUCH_MAX_WIDTH)) {
     hint.classList.add('hidden');
     return;
   }
