@@ -120,7 +120,7 @@ export const typeColors = {
 export const denomColors = {
   catholic:         '#c0463a',
   lutheran:         '#3a7a9e',
-  calvinist:        '#2a8a4a',
+  calvinist:        '#e6c800',
   armenian:         '#c0842a',
   polish_catholic:  '#8a3a6a',
   secular:          '#8a8a90',
