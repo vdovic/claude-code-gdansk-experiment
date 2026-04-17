@@ -38,7 +38,7 @@ export const districtGeo = [
     shortName: 'Old Town',
     founded: 1200,
     color: '#2a5a9a',
-    note: 'Gdańsk\'s oldest settlement core, predating the Main Town. Grew organically around St. Catherine\'s Church (founded 1227, oldest parish in Gdańsk). Dominant trades: millers (the Great Mill / Wielki Młyn, built c.1350, the largest industrial building in medieval Europe), blacksmiths, coopers, tanners. Monastic centre: Dominican St. Nicholas, Carmelite Corpus Christi, Birgittine St. Bridget, hospital St. Elizabeth, Carmelite St. Joseph.',
+    note: 'Gdańsk\'s oldest settlement core, predating the Main Town. Grew organically around St. Catherine\'s Church (founded 1227, oldest parish in Gdańsk). Dominant trades: millers (the Great Mill / Wielki Młyn, built c.1350, the largest industrial building in medieval Europe), blacksmiths, coopers, tanners. Monastic centre: Dominican St. Nicholas, Birgittine St. Bridget, hospital St. Elizabeth, Carmelite St. Joseph. Hospital chapel: Corpus Christi (Bożego Ciała).',
     coords: [
       [54.3510,18.6535],[54.3505,18.6520],[54.3495,18.6488],
       [54.3510,18.6470],[54.3515,18.6448],[54.3520,18.6430],

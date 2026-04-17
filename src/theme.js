@@ -6,19 +6,21 @@
 
 // ── Denomination colours ──────────────────────────────────────
 export const denominationColors = {
-  catholic:  '#c0463a',
-  lutheran:  '#3a7a9e',
-  calvinist: '#9035b5',
-  armenian:  '#c0842a',
-  secular:   '#8a8a90',
+  catholic:         '#c0463a',
+  lutheran:         '#3a7a9e',
+  calvinist:        '#9035b5',
+  armenian:         '#c0842a',
+  polish_catholic:  '#8a3a6a',
+  secular:          '#8a8a90',
 };
 
 export const denominationNames = {
-  catholic:  'Catholic',
-  lutheran:  'Lutheran',
-  calvinist: 'Calvinist',
-  armenian:  'Armenian Cath.',
-  secular:   'Secular',
+  catholic:         'Catholic',
+  lutheran:         'Lutheran',
+  calvinist:        'Calvinist',
+  armenian:         'Armenian Cath.',
+  polish_catholic:  'Polish Catholic',
+  secular:          'Secular',
 };
 
 // ── Event-type colours ────────────────────────────────────────

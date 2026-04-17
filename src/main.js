@@ -209,8 +209,9 @@ function _isMobileViewport() {
   const vp = document.body?.dataset?.viewport;
   if (vp === 'mobile') return true;
   if (vp === 'desktop') return false;
-  // No manual override — use width OR touch capability (covers landscape phones)
-  return window.innerWidth <= 900 || navigator.maxTouchPoints > 0;
+  // No manual override — use width, or touch + narrow screen (landscape phones).
+  // maxTouchPoints alone is too broad: touchscreen laptops/desktops also have it.
+  return window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024);
 }
 
 function _applyViewport(vp, save = true) {
@@ -246,8 +247,7 @@ function _initViewportToggle() {
   const btn = document.getElementById('viewportToggleBtn');
   const saved = localStorage.getItem('viewport-forced');
   // Use the same threshold as _isMobileViewport() so the two functions agree.
-  // maxTouchPoints catches landscape phones whose innerWidth > 900.
-  const defVp = (window.innerWidth <= 900 || navigator.maxTouchPoints > 0) ? 'mobile' : 'desktop';
+  const defVp = (window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024)) ? 'mobile' : 'desktop';
   _applyViewport(saved || defVp, false);
   btn?.addEventListener('click', () => {
     const cur = document.body.dataset.viewport || defVp;
@@ -919,7 +919,7 @@ function _initScrollHint() {
   if (!hint || !lanesScroll) return;
 
   // Only show on desktop
-  if (window.innerWidth <= 900 || navigator.maxTouchPoints > 0) {
+  if (window.innerWidth <= 900 || (navigator.maxTouchPoints > 0 && window.innerWidth <= 1024)) {
     hint.classList.add('hidden');
     return;
   }
