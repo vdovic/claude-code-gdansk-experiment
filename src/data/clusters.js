@@ -14,24 +14,64 @@ export const clusterDefs = [
    members:['royalchapel','immaculate']},
 ];
 
-// Pre-computed distance matrix (weighted Euclidean, 7 parameters)
-// Row/column order matches churches array indices (stbirgitta removed):
-// Mary, Cath, Nic, PP, HT, Brid, John, Bart, Barb, Eliz, Corp, Jose, Oliw, Immac, Royal, James
-export const distMatrix = [
-/* St. Mary's   */[0.000,1.107,1.767,1.468,1.558,1.605,1.139,1.507,1.648,1.770,1.863,1.908,2.241,2.050,1.620,1.600],
-/* St. Cath's   */[1.107,0.000,1.241,0.867,1.028,0.927,0.636,0.777,0.922,1.014,1.126,1.206,1.702,1.480,0.940,1.000],
-/* St. Nicholas'*/[1.767,1.241,0.000,1.496,1.198,1.093,1.366,1.387,1.416,1.150,1.006,0.891,0.970,0.920,1.500,1.200],
-/* Ss. P&P      */[1.468,0.867,1.496,0.000,0.894,1.055,0.722,0.757,0.781,0.793,1.098,1.221,1.888,1.380,0.850,0.900],
-/* Holy Trinity */[1.558,1.028,1.198,0.894,0.000,0.452,0.925,1.030,1.083,0.843,0.637,0.836,1.523,1.050,1.100,0.800],
-/* St. Bridget's*/[1.605,0.927,1.093,1.055,0.452,0.000,0.949,0.978,1.058,0.741,0.316,0.760,1.380,0.880,1.060,0.900],
-/* St. John's   */[1.139,0.636,1.366,0.722,0.925,0.949,0.000,0.468,0.587,0.889,1.072,1.165,1.801,1.510,0.700,0.700],
-/* St. Barthol. */[1.507,0.777,1.387,0.757,1.030,0.978,0.468,0.000,0.220,0.723,0.926,1.072,1.781,1.280,0.530,0.500],
-/* St. Barbara's*/[1.648,0.922,1.416,0.781,1.083,1.058,0.587,0.220,0.000,0.724,0.971,1.093,1.817,1.310,0.550,0.600],
-/* St. Elizab.  */[1.770,1.014,1.150,0.793,0.843,0.741,0.889,0.723,0.724,0.000,0.737,0.898,1.500,0.810,0.780,0.400],
-/* Corpus Chr.  */[1.863,1.126,1.006,1.098,0.637,0.316,1.072,0.926,0.971,0.737,0.000,0.818,1.302,0.750,1.080,0.900],
-/* St. Joseph's */[1.908,1.206,0.891,1.221,0.836,0.760,1.165,1.072,1.093,0.898,0.818,0.000,1.239,0.680,1.180,0.600],
-/* Oliwa        */[2.241,1.702,0.970,1.888,1.523,1.380,1.801,1.781,1.817,1.500,1.302,1.239,0.000,1.150,1.850,1.500],
-/* Immac. Conc. */[2.050,1.480,0.920,1.380,1.050,0.880,1.510,1.280,1.310,0.810,0.750,0.680,1.150,0.000,1.350,0.800],
-/* Royal Chapel */[1.620,0.940,1.500,0.850,1.100,1.060,0.700,0.530,0.550,0.780,1.080,1.180,1.850,1.350,0.000,0.800],
-/* St. James    */[1.600,1.000,1.200,0.900,0.800,0.900,0.700,0.500,0.600,0.400,0.900,0.600,1.500,0.800,0.800,0.000],
-];
+// ── Similarity distance matrix ────────────────────────────────
+// Computed at startup from each church's feature vector so that adding
+// a new church never requires manually editing this file.
+//
+// Features used (7, weighted Euclidean):
+//   cornerstoneYear  — architectural era / age similarity       weight 0.15
+//   height           — building scale                           weight 0.20
+//   capacity         — congregation size / civic importance     weight 0.25
+//   lat, lon         — geographic proximity                     weight 0.08 each
+//   catholicFrac     — share of lifespan spent Catholic         weight 0.12
+//   lutheranFrac     — share of lifespan spent Lutheran         weight 0.12
+//
+// Each feature is min–max normalised to [0,1] across all churches before
+// weighting, so no single dimension dominates due to unit differences.
+// Distances are in [0, 1] (max possible = sqrt(sum of weights) = 1.0).
+// Row/column order matches the churches array order exactly.
+export function computeDistMatrix(churches) {
+  // ── Feature helpers ──────────────────────────────────────────
+  function denomYears(ch, type) {
+    return ch.denomBars
+      .filter(b => b.type === type)
+      .reduce((acc, b) => acc + (b.end - b.start), 0);
+  }
+  function totalSpan(ch) {
+    if (!ch.denomBars.length) return 1;
+    const s = Math.min(...ch.denomBars.map(b => b.start));
+    const e = Math.max(...ch.denomBars.map(b => b.end));
+    return Math.max(1, e - s);
+  }
+
+  // ── Raw feature vectors ──────────────────────────────────────
+  const raw = churches.map(ch => [
+    ch.cornerstoneYear       || 1500,
+    ch.height                || 0,
+    ch.capacity              || 0,
+    ch.lat,
+    ch.lon,
+    denomYears(ch, 'catholic')  / totalSpan(ch),
+    denomYears(ch, 'lutheran')  / totalSpan(ch),
+  ]);
+
+  const WEIGHTS = [0.15, 0.20, 0.25, 0.08, 0.08, 0.12, 0.12];
+  const F = raw[0].length; // number of features
+
+  // ── Min–max normalise each feature across all churches ───────
+  const mins = Array.from({length: F}, (_, k) => Math.min(...raw.map(r => r[k])));
+  const maxs = Array.from({length: F}, (_, k) => Math.max(...raw.map(r => r[k])));
+  const norm = raw.map(r =>
+    r.map((v, k) => (maxs[k] - mins[k]) > 0 ? (v - mins[k]) / (maxs[k] - mins[k]) : 0)
+  );
+
+  // ── Weighted Euclidean distance matrix ───────────────────────
+  const n = churches.length;
+  return Array.from({length: n}, (_, i) =>
+    Array.from({length: n}, (_, j) => {
+      if (i === j) return 0;
+      const d = norm[i].reduce((acc, vi, k) => acc + WEIGHTS[k] * (vi - norm[j][k]) ** 2, 0);
+      return +Math.sqrt(d).toFixed(3);
+    })
+  );
+}

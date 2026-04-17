@@ -4,9 +4,15 @@
 // the exported functions after updating raw state.
 
 import { churches } from './data/churches.js';
-import { clusterDefs, distMatrix } from './data/clusters.js';
+import { clusterDefs, computeDistMatrix } from './data/clusters.js';
 import { district1450ByChurchId } from './data/districts1450.js';
 import { denominationColors, denominationNames } from './theme.js';
+
+// Computed once at startup — N×N weighted-Euclidean distance matrix.
+// Row/column indices match the churches array order.
+// Adding a new church to churches.js automatically extends this matrix;
+// no manual editing of clusters.js is required.
+export const distMatrix = computeDistMatrix(churches);
 
 // ── Timeline layout constants ──
 export const START_YEAR = 1150;
