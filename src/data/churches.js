@@ -351,7 +351,7 @@ export const churches = [
   { id:'stcorpus', name:'Corpus Christi (Bo\u017cego Cia\u0142a)', shortName:'Corpus Christi',
     symbol:{emoji:'\u2629', desc:'Eucharistic Monstrance & Cross \u2014 symbolising the Corpus Christi dedication and the hospital chapel\'s mission of charity', colors:'Gold monstrance and cross on deep red field'},
     height:38, capacity:2500, cornerstoneYear:1385,
-    lat:54.358033, lon:18.642043, origin:'hospital', status:'church', order:null,
+    lat:54.358143, lon:18.642974, origin:'hospital', status:'church', order:null,
     guardianship: { name: 'Polish Catholic Church', since: 1947 },
     guilds:['City Hospital Brotherhood'],
     organ:{has:true, year:1765, desc:'34-voice rococo organ built by Friedrich Rudolph Dalitz (1765/67). Organs removed during WWII; stained glass destroyed, two bells and clock mechanism lost. Post-war instrument installed.'},
