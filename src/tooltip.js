@@ -11,8 +11,8 @@ import { churchPatrons, getConfirmedGuildsForChurch } from './data/patronage.js'
 const TT_OPEN_DELAY  = 100;  // ms before hover preview appears (skipped when warm)
 const TT_CLOSE_DELAY = 60;   // ms before hover preview hides
 const TT_CORRIDOR_MS = 250;  // grace ms when cursor is heading toward the tooltip
-const TT_MAX_PREVIEW = 220;  // body chars shown in hover preview
-const TT_MAX_BODY    = 280;  // body chars shown in pinned / click-expanded state
+const TT_MAX_PREVIEW = Infinity;  // no truncation — show full detail text
+const TT_MAX_BODY    = Infinity;  // no truncation — show full detail text
 
 /** True when running in mobile viewport — used to switch tooltip behaviour. */
 function _isMobile() {
@@ -154,8 +154,7 @@ export function showTT(ev, kind, idx, sub, opts = {}) {
   } else if (kind === 'ruler') {
     const r   = rulers[idx];
     const col = r.color || 'var(--amber)';
-    // Mobile: no char limit; desktop: 400-char cap with "click to pin" hint
-    const RULER_MAX = mob ? Infinity : 400;
+    const RULER_MAX = Infinity;  // no truncation
     const hasMore = !mob && r.note && r.note.length > RULER_MAX;
     const escaped = r.note ? r.note.replace(/'/g, '&#39;').replace(/"/g, '&quot;') : '';
     body = `<div class="tt-year">${r.start}–${r.end}</div>
