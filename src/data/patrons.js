@@ -350,4 +350,23 @@ export const churchPatronData = {
     readMoreLabel: `James the Great — Wikipedia`,
   },
 
+  mater: {
+    patron: `Matki Odkupiciela — Mother of the Redeemer`,
+    patronTitle: `Mater Redemptoris · Feast: 25 March · Military-civilian parish`,
+    facts: [
+      `The title "Mater Redemptoris" (Mother of the Redeemer) is among the oldest Marian designations in Catholic theology, grounded in Luke 1:43 ("mother of my Lord") and systematically developed by the Council of Ephesus (431 AD), which defined Mary as Theotokos — God-bearer.`,
+      `Pope John Paul II's 1987 encyclical Redemptoris Mater gave the title renewed prominence: it placed Mary's role at the very centre of the mystery of the Incarnation and Redemption, describing her as uniquely present throughout Christ's entire mission. The parish's 2009 dedication directly echoes this encyclical.`,
+      `The building is the former "Lutherkirche" of Wrzeszcz, consecrated on 6 October 1899 and designed by Mecklenburg architect Gotthilf Ludwig Möckel in red-brick Neo-Gothic style — the dominant architectural language of Wilhelmine Germany.`,
+      `The tower stands exactly 66 metres (≈ 200 feet), the height personally demanded by Kaiser Wilhelm II, who wanted the church visible from the sea to serve as a landmark for ships entering Gdańsk harbour.`,
+      `The stained glass windows depicting scenes from Christ's life were funded by Empress Augusta Victoria — wife of Wilhelm II — and made by Ferdinand Müller's workshop in Quedlinburg (1899). They survived both World Wars.`,
+      `The church served the Leib-Husaren Regiment Nr. 1 ("Black Hussars"), one of the most prestigious Prussian cavalry units, from their arrival in Wrzeszcz in 1901. The regiment's honorary colonel was Kaiser Wilhelm II himself.`,
+      `The building is one of the very few Gdańsk churches to have survived World War II almost entirely intact. While the city centre was 90 % destroyed, the garrison church in Wrzeszcz/Langfuhr came through with no structural damage.`,
+      `After 1945 the German Protestant congregation fled with the retreating forces. The building was handed to the Polish Army and later the Catholic community — a denominational change that mirrored the fate of hundreds of former German churches across the Recovered Territories.`,
+      `Bishop Sławoj Leszek Głódź — later Cardinal-Archbishop of Warsaw — established the first post-communist Catholic military parish here on 28 March 1991, marking the return of organised military chaplaincy to the Gdańsk garrison.`,
+      `The civilian-military parish of Matki Odkupiciela (est. 1 July 2009) holds a unique dual-ordinariate status: it belongs simultaneously to the Archdiocese of Gdańsk and the Polish Armed Forces Ordinariate. Its immediate neighbour — the Sacred Heart collegiate church — is only 500 m away, having originally been the parent parish from which Matki Odkupiciela was separated.`,
+    ],
+    wikiUrl: `https://en.wikipedia.org/wiki/Redemptoris_Mater`,
+    readMoreLabel: `Redemptoris Mater encyclical — Wikipedia`,
+  },
+
 };

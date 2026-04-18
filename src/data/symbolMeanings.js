@@ -328,6 +328,27 @@ export const churchSymbolMeanings = {
     ],
   },
 
+  mater: {
+    symbols: [
+      {
+        symbol: "Crowned M",
+        explanation: "The Marian monogram 'M' surmounted by a crown — the standard symbol of Mary as Queen of Heaven. Here it identifies the patron title Mater Redemptoris (Mother of the Redeemer)."
+      },
+      {
+        symbol: "Cross below the M",
+        explanation: "A small cross emerges from the base of the M, making explicit the 'Redemptoris' element of the dedication — Christ the Redeemer, whose mother the parish honours."
+      },
+      {
+        symbol: "Five-pointed crown",
+        explanation: "Echoes the imperial crown of Kaiser Wilhelm II, whose personal intervention shaped the building, and also represents Mary's queenship over creation."
+      },
+      {
+        symbol: "Navy field",
+        explanation: "Deep navy blue is the heraldic colour of Marian devotion, traditionally associated with the Virgin Mary's mantle in Western Christian iconography."
+      },
+    ],
+  },
+
   pelplin: {
     symbols: [
       {

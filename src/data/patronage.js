@@ -141,6 +141,7 @@ export const churchPatrons = {
   stjames:      { founder: 'Pilgrims\' brotherhood', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin serving pilgrims and travellers.' },
   pelplin:      { founder: 'Duke Mestwin II of Gdańsk (Pomerelia)', order: 'Cistercian (OCist)', guildsConfirmed: [], notes: 'Cistercian abbey founded by the Pomeranian dukes; suppressed 1823, now seat of the Diocese of Pelplin (suffragan of the Archdiocese of Gdańsk).' },
   sacredheart:  { founder: 'Catholic community of Wrzeszcz (land donors: Jantzen brothers)', order: null, guildsConfirmed: [], notes: 'First Catholic parish church in Wrzeszcz (Langfuhr); elevated to collegiate church in 2001. Two of its vicars — Blessed Franciszek Rogaczewski and Blessed Marian Górecki — were among the first Polish clergy executed by the Nazis, shot at Fort VII and Stutthof in 1939–1940, beatified by John Paul II in 1999.' },
+  mater:        { founder: 'German Evangelical Community of Wrzeszcz / Empress Augusta Victoria (patron donor)', order: null, guildsConfirmed: [], notes: 'Originally built as the "Lutherkirche" of Wrzeszcz (1899) by architect Gotthilf Ludwig Möckel at Kaiser Wilhelm II\'s personal commission. Transferred to the Polish Army in 1945. Re-dedicated as the civilian-military parish of Matki Odkupiciela in 2009, separated from the adjacent Sacred Heart parish. Holds unique dual-ordinariate status under both the Archdiocese of Gdańsk and the Polish Armed Forces Ordinariate.' },
 };
 
 // ── Helper: get guild objects for a church ───────────────────────────────

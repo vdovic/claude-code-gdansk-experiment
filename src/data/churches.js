@@ -603,6 +603,48 @@ export const churches = [
     denomBars:[{start:1909,end:2000,type:'catholic'}]
   },
 
+  // ── Military-Civilian Parish of the Mother of the Redeemer, Wrzeszcz ───────
+  { id:'mater', name:"Military-Civilian Parish of the Mother of the Redeemer, Wrzeszcz", shortName:"Mater Redemptrix",
+    height:66, capacity:800, cornerstoneYear:1896,
+    lat:54.37494, lon:18.60972, origin:'parish', status:'church', order:null,
+    guardianship: { name: 'Archdiocese of Gdańsk / Polish Armed Forces Ordinariate', since: 2009 },
+    guilds:['German Evangelical Community of Wrzeszcz', 'Empress Augusta Victoria (patron donor)'],
+    symbol:{emoji:'Ⓜ', desc:'Crowned M with cross — Mater Redemptoris (Mother of the Redeemer), patroness of the military-civilian parish', colors:'Gold crown and M with cross on navy field'},
+    organ:{has:true, year:1899, desc:'39-stop pneumatic organ by the Elbląg firm Terleckiego; detached console positioned before the prospect on the left choir loft. One of the better-preserved late 19th-century instruments in the Tricity region.'},
+    facts:[
+      'The tower stands exactly 66 metres (≈ 200 feet) — the height demanded personally by Kaiser Wilhelm II, who wanted it visible from the sea.',
+      'The stained glass windows depicting scenes from Christ\'s life were funded by Empress Augusta Victoria (wife of Wilhelm II) and made by Ferdinand Müller\'s workshop in Quedlinburg (1899).',
+      'The church served the elite Prussian cavalry unit known as the "Black Hussars" (Leib-Husaren Regiment Nr. 1), stationed in Wrzeszcz from 1901.',
+      'One of the very few Gdańsk churches to survive World War II almost entirely intact.',
+      'The 2009 parish of Matki Odkupiciela was separated from the Sacred Heart parish — the two parishes are neighbours just 500 m apart.',
+      'Unique dual-ordinariate status: simultaneously under the Archdiocese of Gdańsk and the Polish Armed Forces Ordinariate.',
+    ],
+    relics:'Magnificent stained glass (1899) by Ferdinand Müller (Quedlinburg), funded by Empress Augusta Victoria — depicting scenes from Christ\'s life. Pulpit with carved symbols of the four Evangelists. Main altar with carved medallion busts of the Evangelists.',
+    parishioners1500:'Wrzeszcz (Langfuhr) was a small rural village in 1500, primarily German-speaking farmers on the outskirts of Gdańsk. No significant church existed here until the 19th century.',
+    tax1500:'Not applicable — the church was founded in 1899. Construction was financed by the German evangelical community of Wrzeszcz and partly by Empress Augusta Victoria.',
+    photoLinks:[
+      {label:'Gedanopedia (garrison church)', url:'https://gdansk.gedanopedia.pl/gdansk/?title=KO%C5%9ACI%C3%93%C5%81_GARNIZONOWY_%C5%9AW._APOSTO%C5%81%C3%93W_PIOTRA_I_PAW%C5%81A'},
+      {label:'Strefa Historii article', url:'https://strefahistorii.pl/article/5756-poznaj-historie-kosciola-garnizonowego-we-wrzeszczu'},
+    ],
+    sources:[
+      {title:'Gedanopedia: Kościół Garnizonowy Apostołów Piotra i Pawła', url:'https://gdansk.gedanopedia.pl/gdansk/?title=KO%C5%9ACI%C3%93%C5%81_GARNIZONOWY_%C5%9AW._APOSTO%C5%81%C3%93W_PIOTRA_I_PAW%C5%81A'},
+      {title:'Strefa Historii: Garrison Church history', url:'https://strefahistorii.pl/article/5756-poznaj-historie-kosciola-garnizonowego-we-wrzeszczu'},
+      {title:'Gdańsk Strefa Prestiżu — tryptyk cz. II', url:'https://www.gdanskstrefa.com/kosciol-garnizonowy-tryptyk-cz-ii/'},
+      {title:'Wikipedia PL: Parafia cywilno-wojskowa Matki Odkupiciela', url:'https://pl.wikipedia.org/wiki/Parafia_cywilno-wojskowa_Matki_Odkupiciela_w_Gda%C5%84sku'},
+    ],
+    events:[
+      {year:1896, type:'founded',     label:'Wrzeszcz evangelical parish established',              detail:'Pastor Johannes Eduard Karl Lutze is appointed to lead the new evangelical parish in Wrzeszcz (Langfuhr) on 31 May 1896. The community secures land at ul. Sobótki 20 for a new garrison and parish church, with personal interest from Kaiser Wilhelm II and financial support from Empress Augusta Victoria.'},
+      {year:1899, type:'cornerstone', label:'"Lutherkirche" consecrated — tower 66 m per Kaiser\'s wish', detail:'The neo-Gothic red-brick "Lutherkirche", designed by Mecklenburg architect Gotthilf Ludwig Möckel, is consecrated on 6 October 1899. Kaiser Wilhelm II had personally insisted the clock tower reach at least 200 feet (66 m) so it would be visible from the sea. Empress Augusta Victoria funded magnificent stained glass by Ferdinand Müller\'s Quedlinburg workshop depicting scenes from Christ\'s life.'},
+      {year:1901, type:'notable',     label:'Black Hussars arrive — elite cavalry regiment stationed here', detail:'The Leib-Husaren Regiment Nr. 1 ("Black Hussars"), an elite Prussian cavalry unit commanded by August von Mackensen, is stationed in Wrzeszcz. The church becomes the regimental garrison chapel for this prestigious unit, reinforcing the church\'s dual parish-and-garrison character from the outset.'},
+      {year:1914, type:'tumult',      label:'Black Hussars mobilise for the Eastern Front',        detail:'On mobilisation in August 1914 the Black Hussars regiment departs Wrzeszcz for the Eastern Front. The church loses its primary military congregation, though it continues as a parish church for the local Protestant community throughout the war.'},
+      {year:1939, type:'tumult',      label:'Gdańsk incorporated into the Reich — wartime garrison use', detail:'Following the German invasion of Poland on 1 September 1939 and the annexation of Danzig, the church reverts fully to garrison use for Wehrmacht units stationed in Wrzeszcz/Langfuhr. The district suffers no damage in 1939 — Danzig was incorporated without fighting.'},
+      {year:1945, type:'notable',     label:'Church survives WWII intact — transferred to Polish Army', detail:'In March 1945 the Red Army captures Gdańsk in fierce street fighting. The German Protestant congregation flees with the retreating forces. The former "Lutherkirche" is one of the very few Gdańsk churches to survive the assault almost entirely intact. It is handed to the Polish Army for garrison use.'},
+      {year:1991, type:'denomination',label:'Catholic military parish of Saints Peter and Paul established', detail:'On 28 March 1991, following the collapse of communist rule, Bishop Sławoj Leszek Głódź (future Cardinal-Archbishop of Warsaw) establishes the Catholic military parish of Saints Peter and Paul at the garrison church — the first such post-communist military parish in Gdańsk.'},
+      {year:2009, type:'denomination',label:'Civilian-military parish of Matki Odkupiciela founded', detail:'On 1 July 2009 the Metropolitan Archbishop of Gdańsk separates the civilian-military parish of Matki Odkupiciela (Mother of the Redeemer, Mater Redemptoris) from the adjacent Sacred Heart parish. The church acquires unique dual-ordinariate status: simultaneously subject to the Archdiocese of Gdańsk and the Polish Armed Forces Ordinariate.'},
+    ],
+    denomBars:[{start:1899,end:1945,type:'lutheran'},{start:1945,end:2000,type:'catholic'}]
+  },
+
   // ── Pelplin Cathedral ─────────────────────────────────────────────────────
   { id:'pelplin', name:"Cathedral Basilica of the Assumption, Pelplin", shortName:"Pelplin Cathedral",
     height:63, capacity:8000, cornerstoneYear:1289,
@@ -674,5 +716,6 @@ export const shieldSVGs = {
   royalchapel: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#8a1a1a" stroke="#c9a832" stroke-width="2"/><path d="M30,25 Q40,15 50,25 L50,55 Q40,62 30,55 Z" fill="#eee"/><path d="M36,35 Q40,30 44,35 L44,48 Q40,52 36,48 Z" fill="#8a1a1a" opacity="0.6"/><path d="M28,18 L40,8 L52,18" stroke="#c9a832" stroke-width="2" fill="none"/><circle cx="40" cy="10" r="2.5" fill="#c9a832"/></svg>`,
   stjames:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a3a6a" stroke="#8a6d20" stroke-width="2"/><path d="M40,25 Q20,38 25,55 Q32,62 40,58 Q48,62 55,55 Q60,38 40,25Z" fill="#c9a832" stroke="#8a6d20" stroke-width="1"/><line x1="40" y1="25" x2="40" y2="58" stroke="#8a6d20" stroke-width="1"/><path d="M25,42 Q40,35 55,42" stroke="#8a6d20" stroke-width="0.8" fill="none"/><path d="M27,50 Q40,44 53,50" stroke="#8a6d20" stroke-width="0.8" fill="none"/></svg>`,
   sacredheart:`<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#6a1a1a" stroke="#c9a832" stroke-width="2"/><path d="M40,58 Q22,44 22,32 a10,10 0 0,1 18,-6 a10,10 0 0,1 18,6 Q58,44 40,58z" fill="#c9a832"/><path d="M40,20 Q36,16 40,12 Q44,16 40,20" stroke="#eee" stroke-width="1.5" fill="none"/><path d="M34,14 Q30,10 34,6 Q38,10 34,14" stroke="#eee" stroke-width="1.2" fill="none"/><path d="M46,14 Q42,10 46,6 Q50,10 46,14" stroke="#eee" stroke-width="1.2" fill="none"/><line x1="40" y1="28" x2="40" y2="65" stroke="#c9a832" stroke-width="1" opacity="0.5"/></svg>`,
+  mater:    `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a2844" stroke="#c9a832" stroke-width="2"/><path d="M22,26 L27,14 L40,20 L53,14 L58,26 L58,30 L22,30 Z" fill="#c9a832"/><text x="40" y="62" font-family="serif" font-size="34" font-weight="bold" fill="#c9a832" text-anchor="middle">M</text><line x1="40" y1="64" x2="40" y2="74" stroke="#c9a832" stroke-width="2.5"/><line x1="34" y1="69" x2="46" y2="69" stroke="#c9a832" stroke-width="2.5"/></svg>`,
   pelplin:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a1a1a" stroke="#8a6d20" stroke-width="2"/><line x1="40" y1="10" x2="40" y2="70" stroke="#eee" stroke-width="9"/><line x1="17" y1="34" x2="63" y2="34" stroke="#eee" stroke-width="9"/><path d="M28,52 Q40,68 52,52" stroke="#c9a832" stroke-width="2" fill="none" opacity="0.8"/></svg>`
 };

@@ -35,6 +35,7 @@ export const district1450ByChurchId = {
 
   // Western Suburbs (Wrzeszcz / Langfuhr — developed 19th–20th c.)
   sacredheart: 'Wrzeszcz (Langfuhr)',
+  mater:       'Wrzeszcz (Langfuhr)',
 
   // Pomerania Region (outside Gdańsk — broader regional churches)
   pelplin: 'Pomerania Region',

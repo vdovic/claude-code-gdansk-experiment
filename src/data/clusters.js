@@ -11,7 +11,7 @@ export const clusterDefs = [
    members:['stbrigid','stcorpus','stjoseph','stbartholomew','stbarbara','stelizabeth','stjames','sacredheart']},
   {id:'C', label:'Small',   color:'#a05520',
    desc:'Small churches (capacity < 1000): intimate chapels and minor foundations, often outside the main fortifications.',
-   members:['royalchapel','immaculate']},
+   members:['royalchapel','immaculate','mater']},
 ];
 
 // ── Similarity distance matrix ────────────────────────────────
