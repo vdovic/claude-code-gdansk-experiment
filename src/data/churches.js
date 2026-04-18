@@ -556,6 +556,57 @@ export const churches = [
     ],
     denomBars:[{start:1432,end:1557,type:'catholic'},{start:1557,end:1945,type:'lutheran'},{start:1957,end:2000,type:'catholic'}]
   },
+
+  // ── Pelplin Cathedral ─────────────────────────────────────────────────────
+  { id:'pelplin', name:"Cathedral Basilica of the Assumption, Pelplin", shortName:"Pelplin Cathedral",
+    height:63, capacity:8000, cornerstoneYear:1289,
+    lat:53.9283, lon:18.6947, origin:'monastic', status:'cathedral', order:'Cistercian (OCist)',
+    guardianship: { name: 'Diocese of Pelplin', since: 1992 },
+    guilds:['Duke Mestwin II of Gdańsk (Pomerelia)', 'Cistercian Order (OCist)'],
+    symbol:{emoji:'✝', desc:'Cistercian cross — white cross on black field, Order of Cîteaux', colors:'White on black field'},
+    organ:{has:true, year:1677, desc:'Baroque organ front (1677–1680) by Jan Jerzy Wulff of Gdańsk — described as one of the most beautiful in northern Europe; 42 voices, 3 keyboards. Reconstructed 2003.'},
+    facts:[
+      'One of the largest Gothic brick churches in Poland — 84 m long, 26 m nave vault',
+      'Contains the tallest wooden Baroque altar in Poland: 25 m high, built 1623–1640, with a painting by Herman Han',
+      'Houses one of only 48 surviving Gutenberg Bibles (c. 1452–1455), kept in the adjacent Diocesan Museum',
+      'The Gutenberg Bible was evacuated to Canada in 1939 aboard the liner MS Batory, returned in person by Fr. Liedtke in 1959',
+      'Suffragan diocese of the Archdiocese of Gdańsk since 1992',
+      'The final Gothic transept vaults (1557) were completed by master builder Antoni Schultes of Gdańsk',
+    ],
+    relics:'Reliquaries in the main altar: Saints Paul, Maurice, George, Barbara, Blaise and 40 martyrs (opened annually on 1 November). Relic of Saint John Paul II. 15th-century Gothic choir stalls — 42 carved oak seats. Historic 17th-century tread-wheel crane in the attic, one of the oldest in Europe.',
+    parishioners1500:'Cistercian monastic community and their lay dependants. The abbey served Pomeranian nobility and surrounding villages as a major religious and cultural centre, operating independently of Gdańsk\'s urban parish network.',
+    tax1500:'Extensive landed estates granted by the Pomeranian dukes. Revenue from agricultural rents, mill tolls, and fishing rights across Pomeranian holdings — far exceeding any urban parish in Gdańsk.',
+    photoLinks:[
+      {label:'Wikipedia', url:'https://en.wikipedia.org/wiki/Cathedral_Basilica_of_the_Assumption,_Pelplin'},
+      {label:'Official website', url:'https://bazylika-pelplin.pl/en/history'},
+    ],
+    sources:[
+      {title:'Wikipedia: Cathedral Basilica of the Assumption, Pelplin', url:'https://en.wikipedia.org/wiki/Cathedral_Basilica_of_the_Assumption,_Pelplin'},
+      {title:'Cathedral Basilica — Official History', url:'https://bazylika-pelplin.pl/en/history'},
+      {title:'Medieval Heritage EU — Pelplin Cistercian Abbey', url:'https://medievalheritage.eu/en/main-page/heritage/poland/pelplin-cistercian-abbey/'},
+      {title:'Roman Catholic Diocese of Pelplin', url:'https://en.wikipedia.org/wiki/Roman_Catholic_Diocese_of_Pelplin'},
+    ],
+    events:[
+      {year:1258, type:'founded',     label:'Cistercians arrive in Pomerania',                 detail:'Duke Sambor II of Pomerelia invited Cistercian monks from Bad Doberan (Mecklenburg) to settle in the region. The community initially settled at Pogódki, near Kościerzyna, before finding their permanent home.'},
+      {year:1274, type:'notable',     label:'Duke Mestwin II of Gdańsk grants Pelplin lands',   detail:'Duke Mestwin II of Gdańsk (Pomerelia) — the same ruler who shaped medieval Gdańsk — granted the village of Pelplin and surrounding marshland to the Cistercians. He is the direct founder patron of what would become the cathedral.'},
+      {year:1276, type:'founded',     label:'Cistercians permanently settle at Pelplin',        detail:'Under Abbot Werner, the community relocated from Pogódki to the new Pelplin site and began draining the Wierzyca marshes. The monastery\'s permanent foundation marks the start of 547 years of Cistercian presence.'},
+      {year:1289, type:'cornerstone', label:'Gothic cathedral construction begins',              detail:'Construction of the great Gothic brick cathedral commences. The project would span nearly three centuries, producing one of the largest brick Gothic churches in Poland — comparable in ambition to St. Mary\'s Basilica in Gdańsk.'},
+      {year:1399, type:'tumult',      label:'Vault collapse during construction',               detail:'A section of vaults collapsed during the ongoing construction — a significant setback requiring major structural repair before work could continue.'},
+      {year:1433, type:'tumult',      label:'Hussite raiders plunder the monastery',            detail:'Hussite forces invaded the region and plundered the abbey, damaging buildings and looting church property. One of several violent interruptions to the long construction programme.'},
+      {year:1476, type:'notable',     label:'Cathedral consecrated under Abbot Sanderus',       detail:'After nearly 200 years of construction, the main body and high altar were officially consecrated — the primary consecration of the cathedral. Side naves and finishing work continued for another 80 years.'},
+      {year:1557, type:'expansion',   label:'Final Gothic vaults completed — by a Gdańsk master', detail:'Master builder Antoni Schultes of Gdańsk completed the transept vaults — the last Gothic structural element. Pelplin and Gdańsk\'s churches were connected through the same craftsmen. In the same year Gdańsk\'s parish churches formally converted to Lutheranism; Pelplin remained Catholic throughout.'},
+      {year:1640, type:'notable',     label:'25-metre Baroque main altar completed',            detail:'The monumental Baroque altar (begun 1623) was completed. At 25 metres tall, it is the largest wooden gilded Baroque altar in Poland. The central painting "Coronation of the Virgin" is by Herman Han (Hahn). Together with the 22 side altars, it transformed the Gothic interior into a Baroque showcase.'},
+      {year:1677, type:'notable',     label:'Baroque organ built by Gdańsk master Wulff',       detail:'Jan Jerzy Wulff, organ builder from Gdańsk, completed the magnificent Baroque organ front — described as one of the most beautiful in northern Europe. 42 voices, 3 keyboards. Another direct artistic link between Pelplin and Gdańsk\'s craft traditions.'},
+      {year:1772, type:'tumult',      label:'First Partition — monastery under Prussian rule',  detail:'Pelplin fell under Prussian administration after the First Partition of Poland. The monastery\'s independence and extensive estates came under growing Prussian pressure over the following decades.'},
+      {year:1823, type:'denomination',label:'Cistercian abbey dissolved by Prussian decree',   detail:'By royal Prussian decree of 5 March 1823, the Cistercian abbey was formally suppressed. After 547 years, monastic life at Pelplin ended. The church buildings passed to diocesan administration.'},
+      {year:1824, type:'denomination',label:'Becomes Cathedral of Diocese of Chełmno',         detail:'On 3 August 1824 the Bishop of Chełmno officially settled in Pelplin, transforming the former abbey church into a diocesan cathedral. A new chapter as a seat of episcopal power began.'},
+      {year:1939, type:'notable',     label:'Gutenberg Bible evacuated before Nazi invasion',   detail:'Fr. Antoni Liedtke evacuated the cathedral\'s priceless Gutenberg Bible (one of only 48 surviving copies, printed 1452–1455) by ship — via Romania, Paris, London — to the Bank of Montreal in Ottawa, Canada, aboard the liner MS Batory. Days later Nazi forces occupied Pelplin and murdered nearly the entire diocesan clergy.'},
+      {year:1959, type:'notable',     label:'Gutenberg Bible returned to Pelplin',              detail:'Fr. Liedtke personally returned the Gutenberg Bible to Poland in the same leather bag used to evacuate it 20 years earlier. It is now displayed in the Diocesan Museum adjacent to the cathedral.'},
+      {year:1965, type:'notable',     label:'Designated Basilica Minor by Pope Paul VI',        detail:'On 18 January 1965 Pope Paul VI elevated the cathedral to the rank of Basilica Minor — a papal honour recognising its historical, artistic, and spiritual importance.'},
+      {year:1992, type:'denomination',label:'Diocese of Pelplin established under Gdańsk archdiocese', detail:'On 25 March 1992 Pope John Paul II reorganised Polish church territories. The Diocese of Chełmno became the Diocese of Pelplin — with Pelplin as named seat. Crucially, it was placed as a suffragan of the Archdiocese of Gdańsk, making Pelplin ecclesiastically subordinate to Gdańsk for the first time.'},
+    ],
+    denomBars:[{start:1258,end:2000,type:'catholic'}]
+  },
 ];
 
 // Heraldic shield SVG art keyed by church id
@@ -575,5 +626,6 @@ export const shieldSVGs = {
   oliwa: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a3a6a" stroke="#8a6d20" stroke-width="2"/><line x1="40" y1="12" x2="40" y2="48" stroke="#eee" stroke-width="3"/><line x1="24" y1="28" x2="56" y2="28" stroke="#eee" stroke-width="3"/><rect x="30" y="52" width="4" height="18" fill="#c9a832" rx="1"/><rect x="38" y="48" width="4" height="22" fill="#c9a832" rx="1"/><rect x="46" y="52" width="4" height="18" fill="#c9a832" rx="1"/><rect x="34" y="55" width="4" height="15" fill="#c9a832" rx="1" opacity="0.7"/><rect x="42" y="55" width="4" height="15" fill="#c9a832" rx="1" opacity="0.7"/></svg>`,
   immaculate: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#eee" stroke="#8a6d20" stroke-width="2"/><path d="M30,28 Q40,18 50,28 Q48,42 40,52 Q32,42 30,28" fill="#2a5aaa" opacity="0.7"/><circle cx="40" cy="22" r="5" fill="#c9a832"/><path d="M32,60 Q40,55 48,60" stroke="#c9a832" stroke-width="1.5" fill="none"/></svg>`,
   royalchapel: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#8a1a1a" stroke="#c9a832" stroke-width="2"/><path d="M30,25 Q40,15 50,25 L50,55 Q40,62 30,55 Z" fill="#eee"/><path d="M36,35 Q40,30 44,35 L44,48 Q40,52 36,48 Z" fill="#8a1a1a" opacity="0.6"/><path d="M28,18 L40,8 L52,18" stroke="#c9a832" stroke-width="2" fill="none"/><circle cx="40" cy="10" r="2.5" fill="#c9a832"/></svg>`,
-  stjames: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a3a6a" stroke="#8a6d20" stroke-width="2"/><path d="M40,25 Q20,38 25,55 Q32,62 40,58 Q48,62 55,55 Q60,38 40,25Z" fill="#c9a832" stroke="#8a6d20" stroke-width="1"/><line x1="40" y1="25" x2="40" y2="58" stroke="#8a6d20" stroke-width="1"/><path d="M25,42 Q40,35 55,42" stroke="#8a6d20" stroke-width="0.8" fill="none"/><path d="M27,50 Q40,44 53,50" stroke="#8a6d20" stroke-width="0.8" fill="none"/></svg>`
+  stjames:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a3a6a" stroke="#8a6d20" stroke-width="2"/><path d="M40,25 Q20,38 25,55 Q32,62 40,58 Q48,62 55,55 Q60,38 40,25Z" fill="#c9a832" stroke="#8a6d20" stroke-width="1"/><line x1="40" y1="25" x2="40" y2="58" stroke="#8a6d20" stroke-width="1"/><path d="M25,42 Q40,35 55,42" stroke="#8a6d20" stroke-width="0.8" fill="none"/><path d="M27,50 Q40,44 53,50" stroke="#8a6d20" stroke-width="0.8" fill="none"/></svg>`,
+  pelplin:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a1a1a" stroke="#8a6d20" stroke-width="2"/><line x1="40" y1="10" x2="40" y2="70" stroke="#eee" stroke-width="9"/><line x1="17" y1="34" x2="63" y2="34" stroke="#eee" stroke-width="9"/><path d="M28,52 Q40,68 52,52" stroke="#c9a832" stroke-width="2" fill="none" opacity="0.8"/></svg>`
 };

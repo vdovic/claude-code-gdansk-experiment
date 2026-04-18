@@ -139,6 +139,7 @@ export const churchPatrons = {
   immaculate:   { founder: 'Franciscan Reformati', order: 'Franciscan Reformati (OFMRef)', guildsConfirmed: [], notes: 'Late Franciscan reform community.' },
   royalchapel:  { founder: 'King John III Sobieski (royal patronage)', order: null, guildsConfirmed: [], notes: 'Royal foundation providing Catholic worship space adjacent to Lutheran St. Mary\'s.' },
   stjames:      { founder: 'Pilgrims\' brotherhood', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin serving pilgrims and travellers.' },
+  pelplin:      { founder: 'Duke Mestwin II of Gdańsk (Pomerelia)', order: 'Cistercian (OCist)', guildsConfirmed: [], notes: 'Cistercian abbey founded by the Pomeranian dukes; suppressed 1823, now seat of the Diocese of Pelplin (suffragan of the Archdiocese of Gdańsk).' },
 };
 
 // ── Helper: get guild objects for a church ───────────────────────────────

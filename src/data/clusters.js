@@ -5,7 +5,7 @@
 export const clusterDefs = [
   {id:'A', label:'Large',   color:'#2a6a48',
    desc:'Large churches (capacity ≥ 3000): the dominant landmarks of the cityscape.',
-   members:['stmary','stcatherine','stnicolaus','stpeterpaul','stjohn','sttrinity','oliwa']},
+   members:['stmary','stcatherine','stnicolaus','stpeterpaul','stjohn','sttrinity','oliwa','pelplin']},
   {id:'B', label:'Medium',  color:'#5a3a8a',
    desc:'Medium churches (capacity 1000–2999): significant parish and monastic churches serving defined communities.',
    members:['stbrigid','stcorpus','stjoseph','stbartholomew','stbarbara','stelizabeth','stjames']},

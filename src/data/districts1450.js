@@ -32,6 +32,9 @@ export const district1450ByChurchId = {
 
   // Not Yet Founded in 1450
   immaculate: 'Not Yet Founded (1450)',
+
+  // Pomerania Region (outside Gdańsk — broader regional churches)
+  pelplin: 'Pomerania Region',
 };
 
 // Derive unique district names and sort them logically
@@ -43,4 +46,5 @@ export const district1450Names = [
   'Eastern Suburb',
   'Outside City',
   'Not Yet Founded (1450)',
+  'Pomerania Region',
 ];
