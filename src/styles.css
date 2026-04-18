@@ -1605,7 +1605,7 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .church-table {
   width: 100%; border-collapse: collapse;
   font-family: var(--font-ui); font-size: 12px;
-  table-layout: auto;
+  table-layout: fixed;   /* colgroup widths are enforced; overflow:hidden works on td */
 }
 .ct-th {
   position: sticky; top: 0; z-index: 2;
@@ -1628,13 +1628,17 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .ct-td {
   padding: 7px 10px; vertical-align: middle;
   color: var(--text-primary); line-height: 1.35;
+  /* With table-layout:fixed, cells have a fixed width → overflow clip works */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ct-name {
-  font-family: var(--font-display); font-size: 12px;
-  font-weight: 700; white-space: nowrap; min-width: 150px;
+  font-family: var(--font-display); font-size: 12px; font-weight: 700;
 }
 .ct-name-inner {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 7px; overflow: hidden;
+}
+.ct-name-text {
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
 }
 .ct-dot {
   display: inline-block; width: 10px; height: 10px;
@@ -1646,20 +1650,13 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
   font-size: 15px; line-height: 1;
   cursor: default;
 }
-.ct-year     { white-space: nowrap; font-weight: 600; min-width: 76px; }
-.ct-district { white-space: nowrap; min-width: 100px; }
-.ct-type     { white-space: nowrap; min-width: 100px; color: var(--text-muted); }
-.ct-founder  { min-width: 180px; }
-.ct-num      { white-space: nowrap; min-width: 68px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
-.ct-guilds   { color: var(--text-muted); min-width: 240px; max-width: 280px; }
-.ct-guardian { min-width: 200px; max-width: 240px; }
-/* Clipping wrapper — keeps cell to one line with ellipsis; title attr carries full text */
-.ct-clip {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ct-guardian-txt {
-  color: var(--text-primary); font-weight: 600; font-size: 11px;
-}
+.ct-year     { font-weight: 600; }
+.ct-type     { color: var(--text-muted); }
+.ct-num      { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.ct-guilds   { color: var(--text-muted); }
+/* Clipping inner div — width:100% fills the fixed-width cell so overflow:hidden fires */
+.ct-clip { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-guardian-txt { color: var(--text-primary); font-weight: 600; font-size: 11px; }
 
 /* Light theme overrides */
 [data-theme="light"] .ct-th { background: #e8eaed; }

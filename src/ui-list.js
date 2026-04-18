@@ -201,20 +201,24 @@ function buildChurchTable() {
       : '—';
 
     return `<tr class="ct-row" data-ci="${ci}">
-      <td class="ct-td ct-name" title="${ch.name}"><div class="ct-name-inner">${symHtml}${ch.shortName}</div></td>
+      <td class="ct-td ct-name" title="${ch.name}"><div class="ct-name-inner">${symHtml}<span class="ct-name-text">${ch.shortName}</span></div></td>
       <td class="ct-td ct-year">${foundedTxt}</td>
       <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
-      <td class="ct-td ct-district">${districtTxt}</td>
-      <td class="ct-td ct-type">${typeTxt}</td>
-      <td class="ct-td ct-founder">${founderTxt}</td>
+      <td class="ct-td ct-district" title="${districtTxt}">${districtTxt}</td>
+      <td class="ct-td ct-type" title="${typeTxt}">${typeTxt}</td>
+      <td class="ct-td ct-founder" title="${founderTxt}">${founderTxt}</td>
       <td class="ct-td ct-num">${heightTxt}</td>
       <td class="ct-td ct-num">${capacityTxt}</td>
-      <td class="ct-td ct-guilds"><div class="ct-clip" title="${guilds}">${guilds}</div></td>
-      <td class="ct-td ct-guardian"><div class="ct-clip ct-guardian-txt" title="${guardianTxt}">${guardianTxt}</div></td>
+      <td class="ct-td ct-guilds" title="${guilds}"><div class="ct-clip">${guilds}</div></td>
+      <td class="ct-td ct-guardian" title="${guardianTxt}"><div class="ct-clip ct-guardian-txt">${guardianTxt}</div></td>
     </tr>`;
   }).join('');
 
-  el.innerHTML = `<table class="church-table">
+  // Column widths (px) must match COLS order exactly — used with table-layout:fixed
+  const colWidths = [132, 52, 60, 108, 88, 148, 50, 64, 232, 196];
+  const colgroupHtml = `<colgroup>${colWidths.map(w => `<col style="width:${w}px">`).join('')}</colgroup>`;
+
+  el.innerHTML = `<table class="church-table">${colgroupHtml}
     <thead><tr>${thHtml}</tr></thead>
     <tbody>${rowsHtml}</tbody>
   </table>`;
