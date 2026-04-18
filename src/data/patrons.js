@@ -293,6 +293,25 @@ export const churchPatronData = {
     readMoreLabel: `John III Sobieski — Wikipedia`,
   },
 
+  pelplin: {
+    patron: `The Assumption of the Virgin Mary`,
+    patronTitle: `Feast of the Assumption · 15 August · Cistercian dedication`,
+    facts: [
+      `The Assumption — the bodily taking up of Mary into Heaven at the end of her earthly life — was formally defined as Catholic dogma by Pope Pius XII on 1 November 1950, making it the most recently defined dogma in Catholic history. The feast itself, however, had been celebrated since the 6th century.`,
+      `Every Cistercian monastery in the world was placed under the patronage of the Virgin Mary by the order's founders. Bernard of Clairvaux (1090–1153), the most influential early Cistercian, declared that all Cistercian churches must be dedicated to her — making Marian dedication inseparable from Cistercian identity.`,
+      `The Cistercians arrived in Pelplin at the invitation of Duke Mestwin II of Gdańsk in 1274 — the same ruler whose death without heirs led to the Teutonic Order's dominance over Pomerania. Without him, neither the cathedral nor medieval Gdańsk's history would look the same.`,
+      `Pelplin's main altar (1623–1640) centres on a painting of the Coronation of the Virgin by Herman Han — the moment when the Assumption culminates in Mary being crowned Queen of Heaven. At 25 metres, this altar is the tallest wooden gilded Baroque altar in Poland.`,
+      `The Assumption feast (15 August) structured the medieval agricultural calendar: it marked the end of summer fieldwork, the beginning of harvest, and the point at which many annual rents and land agreements were settled. For a Cistercian estate like Pelplin, it was a civic as well as a religious event.`,
+      `In Eastern Christianity the same event is called the Dormition (the "falling asleep") of the Theotokos, and is observed on the same date. Unlike the Western dogma, the Eastern tradition does not define whether the body was taken up before or after death — a deliberate theological openness.`,
+      `The Gutenberg Bible housed in Pelplin's adjacent Diocesan Museum was printed in Mainz c. 1452–1455 — at exactly the time when the cathedral's Gothic construction was nearing completion. One of only 48 surviving copies worldwide, it was evacuated to Canada in 1939 and returned in 1959.`,
+      `Pelplin Cathedral stood as a Catholic island throughout the entire Protestant Reformation in the region. While Gdańsk's parish churches adopted Lutheranism in 1557 — the very year Pelplin's Cistercians completed the cathedral's final vaults — the abbey never changed denomination.`,
+      `When Prussia dissolved the Cistercian monastery in 1823, the cathedral transitioned seamlessly to become the seat of the Diocese of Chełmno. Since 1992 the Diocese of Pelplin is a suffragan of the Archdiocese of Gdańsk — Pelplin is ecclesiastically subordinate to the city whose duke founded it.`,
+      `The feast of the Assumption is a public holiday in Poland (as in many Catholic countries). In Pelplin, which takes its identity from the cathedral, the feast is the centrepiece of the liturgical year — a direct continuation of the Cistercian tradition established here in 1276.`,
+    ],
+    wikiUrl: `https://en.wikipedia.org/wiki/Assumption_of_Mary`,
+    readMoreLabel: `Assumption of Mary — Wikipedia`,
+  },
+
   stjames: {
     patron: `Saint James the Great`,
     patronTitle: `Apostle · d. c. 44 AD · Patron of pilgrims`,

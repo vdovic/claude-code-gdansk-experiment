@@ -121,10 +121,12 @@ export const CHURCH_TEMPLATE = {
 
 // ── After filling in the template ─────────────────────────────
 // Files to update when adding a new church (in this order):
-//   1. src/data/churches.js       — add the record to the churches array
-//   2. src/data/clusters.js       — add the id to a cluster's members array (A/B/C)
-//   3. src/data/districts1450.js  — add  id: 'District Name'  entry
-//   4. src/data/patronage.js      — (optional) add patron saint / founder info
-//   5. src/data/confessional.js   — (optional) add confessional / order notes
+//   1. src/data/churches.js        — add the record to the churches array
+//   2. src/data/clusters.js        — add the id to a cluster's members array (A/B/C)
+//   3. src/data/districts1450.js   — add  id: 'District Name'  entry
+//   4. src/data/symbolMeanings.js  — add 2–4 heraldic symbol explanations (REQUIRED)
+//   5. src/data/patrons.js         — add patron section: 10 facts + wiki link (REQUIRED)
+//   6. src/data/patronage.js       — (optional) add patron saint / founder / guild links
+//   7. src/data/confessional.js    — (optional) add confessional / order notes
 // distMatrix in state.js auto-recomputes — no manual action needed.
 // See docs/adding-a-church.md for the full checklist.

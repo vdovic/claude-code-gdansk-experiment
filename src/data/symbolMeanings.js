@@ -311,4 +311,21 @@ export const churchSymbolMeanings = {
     ],
   },
 
+  pelplin: {
+    symbols: [
+      {
+        symbol: "Cistercian cross",
+        explanation: "A plain white cross on a black field — the heraldic colours of the Cistercian Order (Order of Cîteaux). Black and white reflect the order's austere reform rule and the contrast of monastic renunciation with divine light."
+      },
+      {
+        symbol: "Gothic arch",
+        explanation: "Represents the cathedral's defining Brick Gothic architecture and the centuries-long building campaign (1289–1557) that made Pelplin one of the largest Gothic brick churches in Poland."
+      },
+      {
+        symbol: "Marian arc",
+        explanation: "The decorative arc below the cross alludes to the primary dedication: the Assumption of the Blessed Virgin Mary. Marian symbolism runs through every Cistercian foundation — Bernard of Clairvaux taught that all Cistercian churches must be dedicated to Mary."
+      },
+    ],
+  },
+
 };

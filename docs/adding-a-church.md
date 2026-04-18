@@ -12,8 +12,10 @@ Follow the steps in order — each step references the previous one.
 | 1 | `src/data/churches.js` | Full church record |
 | 2 | `src/data/clusters.js` | Church ID in a cluster |
 | 3 | `src/data/districts1450.js` | District classification |
-| 4 | `src/data/patronage.js` | Patron saint / founder *(optional)* |
-| 5 | `src/data/confessional.js` | Confessional / order notes *(optional)* |
+| 4 | `src/data/symbolMeanings.js` | 2–4 heraldic symbol explanations |
+| 5 | `src/data/patrons.js` | Patron saint section (10 facts + wiki link) |
+| 6 | `src/data/patronage.js` | Founder / order / guild links *(optional)* |
+| 7 | `src/data/confessional.js` | Confessional / order notes *(optional)* |
 
 `distMatrix` in `state.js` **auto-recomputes** — no manual action needed.
 
@@ -92,7 +94,61 @@ Valid district names used in the app (check the existing entries for the full li
 
 ---
 
-## Step 4 (optional) — Add patron saint / founder
+## Step 4 (required) — Add heraldic symbol meanings
+
+File: **`src/data/symbolMeanings.js`**
+
+Add an entry keyed by the church's `id`. Each entry lists 2–4 symbols visible on
+the heraldic shield (or associated with the patron), with a 1–2 sentence explanation.
+This populates the "ⓘ symbol meanings" tooltip in the detail drawer.
+
+```js
+export const churchSymbolMeanings = {
+  // ... existing entries ...
+  'your-new-id': {
+    symbols: [
+      {
+        symbol: 'Name of symbol',        // shown as the symbol label
+        explanation: 'What it means and why it is associated with this church.',
+      },
+      {
+        symbol: 'Second symbol',
+        explanation: 'Explanation.',
+      },
+    ],
+  },
+};
+```
+
+---
+
+## Step 5 (required) — Add patron saint section
+
+File: **`src/data/patrons.js`**
+
+Add an entry keyed by the church's `id`. This populates the "Meet the Patron"
+section at the bottom of the detail drawer. Write 10 engaging, accurate facts.
+
+```js
+export const churchPatronData = {
+  // ... existing entries ...
+  'your-new-id': {
+    patron:       'Saint Nicholas of Myra',         // display name
+    patronTitle:  'Bishop of Myra · c. 270–343 AD', // dates / subtitle
+    facts: [
+      'Fact 1 about the patron saint or the church's dedication.',
+      'Fact 2.',
+      // ... 10 total
+    ],
+    wikiUrl:       'https://en.wikipedia.org/wiki/...',
+    readMoreLabel: 'Saint Nicholas — Wikipedia',
+  },
+};
+```
+
+---
+
+## Step 6 (optional) — Add patron saint / founder
 
 File: **`src/data/patronage.js`**
 
