@@ -992,12 +992,12 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
   text-shadow: 0 0 3px #fff, 0 0 5px #fff, 0 0 8px #fff;
 }
 
-/* Always-visible year chip — sits inside the axis-track just below the
-   handle's solid 16px head, styled as a small pill (same as drag label).
-   left% is set by JS (_syncUI) to track each handle. */
+/* Always-visible year chips — one per handle, sitting in the upper part of
+   the axis-track (top: 3px = inside the solid 16px amber head area).
+   Left chip sits to the RIGHT of its handle; right chip to the LEFT.
+   left% is set by JS (_syncUI) to track each handle position. */
 .range-handle-yr {
-  position: absolute; top: 18px;
-  transform: translateX(-50%);
+  position: absolute; top: 3px;
   font-family: var(--font-ui); font-size: 10px; font-weight: 700;
   color: var(--amber); background: var(--bg-base);
   padding: 1px 4px; border-radius: 3px;
@@ -1006,6 +1006,11 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
   font-variant-numeric: tabular-nums;
   z-index: 7;
 }
+/* Left handle chip: shifted to the right of the handle (handle is 12px wide,
+   centered on left%; translateX(8px) = 6px half-handle + 2px gap) */
+#rangeHandleLYr { transform: translateX(8px); }
+/* Right handle chip: shifted to the left of the handle */
+#rangeHandleRYr { transform: translateX(calc(-100% - 8px)); }
 [data-theme="light"] .range-handle-yr {
   color: var(--accent);
   border-color: rgba(42,122,138,0.35);
