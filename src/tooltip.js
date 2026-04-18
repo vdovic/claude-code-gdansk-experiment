@@ -390,7 +390,12 @@ export function setupTooltipClickHandling() {
   // evt-dot is handled locally in render.js; ch-label tooltip removed.
   document.addEventListener('click', ev => {
     const tt = _el();
-    if (tt.contains(ev.target)) return;
+    if (tt.contains(ev.target)) {
+      // Click inside the tooltip: pin it if not already pinned (and not the close btn).
+      // This makes the "click" / "click to pin" hint actually work.
+      if (!ttPinned && !ev.target.closest('#ttClose')) pinTT(ev);
+      return;
+    }
     // econ-era blocks handle their own pin via showPinnedGenericTT — don't unpin here
     if (ev.target.closest('.econ-era-block') || ev.target.closest('.econ-era-m-card')) return;
     const trigger = ev.target.closest('.political-marker, .calamity-marker, .war-bar, .ruler-bar');
