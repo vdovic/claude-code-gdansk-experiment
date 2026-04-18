@@ -9,8 +9,7 @@ import { clusterDefs }            from './data/clusters.js';
 import { churchPatrons }          from './data/patronage.js';
 import { district1450ByChurchId } from './data/districts1450.js';
 import { openCD }                 from './detail.js';
-import { switchTab }              from './ui.js';
-import { isMobileScreen }         from './utils/viewport.js';
+
 
 // ── Local filter/sort state ──
 const lf = {
@@ -72,12 +71,52 @@ const COLS = [
   { key: 'year',        label: '1st Brick',        sortKey: 'cornerstone' },
   { key: 'district',    label: 'District',         sortKey: 'district'    },
   { key: 'type',        label: 'Origin & Order',   sortKey: null          },
-  { key: 'founder',     label: 'Founded By',       sortKey: 'founder'     },
   { key: 'height',      label: 'Height',           sortKey: 'height'      },
   { key: 'capacity',    label: 'Capacity',         sortKey: 'capacity'    },
   { key: 'guilds',      label: 'Guild Patrons',    sortKey: null          },
   { key: 'guardian',    label: 'Guardianship',     sortKey: null          },
 ];
+
+// ── Symbol tooltip (created once; shared across rebuilds) ──
+let _symTT     = null;   // the floating <div>
+let _symActive = null;   // the <span.ct-sym> currently showing the tooltip
+
+function _initSymTT() {
+  if (_symTT) return;
+  _symTT = document.createElement('div');
+  _symTT.id = 'ctSymTT';
+  _symTT.className = 'ct-sym-tt';
+  document.body.appendChild(_symTT);
+  // Dismiss on any click outside symbol or tooltip
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.ct-sym') && !e.target.closest('#ctSymTT')) {
+      _symTT.classList.remove('visible');
+      _symActive = null;
+    }
+  });
+}
+
+function _showSymTT(sym) {
+  _initSymTT();
+  // Toggle off if same symbol clicked again
+  if (_symActive === sym && _symTT.classList.contains('visible')) {
+    _symTT.classList.remove('visible');
+    _symActive = null;
+    return;
+  }
+  _symActive = sym;
+  _symTT.textContent = sym.dataset.desc;
+  const r = sym.getBoundingClientRect();
+  let left = r.left + r.width / 2;
+  let top  = r.bottom + 8;
+  // Clamp horizontally, flip above if near viewport bottom
+  const ttW = 230;
+  left = Math.max(8 + ttW / 2, Math.min(left, window.innerWidth - ttW / 2 - 8));
+  if (top + 60 > window.innerHeight - 8) top = Math.max(8, r.top - 68);
+  _symTT.style.left = left + 'px';
+  _symTT.style.top  = top  + 'px';
+  _symTT.classList.add('visible');
+}
 
 // ── Build filter bar (no Sort section — table headers handle sorting) ──
 function buildListFilters() {
@@ -182,12 +221,8 @@ function buildChurchTable() {
     const latestDenom  = ch.denomBars[ch.denomBars.length - 1];
     const col          = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
     const symHtml      = ch.symbol
-      ? `<span class="ct-sym" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
+      ? `<span class="ct-sym" data-desc="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
       : `<span class="ct-dot" style="background:${col}"></span>`;
-    const patron       = churchPatrons[ch.id] || {};
-    const founderTxt   = patron.founder
-      ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
-      : '—';
     const fy           = foundedYear(ch);
     const foundedTxt   = fy ? fy : '—';
     const districtTxt  = district1450ByChurchId[ch.id] || '—';
@@ -206,7 +241,6 @@ function buildChurchTable() {
       <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
       <td class="ct-td ct-district" title="${districtTxt}">${districtTxt}</td>
       <td class="ct-td ct-type" title="${typeTxt}">${typeTxt}</td>
-      <td class="ct-td ct-founder" title="${founderTxt}">${founderTxt}</td>
       <td class="ct-td ct-num">${heightTxt}</td>
       <td class="ct-td ct-num">${capacityTxt}</td>
       <td class="ct-td ct-guilds" title="${guilds}"><div class="ct-clip">${guilds}</div></td>
@@ -215,7 +249,8 @@ function buildChurchTable() {
   }).join('');
 
   // Column widths (px) must match COLS order exactly — used with table-layout:fixed
-  const colWidths = [132, 52, 60, 108, 88, 148, 50, 64, 232, 196];
+  // Founder column removed; its width redistributed to name (+80) and guilds (+68)
+  const colWidths = [212, 52, 60, 108, 88, 50, 64, 300, 196];
   const colgroupHtml = `<colgroup>${colWidths.map(w => `<col style="width:${w}px">`).join('')}</colgroup>`;
 
   el.innerHTML = `<table class="church-table">${colgroupHtml}
@@ -233,20 +268,17 @@ function buildChurchTable() {
     });
   });
 
-  // Row click → open detail drawer.
-  // On mobile we stay on the Churches tab — the drawer slides up on top.
-  // On desktop we switch to the Timeline first so the church bar is visible.
-  el.querySelectorAll('.ct-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const ci = +row.dataset.ci;
-      const mobile = document.body.dataset.viewport === 'mobile' || isMobileScreen();
-      if (mobile) {
-        openCD(ci, 0);          // drawer on top of Churches tab — no tab switch
-      } else {
-        switchTab('timeline');  // desktop: reveal church bar first
-        setTimeout(() => openCD(ci, 0), 200);
-      }
+  // Symbol emoji click → show/dismiss description tooltip (stops row-click propagation)
+  el.querySelectorAll('.ct-sym').forEach(sym => {
+    sym.addEventListener('click', e => {
+      e.stopPropagation();
+      _showSymTT(sym);
     });
+  });
+
+  // Row click → open detail drawer, staying on the current tab
+  el.querySelectorAll('.ct-row').forEach(row => {
+    row.addEventListener('click', () => openCD(+row.dataset.ci, 0));
   });
 }
 

@@ -1648,8 +1648,23 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .ct-sym {
   display: inline-block; flex-shrink: 0;
   font-size: 15px; line-height: 1;
-  cursor: default;
+  cursor: pointer;
 }
+/* Symbol description tooltip (Churches table) */
+.ct-sym-tt {
+  position: fixed; z-index: 9999;
+  background: var(--parchment-dk); color: var(--text-primary);
+  font-family: var(--font-ui); font-size: 12px; line-height: 1.5;
+  padding: 8px 12px; border-radius: 6px; max-width: 230px;
+  border: 1px solid var(--border-emphasis);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+  white-space: normal; word-wrap: break-word;
+  opacity: 0; pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.15s;
+}
+.ct-sym-tt.visible { opacity: 1; pointer-events: auto; }
+[data-theme="light"] .ct-sym-tt { background: #fff; color: #1a1e24; }
 .ct-year     { font-weight: 600; }
 .ct-type     { color: var(--text-muted); }
 .ct-num      { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
