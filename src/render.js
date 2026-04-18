@@ -837,10 +837,9 @@ export function renderLanes() {
         }
         e.stopPropagation();              // prevent global pin-handler from fighting us
       } else {
-        // Desktop: first click pins tooltip (same UX as touch first tap);
-        // second click on the SAME already-pinned marker opens the detail drawer.
+        // Desktop: first click pins tooltip; second click on same marker dismisses it.
         if (isTTPinnedFor(ci, ei)) {
-          openCD(ci, ei);
+          unpinTT();
         } else {
           if (isTTPinned()) unpinTT();    // release any existing pin first
           showTT(e, 'c', ci, ei, { immediate: true });  // show tooltip without open-delay
