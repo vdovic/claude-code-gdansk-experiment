@@ -196,12 +196,12 @@ function buildChurchTable() {
     const capacityTxt  = ch.capacity ? ch.capacity.toLocaleString() : '—';
     const guilds       = ch.guilds && ch.guilds.length ? ch.guilds.join(', ') : '—';
     const g            = ch.guardianship;
-    const guardianHtml = g
-      ? `<div class="ct-guardian-name">${g.name}</div>${g.since ? `<div class="ct-guardian-since">since ${g.since}</div>` : ''}`
+    const guardianTxt  = g
+      ? g.name + (g.since ? ` · ${g.since}` : '')
       : '—';
 
     return `<tr class="ct-row" data-ci="${ci}">
-      <td class="ct-td ct-name"><div class="ct-name-inner">${symHtml}${ch.name}</div></td>
+      <td class="ct-td ct-name" title="${ch.name}"><div class="ct-name-inner">${symHtml}${ch.shortName}</div></td>
       <td class="ct-td ct-year">${foundedTxt}</td>
       <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
       <td class="ct-td ct-district">${districtTxt}</td>
@@ -209,8 +209,8 @@ function buildChurchTable() {
       <td class="ct-td ct-founder">${founderTxt}</td>
       <td class="ct-td ct-num">${heightTxt}</td>
       <td class="ct-td ct-num">${capacityTxt}</td>
-      <td class="ct-td ct-guilds">${guilds}</td>
-      <td class="ct-td ct-guardian">${guardianHtml}</td>
+      <td class="ct-td ct-guilds"><div class="ct-clip" title="${guilds}">${guilds}</div></td>
+      <td class="ct-td ct-guardian"><div class="ct-clip ct-guardian-txt" title="${guardianTxt}">${guardianTxt}</div></td>
     </tr>`;
   }).join('');
 

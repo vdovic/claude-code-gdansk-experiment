@@ -1651,13 +1651,14 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 .ct-type     { white-space: nowrap; min-width: 100px; color: var(--text-muted); }
 .ct-founder  { min-width: 180px; }
 .ct-num      { white-space: nowrap; min-width: 68px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
-.ct-guilds   { color: var(--text-muted); min-width: 160px; }
-.ct-guardian { min-width: 160px; }
-.ct-guardian-name {
-  color: var(--text-primary); font-weight: 600; white-space: nowrap;
+.ct-guilds   { color: var(--text-muted); min-width: 240px; max-width: 280px; }
+.ct-guardian { min-width: 200px; max-width: 240px; }
+/* Clipping wrapper — keeps cell to one line with ellipsis; title attr carries full text */
+.ct-clip {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ct-guardian-since {
-  color: var(--text-muted); font-size: 10px; margin-top: 1px; white-space: nowrap;
+.ct-guardian-txt {
+  color: var(--text-primary); font-weight: 600; font-size: 11px;
 }
 
 /* Light theme overrides */
@@ -1666,7 +1667,7 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
 [data-theme="light"] .ct-td { color: #1a1e24; }
 [data-theme="light"] .ct-type,
 [data-theme="light"] .ct-guilds { color: #4a5260; }
-[data-theme="light"] .ct-guardian-since { color: #4a5260; }
+[data-theme="light"] .ct-guardian-txt { color: #1a1e24; }
 
 /* ══════════════════════════════════════════════════════════════
    MAP SCREEN (fullscreen — shares #mapLeaflet with timeline)
