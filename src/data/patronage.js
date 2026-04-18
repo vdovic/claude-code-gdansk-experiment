@@ -140,6 +140,7 @@ export const churchPatrons = {
   royalchapel:  { founder: 'King John III Sobieski (royal patronage)', order: null, guildsConfirmed: [], notes: 'Royal foundation providing Catholic worship space adjacent to Lutheran St. Mary\'s.' },
   stjames:      { founder: 'Pilgrims\' brotherhood', order: null, guildsConfirmed: [], notes: 'Hospital chapel origin serving pilgrims and travellers.' },
   pelplin:      { founder: 'Duke Mestwin II of Gdańsk (Pomerelia)', order: 'Cistercian (OCist)', guildsConfirmed: [], notes: 'Cistercian abbey founded by the Pomeranian dukes; suppressed 1823, now seat of the Diocese of Pelplin (suffragan of the Archdiocese of Gdańsk).' },
+  sacredheart:  { founder: 'Catholic community of Wrzeszcz (land donors: Jantzen brothers)', order: null, guildsConfirmed: [], notes: 'First Catholic parish church in Wrzeszcz (Langfuhr); elevated to collegiate church in 2001. Two of its vicars — Blessed Franciszek Rogaczewski and Blessed Marian Górecki — were among the first Polish clergy executed by the Nazis, shot at Fort VII and Stutthof in 1939–1940, beatified by John Paul II in 1999.' },
 };
 
 // ── Helper: get guild objects for a church ───────────────────────────────

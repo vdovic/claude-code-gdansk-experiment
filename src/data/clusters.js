@@ -8,7 +8,7 @@ export const clusterDefs = [
    members:['stmary','stcatherine','stnicolaus','stpeterpaul','stjohn','sttrinity','oliwa','pelplin']},
   {id:'B', label:'Medium',  color:'#5a3a8a',
    desc:'Medium churches (capacity 1000–2999): significant parish and monastic churches serving defined communities.',
-   members:['stbrigid','stcorpus','stjoseph','stbartholomew','stbarbara','stelizabeth','stjames']},
+   members:['stbrigid','stcorpus','stjoseph','stbartholomew','stbarbara','stelizabeth','stjames','sacredheart']},
   {id:'C', label:'Small',   color:'#a05520',
    desc:'Small churches (capacity < 1000): intimate chapels and minor foundations, often outside the main fortifications.',
    members:['royalchapel','immaculate']},

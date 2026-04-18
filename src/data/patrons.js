@@ -293,6 +293,25 @@ export const churchPatronData = {
     readMoreLabel: `John III Sobieski — Wikipedia`,
   },
 
+  sacredheart: {
+    patron: `The Most Sacred Heart of Jesus`,
+    patronTitle: `Devotion formalised 1856 · Feast: Friday after 2nd Sunday after Pentecost`,
+    facts: [
+      `The devotion to the Sacred Heart centres on Christ's physical heart as the symbol of his divine love for humanity. Its modern form was shaped by the visions of Saint Margaret Mary Alacoque (1673–1675) at Paray-le-Monial, France, who reported that Christ asked for a feast in honour of his heart.`,
+      `Pope Pius IX extended the Feast of the Sacred Heart to the universal Church in 1856 — just 40 years before the Wrzeszcz parish community began fundraising for this church. The timing was not coincidental: the late 19th century was the high-water mark of Sacred Heart devotion worldwide.`,
+      `The church was built as a deliberate act of Catholic identity in a predominantly Protestant city. Dedicating it to the Sacred Heart — the most distinctively Catholic devotion of the era — was a theological statement as much as a spiritual one, asserting the presence of a confident Catholic minority in German Danzig.`,
+      `Günter Grass, Nobel laureate in Literature (1999) and author of The Tin Drum, was baptised in this church on 30 October 1927. His Danzig Trilogy — set in the Wrzeszcz/Langfuhr neighbourhood — is among the great works of 20th-century literature. The church is literally woven into world literary history.`,
+      `Two of the church's own vicars — Blessed Franciszek Rogaczewski and Blessed Bronisław Komorowski — were among the very first victims of Nazi mass murder in Gdańsk. Rogaczewski was arrested on 1 September 1939 (the first day of the war) and shot at Stutthof on 11 January 1940. Komorowski was executed at the same camp on Good Friday, 22 March 1940.`,
+      `Both martyred priests were beatified by Pope John Paul II in Warsaw on 13 June 1999 among the 108 Polish Martyrs of WWII — a group that included clergy, religious, and laity killed for their faith between 1939 and 1945. Their connection to this specific church makes it a site of beatified sainthood.`,
+      `The Shrine of Our Lady of Ostra Brama (Gate of Dawn, Vilnius) in the church's side nave was established in 1947–1948 as a symbol of continuity. The incoming Polish population — largely displaced from Lwów and Vilnius by Soviet annexation — brought their eastern devotional traditions to the church of a German city that was now theirs.`,
+      `Archbishop Karol Wojtyła — the future Pope John Paul II — celebrated Mass for academic youth here on 28 May 1966, during the Millennium of Polish Christianity. One of several pre-pontificate visits to Gdańsk documented for this future saint.`,
+      `The church tower stands 66 metres tall — almost as high as St. Catherine's (76 m) — and was built in under two years between 1909 and 1911. Architect Karl Zillmer intentionally echoed the brick Gothic style of Gdańsk's medieval churches, creating visual continuity between the Old Town and its expanding 20th-century suburbs.`,
+      `The Sacred Heart church was elevated to a collegiate church on 24 June 2001 by Archbishop Tadeusz Gocłowski — a status second only to a cathedral. Its collegiate chapter has 12 capitular canons and 11 honorary canons, making it a centre of Gdańsk's ecclesiastical governance alongside the cathedral.`,
+    ],
+    wikiUrl: `https://en.wikipedia.org/wiki/Sacred_Heart`,
+    readMoreLabel: `Sacred Heart devotion — Wikipedia`,
+  },
+
   pelplin: {
     patron: `The Assumption of the Virgin Mary`,
     patronTitle: `Feast of the Assumption · 15 August · Cistercian dedication`,

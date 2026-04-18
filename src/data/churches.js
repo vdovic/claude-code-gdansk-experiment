@@ -557,6 +557,52 @@ export const churches = [
     denomBars:[{start:1432,end:1557,type:'catholic'},{start:1557,end:1945,type:'lutheran'},{start:1957,end:2000,type:'catholic'}]
   },
 
+  // ── Collegiate Church of the Sacred Heart, Wrzeszcz ─────────────────────
+  { id:'sacredheart', name:"Collegiate Church of the Sacred Heart, Wrzeszcz", shortName:"Sacred Heart",
+    height:66, capacity:1000, cornerstoneYear:1909,
+    lat:54.3799, lon:18.6090, origin:'parish', status:'church', order:null,
+    guardianship: { name: 'Archdiocese of Gdańsk', since: 1992 },
+    guilds:['Catholic community of Wrzeszcz', 'Jantzen brothers (land donors)'],
+    symbol:{emoji:'❤', desc:'Sacred Heart of Jesus — the heart of Christ crowned with thorns and emitting rays of light, symbol of divine love and the 19th-century Catholic renewal', colors:'Red heart on gold field'},
+    organ:{has:true, year:1911, desc:'Original organ commissioned from a Bydgoszcz builder (1911); tin pipes requisitioned for WWI materiel in 1916. Post-war instrument: 3 manuals, 45 stops. Installed in the northern gallery.'},
+    facts:[
+      'Nobel laureate Günter Grass — author of The Tin Drum — was baptised in this church on 30 October 1927',
+      'Two of its own vicars, Frs. Rogaczewski and Komorowski, were among the very first victims of Nazi mass murder in Gdańsk, executed at Stutthof in 1940',
+      'Both martyred priests were beatified by Pope John Paul II in Warsaw on 13 June 1999 among the 108 Polish Martyrs of WWII',
+      'Karol Wojtyła (future Pope John Paul II) celebrated Mass here for academic youth on 28 May 1966',
+      'Elevated to collegiate church status in 2001 — seat of the Gdańsk Collegiate Chapter with 12 capitular canons',
+      'Built in under 2 years (1909–1911) by architect Karl Zillmer, blending French Gothic vaulting with Pomeranian brick Gothic tradition',
+    ],
+    relics:'Shrine of Our Lady of Ostra Brama (Gate of Dawn, Vilnius) — a copy of the icon placed in 1947 as a symbol of continuity for the incoming Polish population, formally crowned as a shrine in 1987. Relics of the Blessed Martyrs Rogaczewski and Komorowski.',
+    parishioners1500:'Wrzeszcz (Langfuhr) was a small suburban village in 1500; no significant Catholic parish existed here until the 19th century. By 1911 the parish served ~9,000 people; by the 1930s ~17,000 — one of the largest Catholic communities in the Free City of Danzig.',
+    tax1500:'Not applicable — the church was founded in 1909. The site was donated by the Jantzen brothers; construction funded by over 300,000 marks raised by the local Catholic community over 13 years.',
+    photoLinks:[
+      {label:'Wikipedia (Polish)', url:'https://pl.wikipedia.org/wiki/Kolegiata_Naj%C5%9Bwi%C4%99tszego_Serca_Jezusowego_w_Gda%C5%84sku-Wrzeszczu'},
+      {label:'Gedanopedia', url:'https://gdansk.gedanopedia.pl/gdansk/?title=KO%C5%9ACI%C3%93%C5%81_NAJ%C5%9AWI%C4%98TSZEGO_SERCA_JEZUSOWEGO'},
+    ],
+    sources:[
+      {title:'Polish Wikipedia: Kolegiata NSJ Gdańsk-Wrzeszcz', url:'https://pl.wikipedia.org/wiki/Kolegiata_Naj%C5%9Bwi%C4%99tszego_Serca_Jezusowego_w_Gda%C5%84sku-Wrzeszczu'},
+      {title:'Gedanopedia: Kościół Najświętszego Serca Jezusowego', url:'https://gdansk.gedanopedia.pl/gdansk/?title=KO%C5%9ACI%C3%93%C5%81_NAJ%C5%9AWI%C4%98TSZEGO_SERCA_JEZUSOWEGO'},
+      {title:'Blessed Franciszek Rogaczewski — Wikipedia', url:'https://en.wikipedia.org/wiki/Franciszek_Rogaczewski'},
+    ],
+    events:[
+      {year:1894, type:'founded',     label:'Catholic community petitions for a Wrzeszcz church',  detail:'Catholic residents of Wrzeszcz (Langfuhr) petition the Diocese of Chełmno for their own church. The nearest Catholic church was in Gdańsk\'s Old Town, some 4 km away, leaving thousands of Catholics without a local parish.'},
+      {year:1896, type:'notable',     label:'Society for Building a Church established',            detail:'A formal construction society is established and begins fundraising. The Jantzen brothers donate the land. Over 13 years the community raises more than 300,000 marks — an extraordinary effort by a minority Catholic community in a predominantly Protestant city-state.'},
+      {year:1909, type:'cornerstone', label:'Cornerstone laid — construction begins',               detail:'On 29 August 1909 the cornerstone is laid. Architect Karl Zillmer of Kartuzy designs a three-nave Neo-Gothic brick basilica intentionally echoing the medieval brick churches of Gdańsk\'s Old Town — a statement of Catholic identity in a German-dominated city.'},
+      {year:1911, type:'founded',     label:'Church consecrated — first Catholic parish in Wrzeszcz', detail:'On 18 April 1911 (Easter Tuesday) the church is consecrated. The parish is canonically erected on 1 April 1911 — the first Catholic parish in Wrzeszcz. Built in under two years, the 66-metre tower immediately dominates the Wrzeszcz skyline.'},
+      {year:1916, type:'tumult',      label:'Bells and organ pipes requisitioned for WWI',          detail:'Three of the four original bells (cast in Lübeck) and the organ\'s tin pipes are seized by the German military for war materiel — a fate shared by hundreds of churches across WWI Germany. Only the heaviest bell survives.'},
+      {year:1927, type:'notable',     label:'Günter Grass baptised here',                           detail:'On 30 October 1927 Günter Grass, future Nobel laureate in Literature (1999) and author of The Tin Drum (1959), is baptised in this church. His novel — set in Wrzeszcz/Langfuhr — is one of the great works of 20th-century literature. The church is literally part of world literary history.'},
+      {year:1939, type:'tumult',      label:'Fr. Rogaczewski arrested — first day of WWII',        detail:'On 1 September 1939 — the very first day of the war — Fr. Franciszek Rogaczewski, a vicar of this parish, is arrested by Nazi forces as part of a pre-planned sweep to eliminate Polish Catholic leadership in Danzig. He had served the parish since 1922.'},
+      {year:1940, type:'tumult',      label:'Both parish vicars executed at Stutthof',             detail:'Fr. Rogaczewski is shot on 11 January 1940. Fr. Bronisław Komorowski is executed on Good Friday, 22 March 1940. Both die at Stutthof — the first Nazi concentration camp on Polish soil, just 35 km from this church. Their deaths become emblematic of the Nazi genocide of Polish clergy.'},
+      {year:1945, type:'destroyed',   label:'Soviet bombardment — transept vault collapses',       detail:'Artillery fire during the March 1945 Soviet assault on Gdańsk collapses the transept vault and burns the sacristy. Emergency repairs allow services to resume in the main nave by February 1946.'},
+      {year:1948, type:'tumult',      label:'Pastor arrested by communist secret police',          detail:'Fr. Józef Zator-Przytocki — the wartime Home Army chaplain who led the post-war reconstruction — is arrested by the UB (Urząd Bezpieczeństwa) in 1948 and sentenced to 15 years. He is released in 1955. The church\'s street is later renamed in his honour.'},
+      {year:1966, type:'notable',     label:'Karol Wojtyła celebrates Mass here',                  detail:'On 28 May 1966, during the Millennium of Polish Christianity celebrations, Archbishop Karol Wojtyła (future Pope John Paul II) celebrates Mass for academic youth at this church. One of his documented visits to Gdańsk before his pontificate.'},
+      {year:1999, type:'notable',     label:'Parish martyrs beatified by John Paul II',            detail:'On 13 June 1999 Pope John Paul II beatifies Frs. Rogaczewski and Komorowski in Warsaw, among the 108 Polish Martyrs of WWII. The two vicars of this parish become Blessed — saints of the local community.'},
+      {year:2001, type:'notable',     label:'Elevated to Collegiate Church',                       detail:'On 24 June 2001 Archbishop Tadeusz Gocłowski elevates the church to collegiate status. The Gdańsk Collegiate Chapter is constituted with 12 capitular canons and 11 honorary canons — giving Wrzeszcz\'s parish church a rank second only to the cathedral.'},
+    ],
+    denomBars:[{start:1909,end:2000,type:'catholic'}]
+  },
+
   // ── Pelplin Cathedral ─────────────────────────────────────────────────────
   { id:'pelplin', name:"Cathedral Basilica of the Assumption, Pelplin", shortName:"Pelplin Cathedral",
     height:63, capacity:8000, cornerstoneYear:1289,
@@ -627,5 +673,6 @@ export const shieldSVGs = {
   immaculate: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#eee" stroke="#8a6d20" stroke-width="2"/><path d="M30,28 Q40,18 50,28 Q48,42 40,52 Q32,42 30,28" fill="#2a5aaa" opacity="0.7"/><circle cx="40" cy="22" r="5" fill="#c9a832"/><path d="M32,60 Q40,55 48,60" stroke="#c9a832" stroke-width="1.5" fill="none"/></svg>`,
   royalchapel: `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#8a1a1a" stroke="#c9a832" stroke-width="2"/><path d="M30,25 Q40,15 50,25 L50,55 Q40,62 30,55 Z" fill="#eee"/><path d="M36,35 Q40,30 44,35 L44,48 Q40,52 36,48 Z" fill="#8a1a1a" opacity="0.6"/><path d="M28,18 L40,8 L52,18" stroke="#c9a832" stroke-width="2" fill="none"/><circle cx="40" cy="10" r="2.5" fill="#c9a832"/></svg>`,
   stjames:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a3a6a" stroke="#8a6d20" stroke-width="2"/><path d="M40,25 Q20,38 25,55 Q32,62 40,58 Q48,62 55,55 Q60,38 40,25Z" fill="#c9a832" stroke="#8a6d20" stroke-width="1"/><line x1="40" y1="25" x2="40" y2="58" stroke="#8a6d20" stroke-width="1"/><path d="M25,42 Q40,35 55,42" stroke="#8a6d20" stroke-width="0.8" fill="none"/><path d="M27,50 Q40,44 53,50" stroke="#8a6d20" stroke-width="0.8" fill="none"/></svg>`,
+  sacredheart:`<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#6a1a1a" stroke="#c9a832" stroke-width="2"/><path d="M40,58 Q22,44 22,32 a10,10 0 0,1 18,-6 a10,10 0 0,1 18,6 Q58,44 40,58z" fill="#c9a832"/><path d="M40,20 Q36,16 40,12 Q44,16 40,20" stroke="#eee" stroke-width="1.5" fill="none"/><path d="M34,14 Q30,10 34,6 Q38,10 34,14" stroke="#eee" stroke-width="1.2" fill="none"/><path d="M46,14 Q42,10 46,6 Q50,10 46,14" stroke="#eee" stroke-width="1.2" fill="none"/><line x1="40" y1="28" x2="40" y2="65" stroke="#c9a832" stroke-width="1" opacity="0.5"/></svg>`,
   pelplin:  `<svg viewBox="0 0 80 96" width="80" height="96"><path d="M5,2 h70 v55 q0,30-35,37 q-35,-7-35,-37z" fill="#1a1a1a" stroke="#8a6d20" stroke-width="2"/><line x1="40" y1="10" x2="40" y2="70" stroke="#eee" stroke-width="9"/><line x1="17" y1="34" x2="63" y2="34" stroke="#eee" stroke-width="9"/><path d="M28,52 Q40,68 52,52" stroke="#c9a832" stroke-width="2" fill="none" opacity="0.8"/></svg>`
 };

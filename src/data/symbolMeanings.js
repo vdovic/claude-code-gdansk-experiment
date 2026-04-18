@@ -311,6 +311,23 @@ export const churchSymbolMeanings = {
     ],
   },
 
+  sacredheart: {
+    symbols: [
+      {
+        symbol: "Flaming heart",
+        explanation: "The heart of Christ, the central image of Sacred Heart devotion. It represents the boundless love of Jesus for humanity and his willingness to suffer for it — a devotion that swept Catholic Europe in the 19th century and drove the founding of many churches of this dedication."
+      },
+      {
+        symbol: "Crown of thorns",
+        explanation: "Encircles the heart to recall Christ's Passion. The juxtaposition of a heart (love) with thorns (suffering) is the theological core of the devotion: divine love expressed through willing sacrifice."
+      },
+      {
+        symbol: "Rays of light",
+        explanation: "Emanate from the heart to symbolise divine grace radiating outward to the world. In standard Sacred Heart iconography one ray is red (blood, love) and one white (water, grace) — recalling John 19:34."
+      },
+    ],
+  },
+
   pelplin: {
     symbols: [
       {

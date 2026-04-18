@@ -33,6 +33,9 @@ export const district1450ByChurchId = {
   // Not Yet Founded in 1450
   immaculate: 'Not Yet Founded (1450)',
 
+  // Western Suburbs (Wrzeszcz / Langfuhr — developed 19th–20th c.)
+  sacredheart: 'Wrzeszcz (Langfuhr)',
+
   // Pomerania Region (outside Gdańsk — broader regional churches)
   pelplin: 'Pomerania Region',
 };
@@ -46,5 +49,6 @@ export const district1450Names = [
   'Eastern Suburb',
   'Outside City',
   'Not Yet Founded (1450)',
+  'Wrzeszcz (Langfuhr)',
   'Pomerania Region',
 ];
