@@ -181,7 +181,9 @@ function buildChurchTable() {
   let rowsHtml = filtered.map(({ ch, ci }) => {
     const latestDenom  = ch.denomBars[ch.denomBars.length - 1];
     const col          = latestDenom ? (denomColors[latestDenom.type] || '#888') : '#888';
-    const dot          = `<span class="ct-dot" style="background:${col}"></span>`;
+    const symHtml      = ch.symbol
+      ? `<span class="ct-sym" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
+      : `<span class="ct-dot" style="background:${col}"></span>`;
     const patron       = churchPatrons[ch.id] || {};
     const founderTxt   = patron.founder
       ? patron.founder.replace(/\s*\([^)]*\)/, '')   // strip long parenthetical
@@ -199,7 +201,7 @@ function buildChurchTable() {
       : '—';
 
     return `<tr class="ct-row" data-ci="${ci}">
-      <td class="ct-td ct-name"><div class="ct-name-inner">${dot}${ch.name}</div></td>
+      <td class="ct-td ct-name"><div class="ct-name-inner">${symHtml}${ch.name}</div></td>
       <td class="ct-td ct-year">${foundedTxt}</td>
       <td class="ct-td ct-year">${ch.cornerstoneYear}</td>
       <td class="ct-td ct-district">${districtTxt}</td>
