@@ -992,18 +992,24 @@ body[data-viewport="desktop"] .tl-year-ruler { display: flex; }
   text-shadow: 0 0 3px #fff, 0 0 5px #fff, 0 0 8px #fff;
 }
 
-/* Always-visible year chip sitting above each range handle.
-   left is set by JS (_syncUI) to match the handle position. */
+/* Always-visible year chip — sits inside the axis-track just below the
+   handle's solid 16px head, styled as a small pill (same as drag label).
+   left% is set by JS (_syncUI) to track each handle. */
 .range-handle-yr {
-  position: absolute; top: -18px;
+  position: absolute; top: 18px;
   transform: translateX(-50%);
   font-family: var(--font-ui); font-size: 10px; font-weight: 700;
-  color: var(--amber);
+  color: var(--amber); background: var(--bg-base);
+  padding: 1px 4px; border-radius: 3px;
+  border: 1px solid rgba(212,162,83,0.35);
   white-space: nowrap; pointer-events: none;
   font-variant-numeric: tabular-nums;
   z-index: 7;
 }
-[data-theme="light"] .range-handle-yr { color: var(--accent); }
+[data-theme="light"] .range-handle-yr {
+  color: var(--accent);
+  border-color: rgba(42,122,138,0.35);
+}
 @media (max-width: 900px) { .range-handle-yr { display: none; } }
 
 .range-drag-label {
