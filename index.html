@@ -138,8 +138,8 @@
       <!-- Unified axis row — year scale + integrated range handles -->
       <div class="tl-axis-row" id="axisRow">
         <div class="tl-axis-stub">
-          <span class="range-label" id="rangeLabel">1150 – 1750</span>
-          <button class="range-reset" id="rangeReset" title="Reset to default range (1150–1750)">↺ Reset</button>
+          <span class="range-label" id="rangeLabel">1150 – 2005</span>
+          <button class="range-reset" id="rangeReset" title="Reset to default range (1150–2005)">↺ Reset</button>
         </div>
         <div class="axis-track" id="axisTrack">
           <div class="axis-inner" id="axisInner"></div>
@@ -147,9 +147,13 @@
           <div class="range-mute range-mute-right" id="rangeMuteR"></div>
           <div class="range-fill" id="rangeFill"></div>
           <div class="range-handle" id="rangeHandleL" tabindex="0" role="slider"
-               aria-label="Start year" title="Drag to set start year"></div>
+               aria-label="Start year" title="Drag to set start year">
+            <span class="range-handle-yr" id="rangeHandleLYr" aria-hidden="true">1150</span>
+          </div>
           <div class="range-handle" id="rangeHandleR" tabindex="0" role="slider"
-               aria-label="End year" title="Drag to set end year"></div>
+               aria-label="End year" title="Drag to set end year">
+            <span class="range-handle-yr" id="rangeHandleRYr" aria-hidden="true">2005</span>
+          </div>
 
           <div class="period-marker" id="periodMarkerL" aria-hidden="true"><span class="period-marker-yr"></span></div>
           <div class="period-marker" id="periodMarkerR" aria-hidden="true"><span class="period-marker-yr"></span></div>

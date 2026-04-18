@@ -20,7 +20,7 @@ export const END_YEAR   = 2005;
 
 // ── Default focused view (medieval / early-modern Gdańsk) ──
 export const DEFAULT_VIEW_START = 1150;
-export const DEFAULT_VIEW_END   = 1750;
+export const DEFAULT_VIEW_END   = 2005;
 
 // Visible range (controlled by the range navigator strip). Defaults to medieval focus.
 export let viewStart = DEFAULT_VIEW_START;

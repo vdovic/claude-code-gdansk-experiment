@@ -568,6 +568,8 @@ function initRangeHandles() {
   const label     = document.getElementById('rangeLabel');
   const reset     = document.getElementById('rangeReset');
   const dragLabel = document.getElementById('rangeDragLabel');
+  const ylEl      = document.getElementById('rangeHandleLYr');
+  const yrEl      = document.getElementById('rangeHandleRYr');
   const pMarkerL  = document.getElementById('periodMarkerL');
   const pMarkerR  = document.getElementById('periodMarkerR');
   if (!track) return;
@@ -596,8 +598,10 @@ function initRangeHandles() {
     muteL.style.width = lPct + '%';
     muteR.style.width = (100 - rPct) + '%';
 
-    // Label
+    // Label (stub) + handle year chips
     label.textContent = viewStart + ' – ' + viewEnd;
+    if (ylEl) ylEl.textContent = viewStart;
+    if (yrEl) yrEl.textContent = viewEnd;
     hl.setAttribute('aria-valuenow', viewStart);
     hr.setAttribute('aria-valuenow', viewEnd);
 
@@ -953,8 +957,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // labelOffset already set by _initViewportToggle via _applyViewport
 
   // Apply default focus view (medieval / early-modern) before first render
-  setViewStart(DEFAULT_VIEW_START);   // 1200
-  setViewEnd(DEFAULT_VIEW_END);       // 1750
+  setViewStart(DEFAULT_VIEW_START);   // 1150
+  setViewEnd(DEFAULT_VIEW_END);       // 2005
 
   // Prime sorted indices with default sort (setSort handles direction + button state)
   setSort('established');
