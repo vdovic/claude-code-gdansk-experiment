@@ -598,10 +598,10 @@ function initRangeHandles() {
     muteL.style.width = lPct + '%';
     muteR.style.width = (100 - rPct) + '%';
 
-    // Label (stub) + handle year chips
+    // Label (stub) + always-visible handle year chips (match handle left %)
     label.textContent = viewStart + ' – ' + viewEnd;
-    if (ylEl) ylEl.textContent = viewStart;
-    if (yrEl) yrEl.textContent = viewEnd;
+    if (ylEl) { ylEl.textContent = viewStart; ylEl.style.left = lPct + '%'; }
+    if (yrEl) { yrEl.textContent = viewEnd;   yrEl.style.left = rPct + '%'; }
     hl.setAttribute('aria-valuenow', viewStart);
     hr.setAttribute('aria-valuenow', viewEnd);
 
