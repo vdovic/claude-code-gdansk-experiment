@@ -752,7 +752,7 @@ export function renderLanes() {
       ? `<span class="lane-cluster-dot" style="background:${cl.color}" title="Cluster ${cl.id}: ${cl.label}"></span>`
       : '';
     const symHtml = ch.symbol
-      ? `<span style="font-size:9px;margin-right:1px;" title="${ch.symbol.desc}">${ch.symbol.emoji}</span>`
+      ? `<span class="tl-sym" data-desc="${ch.symbol.desc}" style="font-size:11px;margin-right:2px;cursor:pointer;">${ch.symbol.emoji}</span>`
       : '';
 
     // Label column — name only (sort value removed to reduce clutter)

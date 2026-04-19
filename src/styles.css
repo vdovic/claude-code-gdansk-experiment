@@ -3293,8 +3293,8 @@ body.mode-churches #contextPanel {
   transition: height 250ms cubic-bezier(0.4, 0, 0.2, 1),
               opacity 200ms ease;
 }
-/* Periods row lives outside #contextPanel — hide it too in churches-only mode */
-body.mode-churches #econErasRow { display: none !important; }
+/* Periods row: always visible on desktop even in churches-only mode.
+   Mobile overrides below (display:flex) remain in effect. */
 /* On mobile the period strip is the primary navigation tool — always show it
    regardless of view mode; lift the scroll to the row itself for reliable
    native touch-scroll behaviour. The "Periods" stub label is hidden to give

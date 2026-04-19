@@ -919,6 +919,43 @@ function _initSyncedPeriodsToggle() {
   document.getElementById('econErasRow')?.classList.add('synced-periods');
 }
 
+// ── Timeline symbol tooltip ────────────────────────────────────────────────
+// Single click/tap on any .tl-sym span (church lane label emoji) shows its
+// description tooltip. Capture phase intercepts before the ch-label opener.
+function _initTlSymTooltip() {
+  const tt = document.createElement('div');
+  tt.id = 'tlSymTT';
+  tt.className = 'ct-sym-tt';   // reuse same CSS as Churches table tooltip
+  document.body.appendChild(tt);
+
+  let _active = null;
+
+  document.addEventListener('click', e => {
+    const sym = e.target.closest('.tl-sym');
+    if (sym) {
+      e.stopPropagation();   // prevent ch-label → drawer open
+      // Toggle off if same sym clicked again
+      if (_active === sym && tt.classList.contains('visible')) {
+        tt.classList.remove('visible'); _active = null; return;
+      }
+      _active = sym;
+      tt.textContent = sym.dataset.desc;
+      const r = sym.getBoundingClientRect();
+      const ttW = 240;
+      let left = Math.max(8 + ttW / 2, Math.min(r.left + r.width / 2, window.innerWidth - ttW / 2 - 8));
+      let top  = r.bottom + 8;
+      if (top + 70 > window.innerHeight - 8) top = Math.max(8, r.top - 78);
+      tt.style.left = left + 'px';
+      tt.style.top  = top  + 'px';
+      tt.classList.add('visible');
+      return;
+    }
+    if (!e.target.closest('#tlSymTT')) {
+      tt.classList.remove('visible'); _active = null;
+    }
+  }, true);  // capture: runs before bubble-phase ch-label click handler
+}
+
 // ── Scroll-down hint (fades out when user scrolls churches) ──
 function _initScrollHint() {
   const hint = document.getElementById('scrollHint');
@@ -1021,6 +1058,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // [EXPERIMENT] Synced periods toggle (align period bands with ruler)
   _initSyncedPeriodsToggle();
+
+  // Timeline symbol tooltip (single click/tap on lane-label emoji)
+  _initTlSymTooltip();
 
   // Mobile touch dismiss
   setupMobileTouchDismiss();
