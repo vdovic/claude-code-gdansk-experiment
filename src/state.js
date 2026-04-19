@@ -310,7 +310,7 @@ export function allTracksOff() { Object.keys(trackVisibility).forEach(k => { tra
 // instead of pixel-based positioning tied to the scrollable content.
 // This fixes the visual drift between the ruler year-scale and the
 // period bands. Toggle via the ⚗ button on the Periods row label.
-export let syncedPeriodsExperiment = false;
+export let syncedPeriodsExperiment = true;
 export function setSyncedPeriodsExperiment(v) { syncedPeriodsExperiment = v; }
 
 // ── Patronage Mode (panel open/close only — no filtering) ──
